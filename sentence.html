@@ -328,9 +328,13 @@ function answer(btn){
   $("score").textContent=String(score);
 
   setTimeout(function(){
-    index++;
-    if(index<7) showQuestion();
-    else finish();
+    if(ok){
+      index++;
+      if(index<7) showQuestion();
+      else finish();
+    }else{
+      showQuestion();
+    }
   },1200);
 }
 

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>技術 期末試験対策 4択ドリル</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--ink:#10233f;--muted:#667085;--line:#d9e2ef;--accent:#246b5f;--good:#087a45;--bad:#c13b32}
@@ -26,20 +26,11 @@ table{width:100%;border-collapse:collapse} th,td{padding:10px;border-bottom:1px 
 .review{background:#fff2cc;color:#795600}
 @media(max-width:600px){.wrap{padding:10px}.card{padding:17px}.q{font-size:25px}}
 </style>
-
-<style id="ipad-gh-pages-compat">
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;min-height:100%}
-body{min-height:100vh;min-height:100dvh;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
-button,a,select,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-button{-webkit-appearance:none;appearance:none}
-select,input,textarea,button{font-size:max(16px,1em)}
-@media(pointer:coarse){button,.choice,.opt,.mode,.btn,.action{min-height:44px}}
-</style>
 </head>
 <body><div class="wrap">
 <section id="start" class="card">
 <h1>🛠 技術 期末試験対策<br>4択ドリル</h1>
-<p class="sub">教科書データをもとに、材料と加工・生物育成・エネルギー変換・情報の技術から出題します。<b>1ターン20問</b>。通常ターン終了後に、今回の誤答・時間切れを優先した<b>復習TURN 20問</b>が入ります。</p>
+<p class="sub">教科書データをもとに、材料と加工・生物育成・エネルギー変換・情報の技術から出題します。<b>1ターン20問</b>。各ターンで、<b>間違えた問題・時間切れの問題は正解するまで同じ問題を繰り返します。</b> 復習TURNも残しています。</p>
 <div class="grid">
 <label><b>今回やる通常ターン数</b><br><select id="turnCount"><option value="1">1ターン（20問＋復習20問）</option><option value="2">2ターン（40問＋復習20問）</option><option value="3" selected>3ターン（60問＋復習20問）</option><option value="4">4ターン（80問＋復習20問）</option><option value="5">5ターン（100問＋復習20問）</option></select></label>
 <label><b>出題範囲</b><br><select id="cat"><option value="ALL">全範囲MIX</option><option>材料と加工</option><option>生物育成</option><option>エネルギー変換</option><option>情報</option></select></label>
@@ -70,18 +61,18 @@ const TURN=20,LIMIT=10,STORE="technology_exam_weak_v1";
 const $=s=>document.querySelector(s); const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const getWeak=()=>JSON.parse(localStorage.getItem(STORE)||"{}"); const saveWeak=w=>localStorage.setItem(STORE,JSON.stringify(w));
 function miss(id){let w=getWeak();w[id]=(w[id]||0)+1;saveWeak(w)} function reward(id){let w=getWeak();if(w[id])w[id]=Math.max(0,w[id]-1);saveWeak(w)}
-let normalTurns=3,cat="ALL",plan=[],ti=0,qi=0,locked=false,timer=null,left=LIMIT,results=[],sessionMiss=[],totalCorrect=0;
+let normalTurns=3,cat="ALL",plan=[],ti=0,qi=0,locked=false,timer=null,left=LIMIT,results=[],sessionMiss=[],totalCorrect=0,retryPending=false;
 function pool(){return cat==="ALL"?ALL:ALL.filter(q=>q.cat===cat)}
 function makeTurns(){let p=shuffle(pool()),arr=[];for(let t=0;t<normalTurns;t++){if(p.length<TURN)p=p.concat(shuffle(pool()));arr.push({type:"normal",label:`TURN ${t+1}`,qs:p.splice(0,TURN)})}return arr}
 function reviewTurn(){let p=pool(),seen=new Set(),pick=[];[...sessionMiss].reverse().forEach(id=>{let q=ALL.find(x=>x.id===id);if(q&&(!cat||cat==="ALL"||q.cat===cat)&&!seen.has(id)){pick.push(q);seen.add(id)}});Object.entries(getWeak()).sort((a,b)=>b[1]-a[1]).forEach(([id])=>{id=+id;let q=p.find(x=>x.id===id);if(q&&!seen.has(id)){pick.push(q);seen.add(id)}});shuffle(p).forEach(q=>{if(pick.length<TURN&&!seen.has(q.id)){pick.push(q);seen.add(q.id)}});while(pick.length<TURN)pick.push(shuffle(p)[0]);return {type:"review",label:"復習 TURN",qs:pick.slice(0,TURN)}}
 function cur(){return plan[ti]}
 function start(){normalTurns=+$("#turnCount").value;cat=$("#cat").value;plan=makeTurns();ti=0;qi=0;results=[];sessionMiss=[];totalCorrect=0;$("#start").classList.add("hidden");$("#final").classList.add("hidden");$("#quiz").classList.remove("hidden");show()}
-function show(){locked=false;clearInterval(timer);left=LIMIT;let q=cur().qs[qi],r=results[ti]||{correct:0,wrong:0,timeout:0,type:cur().type,label:cur().label};results[ti]=r;$("#turnTitle").innerHTML=cur().type==="review"?'<span class="badge review">復習 TURN</span>':cur().label;$("#catLabel").textContent=q.cat;$("#qmeta").textContent=`${qi+1} / 20　｜　このターン ${r.correct} 点`;$("#question").textContent=q.q;$("#bar").style.width=`${qi/20*100}%`;$("#feedback").className="feedback";$("#feedback").innerHTML="";$("#nextBtn").classList.remove("show");$("#options").innerHTML="";shuffle([q.a,...q.d]).forEach(o=>{let b=document.createElement("button");b.className="opt";b.textContent=o;b.onclick=()=>answer(o,b);$("#options").appendChild(b)});tick();timer=setInterval(()=>{left-=.1;if(left<=0){left=0;clearInterval(timer);timeout()}tick()},100)}
+function show(){locked=false;retryPending=false;clearInterval(timer);left=LIMIT;let q=cur().qs[qi],r=results[ti]||{correct:0,wrong:0,timeout:0,type:cur().type,label:cur().label};results[ti]=r;$("#turnTitle").innerHTML=cur().type==="review"?'<span class="badge review">復習 TURN</span>':cur().label;$("#catLabel").textContent=q.cat;$("#qmeta").textContent=`${qi+1} / 20　｜　このターン ${r.correct} 点`;$("#question").textContent=q.q;$("#bar").style.width=`${qi/20*100}%`;$("#feedback").className="feedback";$("#feedback").innerHTML="";$("#nextBtn").classList.remove("show");$("#options").innerHTML="";shuffle([q.a,...q.d]).forEach(o=>{let b=document.createElement("button");b.className="opt";b.textContent=o;b.onclick=()=>answer(o,b);$("#options").appendChild(b)});tick();timer=setInterval(()=>{left-=.1;if(left<=0){left=0;clearInterval(timer);timeout()}tick()},100)}
 function tick(){$("#timer").textContent=left.toFixed(1);$("#timer").classList.toggle("danger",left<=3)}
 function lockAns(a,clicked){document.querySelectorAll(".opt").forEach(b=>{b.disabled=true;if(b.textContent===a)b.classList.add("correct");else if(b===clicked)b.classList.add("wrong");else b.classList.add("dim")})}
-function answer(choice,btn){if(locked)return;locked=true;clearInterval(timer);let q=cur().qs[qi],r=results[ti],ok=choice===q.a;if(ok){r.correct++;totalCorrect++;reward(q.id)}else{r.wrong++;sessionMiss.push(q.id);miss(q.id)}lockAns(q.a,btn);let f=$("#feedback");f.className="feedback show "+(ok?"good":"bad");f.innerHTML=ok?`✅ 正解！ <b>${q.a}</b>`:`❌ 正解は <b>${q.a}</b>`;$("#qmeta").textContent=`${qi+1} / 20　｜　このターン ${r.correct} 点`;if(ok)setTimeout(advance,1000);else $("#nextBtn").classList.add("show")}
-function timeout(){if(locked)return;locked=true;let q=cur().qs[qi],r=results[ti];r.timeout++;sessionMiss.push(q.id);miss(q.id);lockAns(q.a,null);let f=$("#feedback");f.className="feedback show bad";f.innerHTML=`⏰ 時間切れ。正解は <b>${q.a}</b>`;$("#nextBtn").classList.add("show")}
-function advance(){qi++;if(qi>=TURN)finishTurn();else show()} $("#nextBtn").onclick=advance;
+function answer(choice,btn){if(locked)return;locked=true;clearInterval(timer);let q=cur().qs[qi],r=results[ti],ok=choice===q.a;if(ok){r.correct++;totalCorrect++;reward(q.id)}else{r.wrong++;sessionMiss.push(q.id);miss(q.id)}lockAns(q.a,btn);let f=$("#feedback");f.className="feedback show "+(ok?"good":"bad");f.innerHTML=ok?`✅ 正解！ <b>${q.a}</b>`:`❌ 正解は <b>${q.a}</b>`;$("#qmeta").textContent=`${qi+1} / 20　｜　このターン ${r.correct} 点`;if(ok)setTimeout(advance,1000);else{retryPending=true;$("#nextBtn").textContent="もう一度";$("#nextBtn").classList.add("show")}}
+function timeout(){if(locked)return;locked=true;retryPending=true;let q=cur().qs[qi],r=results[ti];r.timeout++;sessionMiss.push(q.id);miss(q.id);lockAns(q.a,null);let f=$("#feedback");f.className="feedback show bad";f.innerHTML=`⏰ 時間切れ。正解は <b>${q.a}</b><br>この問題は正解するまで続きます。`;$("#nextBtn").textContent="もう一度";$("#nextBtn").classList.add("show")}
+function advance(){qi++;if(qi>=TURN)finishTurn();else show()} $("#nextBtn").onclick=()=>{if(retryPending)show();else advance()};
 function finishTurn(){clearInterval(timer);$("#quiz").classList.add("hidden");$("#turnResult").classList.remove("hidden");let r=results[ti];$("#trTitle").textContent=cur().type==="review"?"復習ターン終了！":cur().label+" 終了！";$("#turnScore").textContent=`${r.correct} / 20`;$("#totalScore").textContent=`${totalCorrect} / ${results.filter(Boolean).length*20}`;$("#missCount").textContent=`${r.wrong+r.timeout} 問`;$("#turnMsg").textContent=cur().type==="review"?"今回の誤答・時間切れを中心に復習しました。":(ti===normalTurns-1?"通常ターン終了。次は復習TURNです。":"次の通常ターンへ進みます。");$("#continueBtn").textContent=cur().type==="review"?"最終結果を見る":"次のターンへ"}
 $("#continueBtn").onclick=()=>{$("#turnResult").classList.add("hidden");if(cur().type==="review")return finishAll();ti++;if(ti===normalTurns)plan.push(reviewTurn());qi=0;$("#quiz").classList.remove("hidden");show()};
 function finishAll(){$("#final").classList.remove("hidden");let total=results.length*20,pct=Math.round(totalCorrect/total*100);$("#summary").innerHTML=`<div class="scoregrid"><div class="score">総合得点<b>${totalCorrect} / ${total}</b></div><div class="score">正答率<b>${pct}%</b></div><div class="score">今回の要復習<b>${new Set(sessionMiss).size} 問</b></div></div>`;$("#table").innerHTML='<table><thead><tr><th>ターン</th><th>得点</th><th>誤答</th><th>時間切れ</th></tr></thead><tbody>'+results.map(r=>`<tr><td>${r.type==="review"?"復習 TURN":r.label}</td><td><b>${r.correct} / 20</b></td><td>${r.wrong}</td><td>${r.timeout}</td></tr>`).join("")+'</tbody></table>'}
