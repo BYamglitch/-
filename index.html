@@ -3,47 +3,143 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="期末テスト対策">
 <title>期末テスト対策</title>
-
 <style>
 :root{
-  --bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;
-  --science:#315b9a;--social:#28705f;
+  --bg:#eef3f8;
+  --card:#ffffff;
+  --ink:#172033;
+  --sub:#667085;
+  --line:#d8e1eb;
+  --shadow:0 10px 28px rgba(22,34,51,.10);
 }
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--text)}
-body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
-.wrap{width:min(920px,100%)}
-.card{background:var(--card);border-radius:28px;padding:clamp(24px,4vw,42px);box-shadow:0 18px 45px rgba(23,32,51,.10)}
-h1{font-size:clamp(30px,5vw,48px);margin:0 0 10px;text-align:center}
-.lead{font-size:clamp(16px,2.2vw,20px);line-height:1.7;color:var(--muted);text-align:center;margin-bottom:26px}
-.grid{display:grid;gap:16px}
-.btn{display:flex;align-items:center;gap:18px;width:100%;min-height:112px;padding:20px 24px;border-radius:22px;text-decoration:none;color:#fff;font-weight:800;box-shadow:0 10px 24px rgba(0,0,0,.10);transition:transform .08s ease}
-.btn:active{transform:scale(.985)}
-.icon{font-size:38px;flex:0 0 auto}
-.text{display:block;font-size:clamp(23px,3vw,31px);line-height:1.25}
-.sub{display:block;margin-top:6px;font-size:14px;line-height:1.45;opacity:.9;font-weight:700}
-.science{background:linear-gradient(135deg,#274f8c,#5377b2)}
-.social{background:linear-gradient(135deg,#1c6252,#438878)}
-.chem{background:linear-gradient(135deg,#365e9f,#6282b8)}
-.bio{background:linear-gradient(135deg,#456f57,#6d9478)}
-.mix-sci{background:linear-gradient(135deg,#203d78,#4d67a7)}
-.japan{background:linear-gradient(135deg,#8b4d52,#b87378)}
-.world{background:linear-gradient(135deg,#2f6985,#5a91aa)}
-.mix-soc{background:linear-gradient(135deg,#185d4d,#3d806f)}
-.back{display:block;margin-top:18px;text-align:center;color:#526070;font-size:16px;font-weight:700;text-decoration:none;padding:14px}
-@media(min-width:700px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}.grid.three .btn{min-height:150px;flex-direction:column;justify-content:center;text-align:center}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;min-height:100%}
+body{
+  margin:0;
+  min-height:100vh;
+  min-height:100dvh;
+  font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+  color:var(--ink);
+  background:linear-gradient(180deg,#eaf1f8 0%,#f7f9fc 70%);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.wrap{width:min(980px,100%);margin:0 auto;padding:28px 18px 40px}
+.hero{
+  background:rgba(255,255,255,.90);
+  border:1px solid var(--line);
+  border-radius:28px;
+  padding:28px;
+  box-shadow:var(--shadow);
+}
+h1{
+  margin:0 0 8px;
+  text-align:center;
+  font-size:clamp(32px,6vw,48px);
+  font-weight:950;
+  letter-spacing:.02em;
+}
+.lead{
+  text-align:center;
+  color:var(--sub);
+  font-size:16px;
+  line-height:1.6;
+  margin-bottom:24px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+}
+.card{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  text-decoration:none;
+  color:#fff;
+  border-radius:22px;
+  min-height:126px;
+  padding:20px 22px;
+  box-shadow:0 9px 22px rgba(22,34,51,.15);
+  touch-action:manipulation;
+  transition:transform .08s ease, filter .08s ease;
+}
+.card:active{transform:scale(.985);filter:brightness(.97)}
+.icon{font-size:42px;line-height:1}
+.card h2{font-size:27px;margin:0 0 5px;font-weight:950}
+.card p{margin:0;font-size:14px;line-height:1.45;opacity:.92;font-weight:700}
+.english{background:linear-gradient(135deg,#4a3ec8,#685be0)}
+.science{background:linear-gradient(135deg,#244b9b,#3169cb)}
+.social{background:linear-gradient(135deg,#0e6a61,#15877b)}
+.homeec{background:linear-gradient(135deg,#b35b16,#d97923)}
+.tech{background:linear-gradient(135deg,#4b5563,#687386)}
+.note{
+  margin-top:18px;
+  text-align:center;
+  color:var(--sub);
+  font-size:13px;
+  line-height:1.55;
+}
+@media(max-width:720px){
+  .grid{grid-template-columns:1fr}
+  .hero{padding:20px}
+  .card{min-height:108px}
+}
 </style>
-
 </head>
 <body>
-<div class="wrap"><div class="card">
-<h1>期末テスト対策</h1>
-<div class="lead">科目を選んでください。</div>
-<div class="grid two">
-<a class="btn science" href="science.html"><span class="icon">🔬</span><span><span class="text">理科</span><span class="sub">化学・生物・総合シャッフル</span></span></a><a class="btn social" href="social.html"><span class="icon">🌍</span><span><span class="text">社会</span><span class="sub">日本地理・世界地理・総合シャッフル</span></span></a>
-</div>
+<main class="wrap">
+  <section class="hero">
+    <h1>期末テスト対策</h1>
+    <div class="lead">科目を選んでください。</div>
 
-</div></div>
+    <div class="grid">
+      <a class="card english" href="english.html">
+        <div class="icon">🇬🇧</div>
+        <div>
+          <h2>英語</h2>
+          <p>落ち単語・音声3択・スペリング・英文組み立て・Apple Pencil書き取り</p>
+        </div>
+      </a>
+
+      <a class="card science" href="science.html">
+        <div class="icon">🔬</div>
+        <div>
+          <h2>理科</h2>
+          <p>化学・生物・総合シャッフル</p>
+        </div>
+      </a>
+
+      <a class="card social" href="social.html">
+        <div class="icon">🌍</div>
+        <div>
+          <h2>社会</h2>
+          <p>日本地理・世界地理・総合シャッフル</p>
+        </div>
+      </a>
+
+      <a class="card homeec" href="home-economics.html">
+        <div class="icon">🍳</div>
+        <div>
+          <h2>家庭科</h2>
+          <p>期末試験対策4択ドリル</p>
+        </div>
+      </a>
+
+      <a class="card tech" href="technology.html">
+        <div class="icon">🛠️</div>
+        <div>
+          <h2>技術</h2>
+          <p>期末試験対策4択ドリル</p>
+        </div>
+      </a>
+    </div>
+
+    <div class="note">GitHub Pages用トップ画面 / iPad Safari・Chrome対応</div>
+  </section>
+</main>
 </body>
 </html>
