@@ -1,7 +1,49 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>社会</title>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>社会</title>
+
 <style>
-:root{--bg:#f4f7fb;--card:#fff;--ink:#142033;--sub:#64748b;--line:#dbe4ef}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{-webkit-text-size-adjust:100%}body{margin:0;min-height:100vh;min-height:100dvh;background:linear-gradient(#edf4fb,#f7f9fc);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;color:var(--ink);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-.wrap{max-width:900px;margin:auto;padding:24px 18px 34px}header{margin:4px 2px 22px}h1{font-size:clamp(29px,5.5vw,43px);margin:0 0 8px;font-weight:950}.sub{color:var(--sub);font-size:16px;line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;min-height:180px;box-shadow:0 9px 26px #19304b12;display:flex;flex-direction:column;touch-action:manipulation}.card:active{transform:scale(.985)}.icon{font-size:38px}.card h2{font-size:23px;margin:10px 0 7px}.card p{margin:0 0 14px;color:var(--sub);line-height:1.55}.go{margin-top:auto;font-weight:900}.back{display:inline-block;margin-top:22px;text-decoration:none;color:#334155;font-weight:850;padding:11px 14px;background:#fff;border:1px solid var(--line);border-radius:12px;touch-action:manipulation}@media(max-width:640px){.grid{grid-template-columns:1fr}.card{min-height:145px}}
-</style></head><body><main class="wrap"><header><h1>社会</h1><div class="sub">地理を2分野に分けて練習</div></header><section class="grid"><a class="card" href="social-world.html"><div class="icon">🌏</div><h2>世界地理</h2><p>第1〜8章の世界地理を30問ずつ。</p><div class="go">開く →</div></a>
-<a class="card" href="social-japan.html"><div class="icon">🗾</div><h2>日本地理</h2><p>第9〜16章の日本地理を30問ずつ。</p><div class="go">開く →</div></a></section><a class="back" href="index.html">← 科目選択へ戻る</a></main></body></html>
+:root{
+  --bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;
+  --science:#315b9a;--social:#28705f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--text)}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
+.wrap{width:min(920px,100%)}
+.card{background:var(--card);border-radius:28px;padding:clamp(24px,4vw,42px);box-shadow:0 18px 45px rgba(23,32,51,.10)}
+h1{font-size:clamp(30px,5vw,48px);margin:0 0 10px;text-align:center}
+.lead{font-size:clamp(16px,2.2vw,20px);line-height:1.7;color:var(--muted);text-align:center;margin-bottom:26px}
+.grid{display:grid;gap:16px}
+.btn{display:flex;align-items:center;gap:18px;width:100%;min-height:112px;padding:20px 24px;border-radius:22px;text-decoration:none;color:#fff;font-weight:800;box-shadow:0 10px 24px rgba(0,0,0,.10);transition:transform .08s ease}
+.btn:active{transform:scale(.985)}
+.icon{font-size:38px;flex:0 0 auto}
+.text{display:block;font-size:clamp(23px,3vw,31px);line-height:1.25}
+.sub{display:block;margin-top:6px;font-size:14px;line-height:1.45;opacity:.9;font-weight:700}
+.science{background:linear-gradient(135deg,#274f8c,#5377b2)}
+.social{background:linear-gradient(135deg,#1c6252,#438878)}
+.chem{background:linear-gradient(135deg,#365e9f,#6282b8)}
+.bio{background:linear-gradient(135deg,#456f57,#6d9478)}
+.mix-sci{background:linear-gradient(135deg,#203d78,#4d67a7)}
+.japan{background:linear-gradient(135deg,#8b4d52,#b87378)}
+.world{background:linear-gradient(135deg,#2f6985,#5a91aa)}
+.mix-soc{background:linear-gradient(135deg,#185d4d,#3d806f)}
+.back{display:block;margin-top:18px;text-align:center;color:#526070;font-size:16px;font-weight:700;text-decoration:none;padding:14px}
+@media(min-width:700px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}.grid.three .btn{min-height:150px;flex-direction:column;justify-content:center;text-align:center}}
+</style>
+
+</head>
+<body>
+<div class="wrap"><div class="card">
+<h1>社会</h1>
+<div class="lead">やる内容を選んでください。</div>
+<div class="grid three">
+<a class="btn japan" href="social-japan.html"><span class="icon">🗾</span><span><span class="text">日本地理</span><span class="sub">日本の自然・産業・地方</span></span></a><a class="btn world" href="social-world.html"><span class="icon">🌏</span><span><span class="text">世界地理</span><span class="sub">各州・気候・産業</span></span></a><a class="btn mix-soc" href="social-shuffle.html"><span class="icon">🔀</span><span><span class="text">シャッフル</span><span class="sub">日本15問＋世界15問</span></span></a>
+</div>
+<a class="back" href="index.html">← 戻る</a>
+</div></div>
+</body>
+</html>
