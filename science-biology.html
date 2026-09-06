@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f4f7fb">
+<title>理科 生物 期末テスト4択ドリル</title>
+<style>
+:root {
+  --bg:#f4f7fb; --card:#ffffff; --ink:#172033; --muted:#657083;
+  --accent:#315efb; --good:#158f45; --bad:#cf3333; --warn:#d27d00; --line:#dce3ed;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+.app{max-width:760px;margin:auto;padding:16px 14px 34px;min-height:100dvh}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 8px 28px rgba(30,42,70,.07)}
+h1{font-size:clamp(26px,7vw,38px);line-height:1.2;margin:7px 0 10px}
+.lead{color:var(--muted);line-height:1.65;margin-bottom:18px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode{min-height:108px;border:2px solid var(--line);background:#fff;border-radius:18px;padding:14px;text-align:left;font-weight:900;font-size:20px;cursor:pointer}
+.mode small{display:block;font-size:12px;color:var(--muted);margin-top:7px;font-weight:650;line-height:1.5}
+.mode:active{transform:scale(.985)}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.pill{font-size:13px;font-weight:850;background:#eef2f8;padding:7px 10px;border-radius:999px;white-space:nowrap}
+.progress{height:10px;background:#e6ebf3;border-radius:999px;overflow:hidden;margin-bottom:12px}
+.progress div{height:100%;background:var(--accent);width:0;transition:width .2s}
+.timerrow{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.timerNumber{font-size:22px;font-weight:950;min-width:44px;text-align:center}
+.timer{height:12px;flex:1;background:#e8edf4;border-radius:999px;overflow:hidden}
+.timer div{height:100%;width:100%;background:var(--accent)}
+.section{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:7px}
+.question{font-size:clamp(21px,5.5vw,29px);font-weight:900;line-height:1.45;margin:6px 0 18px}
+.choices{display:grid;gap:11px}
+.choice{width:100%;min-height:64px;border:2px solid var(--line);background:#fff;border-radius:16px;padding:13px 14px;text-align:left;font-size:18px;font-weight:800;line-height:1.35;cursor:pointer}
+.choice.correct{border-color:var(--good);background:#ebf8ef;color:#0e6c33}
+.choice.wrong{border-color:var(--bad);background:#fff0f0;color:#982626}
+.choice:disabled{cursor:default}
+.feedback{display:none;margin-top:14px;padding:13px 14px;border-radius:14px;background:#f2f5f9;line-height:1.5}
+.feedback.show{display:block}
+.feedback.good{border-left:5px solid var(--good)}
+.feedback.bad{border-left:5px solid var(--bad)}
+.next{display:none;width:100%;margin-top:14px;border:0;border-radius:15px;background:var(--accent);color:#fff;font-weight:900;font-size:18px;padding:15px;cursor:pointer}
+.next.show{display:block}
+.bigscore{font-size:46px;font-weight:1000;margin:10px 0 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:16px 0}
+.stat{background:#f4f6fa;border-radius:14px;padding:12px 8px;text-align:center}
+.stat b{display:block;font-size:25px}
+.actions{display:grid;gap:10px}
+.action{border:0;border-radius:15px;padding:14px;font-size:17px;font-weight:900;cursor:pointer}
+.primary{background:var(--accent);color:#fff}
+.secondary{background:#edf1f7;color:var(--ink)}
+.review{background:#fff2df;color:#824a00}
+.note{font-size:12px;color:var(--muted);line-height:1.6;margin-top:16px}
+.hidden{display:none!important}
+.badgecalc{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#fff1d8;color:#8b5700;font-size:11px}
+@media(max-width:440px){
+  .mode-grid{grid-template-columns:1fr}
+  .mode{min-height:82px}
+  .card{padding:17px}
+}
+
+.mastery-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 18px}
+.mastery-card{background:#f6f8fc;border:1px solid var(--line);border-radius:15px;padding:12px}
+.mastery-label{font-size:13px;font-weight:850;color:var(--muted);margin-bottom:5px}
+.mastery-count{font-size:23px;font-weight:950}
+.mastery-bar{height:8px;background:#e3e8f0;border-radius:999px;overflow:hidden;margin-top:8px}
+.mastery-bar>div{height:100%;background:var(--accent);width:0;transition:width .25s}
+
+.turn-select{margin:14px 0 16px;padding:14px;border:1px solid var(--line);border-radius:16px;background:#f7f9fc}
+.turn-title{font-weight:900;margin-bottom:10px}
+.turn-buttons{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.turn-btn{border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 4px;font-weight:900;font-size:17px;cursor:pointer}
+.turn-btn.selected{border-color:var(--accent);background:#eef4ff}
+.turn-note{font-size:12px;color:var(--muted);margin-top:9px}
+.round-summary{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:#f7f9fc}
+.round-summary h3{margin:0 0 10px;font-size:17px}
+.round-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #d8deea;font-weight:800}
+.round-row:last-of-type{border-bottom:none}
+.round-total{margin-top:10px;padding-top:10px;border-top:2px solid #d8deea;font-size:21px;font-weight:950}
+.review-note{font-size:12px;color:var(--muted);margin-top:8px}
+
+</style>
+
+<style id="ipad-gh-pages-compat">
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;min-height:100%}
+body{min-height:100vh;min-height:100dvh;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
+button,a,select,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button{-webkit-appearance:none;appearance:none}
+select,input,textarea,button{font-size:max(16px,1em)}
+@media(pointer:coarse){button,.choice,.opt,.mode,.btn,.action{min-height:44px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="start" class="card">
+  <div style="font-size:42px">🔬</div>
+  <h1>理科・生物<br>期末テスト4択ドリル</h1>
+  <div class="lead">1ターン30問。1〜5ターンから選択できます。各通常ターンの正答数と、選んだ通常ターン全体の合計を n / n で表示します。復習ターンは合計から除外します。通常10秒、計算問題のみ20秒です。</div>
+  
+<div class="mastery-wrap">
+  <div class="mastery-card"><div class="mastery-label">🧪 化学の消化状況</div><div class="mastery-count"><span id="chemMastered">0</span> / <span id="chemTotal">0</span></div><div class="mastery-bar"><div id="chemMasteryBar"></div></div></div>
+  <div class="mastery-card"><div class="mastery-label">🦎 生物の消化状況</div><div class="mastery-count"><span id="bioMastered">0</span> / <span id="bioTotal">0</span></div><div class="mastery-bar"><div id="bioMasteryBar"></div></div></div>
+</div>
+
+<div class="turn-select">
+  <div class="turn-title">今回やる通常ターン数</div>
+  <div class="turn-buttons">
+    <button class="turn-btn" data-turns="1">1</button>
+    <button class="turn-btn" data-turns="2">2</button>
+    <button class="turn-btn selected" data-turns="3">3</button>
+    <button class="turn-btn" data-turns="4">4</button>
+    <button class="turn-btn" data-turns="5">5</button>
+  </div>
+  <div class="turn-note">1ターン30問。復習ターンは合計点に含めません。</div>
+</div>
+
+<div class="mode-grid">
+<button class="mode" data-mode="bio">🦎 生物<small>動物の特徴と分類＋トカゲ・ヤモリ・イモリ資料</small></button>
+<button class="mode" data-mode="weak">💀 生物の苦手だけ<small>誤答・時間切れを優先して30問</small></button>
+</div>
+<div class="note">誤答履歴はこの端末のブラウザ内だけに保存されます。外部通信はしません。</div>
+</section>
+
+<section id="quiz" class="card hidden">
+  <div class="meta">
+    <span id="modePill" class="pill"></span>
+    <span id="counter" class="pill">1 / 30</span>
+  </div>
+  <div class="progress"><div id="progressBar"></div></div><div id="currentMastery" class="section" style="margin:-2px 0 9px;font-weight:850"></div>
+
+  <div class="timerrow">
+    <div id="timerNum" class="timerNumber">10</div>
+    <div class="timer"><div id="timerBar"></div></div>
+  </div>
+
+  <div id="section" class="section"></div>
+  <div id="question" class="question"></div>
+  <div id="choices" class="choices"></div>
+
+  <div id="feedback" class="feedback"></div>
+  <button id="nextBtn" class="next">次の問題へ</button>
+</section>
+
+<section id="result" class="card hidden">
+  <div style="font-size:42px">🏁</div>
+  <h1>1ターン終了！</h1>
+  <div id="score" class="bigscore"></div>
+  <div id="scoreText" class="lead"></div>
+  <div class="stats">
+    <div class="stat"><b id="correctCount">0</b>正解</div>
+    <div class="stat"><b id="wrongCount">0</b>誤答</div>
+    <div class="stat"><b id="timeoutCount">0</b>時間切れ</div>
+  </div>
+  <div id="encourage" class="lead"></div>
+
+<div id="runSummary" class="round-summary hidden"></div>
+
+  <div class="actions">
+    <button id="retryWrong" class="action review">🔥 間違えた問題だけ復習</button>
+    <button id="sameAgain" class="action primary">もう1ターン</button>
+    <button id="homeBtn" class="action secondary">科目選択へ戻る</button>
+  </div>
+</section>
+
+</div>
+
+<script>
+const ALL = [{"id": 1, "subject": "化学", "section": "物質のとけ方", "q": "物質が液体にとけて、全体が均一になった液を何というか。", "a": "溶液", "type": "term", "calc": false, "explain": "正解：溶液"}, {"id": 2, "subject": "化学", "section": "物質のとけ方", "q": "水に物質がとけた溶液を何というか。", "a": "水溶液", "type": "term", "calc": false, "explain": "正解：水溶液"}, {"id": 3, "subject": "化学", "section": "物質のとけ方", "q": "溶液にとけている物質を何というか。", "a": "溶質", "type": "term", "calc": false, "explain": "正解：溶質"}, {"id": 4, "subject": "化学", "section": "物質のとけ方", "q": "溶質をとかしている液体を何というか。", "a": "溶媒", "type": "term", "calc": false, "explain": "正解：溶媒"}, {"id": 5, "subject": "化学", "section": "物質のとけ方", "q": "食塩水では、食塩は何にあたるか。", "a": "溶質", "type": "term", "calc": false, "explain": "正解：溶質"}, {"id": 6, "subject": "化学", "section": "物質のとけ方", "q": "食塩水では、水は何にあたるか。", "a": "溶媒", "type": "term", "calc": false, "explain": "正解：溶媒"}, {"id": 7, "subject": "化学", "section": "物質のとけ方", "q": "物質が水にとけたとき、溶質は水溶液中にどのように広がっているか。", "a": "全体に均一に広がっている", "type": "state", "calc": false, "explain": "正解：全体に均一に広がっている"}, {"id": 8, "subject": "化学", "section": "物質のとけ方", "q": "物質が水にとけても、全体の質量はどうなるか。", "a": "変わらない", "type": "state", "calc": false, "explain": "正解：変わらない"}, {"id": 9, "subject": "化学", "section": "物質のとけ方", "q": "水溶液の上の方と下の方で、濃さはどうなっているか。", "a": "同じ（均一）", "type": "state", "calc": false, "explain": "正解：同じ（均一）"}, {"id": 10, "subject": "化学", "section": "物質のとけ方", "q": "水にとけて見えなくなった物質は、なくなったといえるか。", "a": "いえない", "type": "yn", "calc": false, "explain": "正解：いえない"}, {"id": 11, "subject": "化学", "section": "物質のとけ方", "q": "粒子のモデルでは、水にとけた物質の粒子はどのように存在するか。", "a": "全体に均一に散らばっている", "type": "state", "calc": false, "explain": "正解：全体に均一に散らばっている"}, {"id": 12, "subject": "化学", "section": "物質のとけ方", "q": "一定量の水に物質を加え続け、とけ残りが生じたとき、その物質は水にどこまでとけたと考えるか。", "a": "限度まで", "type": "state", "calc": false, "explain": "正解：限度まで"}, {"id": 13, "subject": "化学", "section": "物質のとけ方", "q": "透明な水溶液は、必ず無色であるといえるか。", "a": "いえない", "type": "yn", "calc": false, "explain": "正解：いえない"}, {"id": 14, "subject": "化学", "section": "物質のとけ方", "q": "水溶液をしばらく静置したとき、溶質が下に沈んで濃さが変わるか。", "a": "変わらない", "type": "state", "calc": false, "explain": "正解：変わらない"}, {"id": 15, "subject": "化学", "section": "物質のとけ方", "q": "水溶液をろ過したとき、ろ液にも溶質は含まれるか。", "a": "含まれる", "type": "yn", "calc": false, "explain": "正解：含まれる"}, {"id": 16, "subject": "化学", "section": "濃さの表し方", "q": "水溶液の濃さを表す代表的な方法を何というか。", "a": "質量パーセント濃度", "type": "term", "calc": false, "explain": "正解：質量パーセント濃度"}, {"id": 17, "subject": "化学", "section": "濃さの表し方", "q": "質量パーセント濃度は、溶液の質量に対する何の質量の割合か。", "a": "溶質", "type": "term", "calc": false, "explain": "正解：溶質"}, {"id": 18, "subject": "化学", "section": "濃さの表し方", "q": "質量パーセント濃度を求める式はどれか。", "a": "溶質の質量÷溶液の質量×100", "type": "formula", "calc": false, "explain": "正解：溶質の質量÷溶液の質量×100"}, {"id": 19, "subject": "化学", "section": "濃さの表し方", "q": "溶液の質量は、溶質の質量と何の質量の和か。", "a": "溶媒", "type": "term", "calc": false, "explain": "正解：溶媒"}, {"id": 20, "subject": "化学", "section": "濃さの表し方", "q": "食塩10gを水90gにとかした。食塩水の質量は何gか。", "a": "100g", "type": "calc", "calc": true, "explain": "正解：100g"}, {"id": 21, "subject": "化学", "section": "濃さの表し方", "q": "食塩10gを水90gにとかした食塩水の質量パーセント濃度は何％か。", "a": "10％", "type": "calc", "calc": true, "explain": "正解：10％"}, {"id": 22, "subject": "化学", "section": "濃さの表し方", "q": "食塩5gを水45gにとかした食塩水の質量は何gか。", "a": "50g", "type": "calc", "calc": true, "explain": "正解：50g"}, {"id": 23, "subject": "化学", "section": "濃さの表し方", "q": "食塩5gを水45gにとかした食塩水の質量パーセント濃度は何％か。", "a": "10％", "type": "calc", "calc": true, "explain": "正解：10％"}, {"id": 24, "subject": "化学", "section": "濃さの表し方", "q": "同じ量の溶質を、より少ない水にとかすと、濃度はどうなるか。", "a": "高くなる", "type": "state", "calc": false, "explain": "正解：高くなる"}, {"id": 25, "subject": "化学", "section": "濃さの表し方", "q": "同じ濃度の水溶液では、取り出す量が変わっても質量パーセント濃度は変わるか。", "a": "変わらない", "type": "state", "calc": false, "explain": "正解：変わらない"}, {"id": 26, "subject": "化学", "section": "濃さの表し方", "q": "質量パーセント濃度20％の水溶液100gに含まれる溶質は何gか。", "a": "20g", "type": "calc", "calc": true, "explain": "正解：20g"}, {"id": 27, "subject": "化学", "section": "濃さの表し方", "q": "質量パーセント濃度5％の水溶液200gに含まれる溶質は何gか。", "a": "10g", "type": "calc", "calc": true, "explain": "正解：10g"}, {"id": 28, "subject": "化学", "section": "濃さの表し方", "q": "溶質20g、水80gからできる水溶液の質量パーセント濃度は何％か。", "a": "20％", "type": "calc", "calc": true, "explain": "正解：20％"}, {"id": 29, "subject": "化学", "section": "濃さの表し方", "q": "水溶液の濃さを比較するとき、溶質の量だけを比べればよいか。", "a": "よくない", "type": "yn", "calc": false, "explain": "正解：よくない"}, {"id": 30, "subject": "化学", "section": "濃さの表し方", "q": "質量パーセント濃度の単位は何か。", "a": "％", "type": "unit", "calc": false, "explain": "正解：％"}, {"id": 31, "subject": "化学", "section": "溶質のとり出し方", "q": "一定量の水にとける物質の限度の量を何というか。", "a": "溶解度", "type": "term", "calc": false, "explain": "正解：溶解度"}, {"id": 32, "subject": "化学", "section": "溶質のとり出し方", "q": "溶解度は、ふつう水何gにとける物質の質量で表すか。", "a": "100g", "type": "number", "calc": false, "explain": "正解：100g"}, {"id": 33, "subject": "化学", "section": "溶質のとり出し方", "q": "ある温度で物質が限度までとけている水溶液を何というか。", "a": "飽和水溶液", "type": "term", "calc": false, "explain": "正解：飽和水溶液"}, {"id": 34, "subject": "化学", "section": "溶質のとり出し方", "q": "溶解度と温度の関係を表したグラフを何というか。", "a": "溶解度曲線", "type": "term", "calc": false, "explain": "正解：溶解度曲線"}, {"id": 35, "subject": "化学", "section": "溶質のとり出し方", "q": "多くの固体では、水の温度が高くなると溶解度はどうなるか。", "a": "大きくなる", "type": "state", "calc": false, "explain": "正解：大きくなる"}, {"id": 36, "subject": "化学", "section": "溶質のとり出し方", "q": "高温の飽和水溶液を冷やして、溶質を結晶として取り出す方法を何というか。", "a": "再結晶", "type": "term", "calc": false, "explain": "正解：再結晶"}, {"id": 37, "subject": "化学", "section": "溶質のとり出し方", "q": "水溶液から水を蒸発させて溶質を取り出す方法を何というか。", "a": "蒸発", "type": "term", "calc": false, "explain": "正解：蒸発"}, {"id": 38, "subject": "化学", "section": "溶質のとり出し方", "q": "結晶とは、物質をつくる粒子がどのように並んだ固体か。", "a": "規則正しく並んだ固体", "type": "state", "calc": false, "explain": "正解：規則正しく並んだ固体"}, {"id": 39, "subject": "化学", "section": "溶質のとり出し方", "q": "温度による溶解度の差が大きい物質は、冷却による再結晶に適しているか。", "a": "適している", "type": "yn", "calc": false, "explain": "正解：適している"}, {"id": 40, "subject": "化学", "section": "溶質のとり出し方", "q": "温度による溶解度の変化が小さい物質では、溶質を取り出すためにどの方法が有効か。", "a": "水を蒸発させる", "type": "method", "calc": false, "explain": "正解：水を蒸発させる"}, {"id": 41, "subject": "化学", "section": "溶質のとり出し方", "q": "飽和水溶液を冷やして結晶が出たとき、残った液を何というか。", "a": "母液", "type": "term", "calc": false, "explain": "正解：母液"}, {"id": 42, "subject": "化学", "section": "溶質のとり出し方", "q": "水溶液を冷やして結晶が出るのは、温度低下によって何が小さくなるためか。", "a": "溶解度", "type": "term", "calc": false, "explain": "正解：溶解度"}, {"id": 43, "subject": "化学", "section": "溶質のとり出し方", "q": "水を蒸発させると結晶が出るのは、何の量が少なくなるためか。", "a": "水", "type": "term", "calc": false, "explain": "正解：水"}, {"id": 44, "subject": "化学", "section": "溶質のとり出し方", "q": "同じ物質の結晶は、基本的に決まった形を示すか。", "a": "示す", "type": "yn", "calc": false, "explain": "正解：示す"}, {"id": 45, "subject": "化学", "section": "溶質のとり出し方", "q": "溶解度曲線から、ある温度の水100gにとける限度の質量を読み取れるか。", "a": "読み取れる", "type": "yn", "calc": false, "explain": "正解：読み取れる"}, {"id": 46, "subject": "化学", "section": "物質のすがたとその変化", "q": "固体が液体に変化することを何というか。", "a": "融解", "type": "term", "calc": false, "explain": "正解：融解"}, {"id": 47, "subject": "化学", "section": "物質のすがたとその変化", "q": "液体が固体に変化することを何というか。", "a": "凝固", "type": "term", "calc": false, "explain": "正解：凝固"}, {"id": 48, "subject": "化学", "section": "物質のすがたとその変化", "q": "液体が気体に変化することを何というか。", "a": "気化", "type": "term", "calc": false, "explain": "正解：気化"}, {"id": 49, "subject": "化学", "section": "物質のすがたとその変化", "q": "気体が液体に変化することを何というか。", "a": "凝縮", "type": "term", "calc": false, "explain": "正解：凝縮"}, {"id": 50, "subject": "化学", "section": "物質のすがたとその変化", "q": "物質の状態が変化しても、その物質そのものは別の物質に変わるか。", "a": "変わらない", "type": "state", "calc": false, "explain": "正解：変わらない"}, {"id": 51, "subject": "化学", "section": "物質のすがたとその変化", "q": "状態変化の前後で物質の質量はどうなるか。", "a": "変わらない", "type": "state", "calc": false, "explain": "正解：変わらない"}, {"id": 52, "subject": "化学", "section": "物質のすがたとその変化", "q": "固体・液体・気体のうち、粒子が最も自由に動き回る状態はどれか。", "a": "気体", "type": "term", "calc": false, "explain": "正解：気体"}, {"id": 53, "subject": "化学", "section": "物質のすがたとその変化", "q": "純粋な物質が沸騰している間、温度は基本的にどうなるか。", "a": "一定に保たれる", "type": "state", "calc": false, "explain": "正解：一定に保たれる"}, {"id": 54, "subject": "化学", "section": "物質のすがたとその変化", "q": "液体が沸騰するときの温度を何というか。", "a": "沸点", "type": "term", "calc": false, "explain": "正解：沸点"}, {"id": 55, "subject": "化学", "section": "物質のすがたとその変化", "q": "固体がとけるときの温度を何というか。", "a": "融点", "type": "term", "calc": false, "explain": "正解：融点"}, {"id": 56, "subject": "化学", "section": "物質のすがたとその変化", "q": "物質によって融点や沸点は同じか、異なるか。", "a": "異なる", "type": "state", "calc": false, "explain": "正解：異なる"}, {"id": 57, "subject": "化学", "section": "混合物の分け方", "q": "液体を加熱して気体にし、それを冷やして再び液体として集める方法を何というか。", "a": "蒸留", "type": "term", "calc": false, "explain": "正解：蒸留"}, {"id": 58, "subject": "化学", "section": "混合物の分け方", "q": "蒸留は、液体の何の違いを利用して混合物を分ける方法か。", "a": "沸点", "type": "term", "calc": false, "explain": "正解：沸点"}, {"id": 59, "subject": "化学", "section": "混合物の分け方", "q": "水とエタノールの混合物を加熱したとき、先に多く気体になりやすいのはどちらか。", "a": "沸点の低い方", "type": "state", "calc": false, "explain": "正解：沸点の低い方"}, {"id": 60, "subject": "化学", "section": "混合物の分け方", "q": "蒸留装置で出てきた気体を冷やす部分の役割は何か。", "a": "気体を液体に戻す", "type": "method", "calc": false, "explain": "正解：気体を液体に戻す"}, {"id": 61, "subject": "生物", "section": "動物の体のつくりと生活", "q": "動物の体には、その生活のしかたに合ったどのような特徴が見られるか。", "a": "体のつくり", "type": "term", "calc": false, "explain": "正解：体のつくり"}, {"id": 62, "subject": "生物", "section": "動物の体のつくりと生活", "q": "肉食動物と草食動物では、食べるものの違いに応じて何のつくりに違いが見られるか。", "a": "歯", "type": "term", "calc": false, "explain": "正解：歯"}, {"id": 63, "subject": "生物", "section": "動物の体のつくりと生活", "q": "肉食動物で、獲物をとらえるのに適した発達した歯は何か。", "a": "犬歯", "type": "term", "calc": false, "explain": "正解：犬歯"}, {"id": 64, "subject": "生物", "section": "動物の体のつくりと生活", "q": "草食動物で、草をすりつぶすのに適した発達した歯は何か。", "a": "臼歯", "type": "term", "calc": false, "explain": "正解：臼歯"}, {"id": 65, "subject": "生物", "section": "動物の体のつくりと生活", "q": "肉食動物では、目は顔の前方につくことが多いか、側方につくことが多いか。", "a": "前方", "type": "position", "calc": false, "explain": "正解：前方"}, {"id": 66, "subject": "生物", "section": "動物の体のつくりと生活", "q": "草食動物では、目は顔の前方につくことが多いか、側方につくことが多いか。", "a": "側方", "type": "position", "calc": false, "explain": "正解：側方"}, {"id": 67, "subject": "生物", "section": "動物の体のつくりと生活", "q": "肉食動物の目が前方についていることの利点は何か。", "a": "立体的に見える範囲が広い", "type": "state", "calc": false, "explain": "正解：立体的に見える範囲が広い"}, {"id": 68, "subject": "生物", "section": "動物の体のつくりと生活", "q": "草食動物の目が側方についていることの利点は何か。", "a": "広い範囲を見渡せる", "type": "state", "calc": false, "explain": "正解：広い範囲を見渡せる"}, {"id": 69, "subject": "生物", "section": "背骨のある動物", "q": "背骨がある動物を何というか。", "a": "脊椎動物", "type": "term", "calc": false, "explain": "正解：脊椎動物"}, {"id": 70, "subject": "生物", "section": "背骨のある動物", "q": "脊椎動物の体を内部から支える骨格を何というか。", "a": "内骨格", "type": "term", "calc": false, "explain": "正解：内骨格"}, {"id": 71, "subject": "生物", "section": "背骨のある動物", "q": "脊椎動物の背中側に連なる骨を何というか。", "a": "背骨", "type": "term", "calc": false, "explain": "正解：背骨"}, {"id": 72, "subject": "生物", "section": "背骨のある動物", "q": "脊椎動物は大きく何種類のなかまに分けられるか。", "a": "5種類", "type": "number", "calc": false, "explain": "正解：5種類"}, {"id": 73, "subject": "生物", "section": "背骨のある動物", "q": "脊椎動物の5つのなかまはどれか。", "a": "魚類・両生類・爬虫類・鳥類・哺乳類", "type": "group", "calc": false, "explain": "正解：魚類・両生類・爬虫類・鳥類・哺乳類"}, {"id": 74, "subject": "生物", "section": "脊椎動物の特徴", "q": "魚類は主に何で呼吸するか。", "a": "えら", "type": "term", "calc": false, "explain": "正解：えら"}, {"id": 75, "subject": "生物", "section": "脊椎動物の特徴", "q": "両生類の子は主に何で呼吸するか。", "a": "えら", "type": "term", "calc": false, "explain": "正解：えら"}, {"id": 76, "subject": "生物", "section": "脊椎動物の特徴", "q": "両生類の成体は主に何と何で呼吸するか。", "a": "肺と皮膚", "type": "term", "calc": false, "explain": "正解：肺と皮膚"}, {"id": 77, "subject": "生物", "section": "脊椎動物の特徴", "q": "爬虫類は主に何で呼吸するか。", "a": "肺", "type": "term", "calc": false, "explain": "正解：肺"}, {"id": 78, "subject": "生物", "section": "脊椎動物の特徴", "q": "鳥類は主に何で呼吸するか。", "a": "肺", "type": "term", "calc": false, "explain": "正解：肺"}, {"id": 79, "subject": "生物", "section": "脊椎動物の特徴", "q": "哺乳類は主に何で呼吸するか。", "a": "肺", "type": "term", "calc": false, "explain": "正解：肺"}, {"id": 80, "subject": "生物", "section": "脊椎動物の特徴", "q": "魚類の体表は主に何でおおわれているか。", "a": "うろこ", "type": "term", "calc": false, "explain": "正解：うろこ"}, {"id": 81, "subject": "生物", "section": "脊椎動物の特徴", "q": "爬虫類の体表は主に何でおおわれているか。", "a": "うろこ", "type": "term", "calc": false, "explain": "正解：うろこ"}, {"id": 82, "subject": "生物", "section": "脊椎動物の特徴", "q": "鳥類の体表は主に何でおおわれているか。", "a": "羽毛", "type": "term", "calc": false, "explain": "正解：羽毛"}, {"id": 83, "subject": "生物", "section": "脊椎動物の特徴", "q": "哺乳類の体表は主に何でおおわれているか。", "a": "毛", "type": "term", "calc": false, "explain": "正解：毛"}, {"id": 84, "subject": "生物", "section": "脊椎動物の特徴", "q": "両生類の体表は、一般にどのような皮膚か。", "a": "しめった皮膚", "type": "state", "calc": false, "explain": "正解：しめった皮膚"}, {"id": 85, "subject": "生物", "section": "脊椎動物の特徴", "q": "卵から子がかえる生まれ方を何というか。", "a": "卵生", "type": "term", "calc": false, "explain": "正解：卵生"}, {"id": 86, "subject": "生物", "section": "脊椎動物の特徴", "q": "母親の体内で育った子が生まれる生まれ方を何というか。", "a": "胎生", "type": "term", "calc": false, "explain": "正解：胎生"}, {"id": 87, "subject": "生物", "section": "脊椎動物の特徴", "q": "体温が外界の温度によって変化する動物を何というか。", "a": "変温動物", "type": "term", "calc": false, "explain": "正解：変温動物"}, {"id": 88, "subject": "生物", "section": "脊椎動物の特徴", "q": "外界の温度が変わっても体温をほぼ一定に保つ動物を何というか。", "a": "恒温動物", "type": "term", "calc": false, "explain": "正解：恒温動物"}, {"id": 89, "subject": "生物", "section": "脊椎動物の特徴", "q": "鳥類は変温動物・恒温動物のどちらか。", "a": "恒温動物", "type": "term", "calc": false, "explain": "正解：恒温動物"}, {"id": 90, "subject": "生物", "section": "脊椎動物の特徴", "q": "哺乳類は変温動物・恒温動物のどちらか。", "a": "恒温動物", "type": "term", "calc": false, "explain": "正解：恒温動物"}, {"id": 91, "subject": "生物", "section": "脊椎動物の特徴", "q": "魚類は変温動物・恒温動物のどちらか。", "a": "変温動物", "type": "term", "calc": false, "explain": "正解：変温動物"}, {"id": 92, "subject": "生物", "section": "脊椎動物の特徴", "q": "両生類は変温動物・恒温動物のどちらか。", "a": "変温動物", "type": "term", "calc": false, "explain": "正解：変温動物"}, {"id": 93, "subject": "生物", "section": "脊椎動物の特徴", "q": "爬虫類は変温動物・恒温動物のどちらか。", "a": "変温動物", "type": "term", "calc": false, "explain": "正解：変温動物"}, {"id": 94, "subject": "生物", "section": "無脊椎動物", "q": "背骨がない動物を何というか。", "a": "無脊椎動物", "type": "term", "calc": false, "explain": "正解：無脊椎動物"}, {"id": 95, "subject": "生物", "section": "無脊椎動物", "q": "昆虫やエビ・カニのなかまなど、体やあしに節がある動物を何というか。", "a": "節足動物", "type": "term", "calc": false, "explain": "正解：節足動物"}, {"id": 96, "subject": "生物", "section": "節足動物", "q": "節足動物の体をおおう、かたい殻のようなつくりを何というか。", "a": "外骨格", "type": "term", "calc": false, "explain": "正解：外骨格"}, {"id": 97, "subject": "生物", "section": "節足動物", "q": "昆虫類の体は、基本的に何・何・何の3つに分かれるか。", "a": "頭部・胸部・腹部", "type": "group", "calc": false, "explain": "正解：頭部・胸部・腹部"}, {"id": 98, "subject": "生物", "section": "節足動物", "q": "昆虫類のあしは胸部に何対あるか。", "a": "3対", "type": "number", "calc": false, "explain": "正解：3対"}, {"id": 99, "subject": "生物", "section": "節足動物", "q": "昆虫類のあしは全部で何本か。", "a": "6本", "type": "number", "calc": false, "explain": "正解：6本"}, {"id": 100, "subject": "生物", "section": "節足動物", "q": "昆虫類の触角は何対あるか。", "a": "1対", "type": "number", "calc": false, "explain": "正解：1対"}, {"id": 101, "subject": "生物", "section": "節足動物", "q": "昆虫は体のどこにある気門から空気を取り入れるか。", "a": "体側", "type": "position", "calc": false, "explain": "正解：体側"}, {"id": 102, "subject": "生物", "section": "節足動物", "q": "昆虫が空気を体内に運ぶ管を何というか。", "a": "気管", "type": "term", "calc": false, "explain": "正解：気管"}, {"id": 103, "subject": "生物", "section": "節足動物", "q": "エビやカニなどのなかまを何類というか。", "a": "甲殻類", "type": "term", "calc": false, "explain": "正解：甲殻類"}, {"id": 104, "subject": "生物", "section": "節足動物", "q": "エビやカニなどの甲殻類は主に何で呼吸するか。", "a": "えら", "type": "term", "calc": false, "explain": "正解：えら"}, {"id": 105, "subject": "生物", "section": "節足動物", "q": "節足動物は、成長するときに何を行うか。", "a": "脱皮", "type": "term", "calc": false, "explain": "正解：脱皮"}, {"id": 106, "subject": "生物", "section": "軟体動物", "q": "アサリやイカなど、内臓がやわらかい膜に包まれている動物を何というか。", "a": "軟体動物", "type": "term", "calc": false, "explain": "正解：軟体動物"}, {"id": 107, "subject": "生物", "section": "軟体動物", "q": "軟体動物で、内臓を包むやわらかい膜を何というか。", "a": "外とう膜", "type": "term", "calc": false, "explain": "正解：外とう膜"}, {"id": 108, "subject": "生物", "section": "軟体動物", "q": "アサリのような二枚貝は何で呼吸するか。", "a": "えら", "type": "term", "calc": false, "explain": "正解：えら"}, {"id": 109, "subject": "生物", "section": "動物の分類", "q": "動物を脊椎動物と無脊椎動物に分ける基準は何の有無か。", "a": "背骨", "type": "term", "calc": false, "explain": "正解：背骨"}, {"id": 110, "subject": "生物", "section": "動物の分類", "q": "無脊椎動物のうち、節のあるあしをもつなかまを何というか。", "a": "節足動物", "type": "term", "calc": false, "explain": "正解：節足動物"}, {"id": 111, "subject": "生物", "section": "動物の分類", "q": "無脊椎動物のうち、内臓が外とう膜に包まれるなかまを何というか。", "a": "軟体動物", "type": "term", "calc": false, "explain": "正解：軟体動物"}, {"id": 112, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "トカゲは何類に分類されるか。", "a": "爬虫類", "type": "term", "calc": false, "explain": "正解：爬虫類"}, {"id": 113, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "ヒガシニホントカゲの幼体の背面には何本の黄色い縦縞があるか。", "a": "5本", "type": "number", "calc": false, "explain": "正解：5本"}, {"id": 114, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "ヒガシニホントカゲの幼体の尾は何色か。", "a": "鮮やかな青色", "type": "color", "calc": false, "explain": "正解：鮮やかな青色"}, {"id": 115, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "ヒガシニホントカゲの成体の背面は何色か。", "a": "一様な茶褐色", "type": "color", "calc": false, "explain": "正解：一様な茶褐色"}, {"id": 116, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "交尾期のオスの咽から腹に現れる婚姻色は何色か。", "a": "橙色", "type": "color", "calc": false, "explain": "正解：橙色"}, {"id": 117, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "トカゲの皮膚のうろこには光沢があるか。", "a": "ある", "type": "yn", "calc": false, "explain": "正解：ある"}, {"id": 118, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "カナヘビの皮膚のうろこには光沢があるか。", "a": "ない", "type": "yn", "calc": false, "explain": "正解：ない"}, {"id": 119, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "カナヘビのうろこにある筋状の盛り上がりを何というか。", "a": "キール", "type": "term", "calc": false, "explain": "正解：キール"}, {"id": 120, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "トカゲとカナヘビでは、体長に対して尾がより長いのはどちらか。", "a": "カナヘビ", "type": "animal", "calc": false, "explain": "正解：カナヘビ"}, {"id": 121, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "トカゲは主に平面を利用するのに対し、カナヘビはどのように空間を利用するか。", "a": "立体的に移動する", "type": "state", "calc": false, "explain": "正解：立体的に移動する"}, {"id": 122, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "トカゲとカナヘビは昼行性か夜行性か。", "a": "昼行性", "type": "term", "calc": false, "explain": "正解：昼行性"}, {"id": 123, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "ヒガシニホントカゲのメスは1回に何個ほどの卵を産むか。", "a": "5～16個", "type": "number", "calc": false, "explain": "正解：5～16個"}, {"id": 124, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "ヒガシニホントカゲのメスは産んだ卵をどうするか。", "a": "孵化するまで保護する", "type": "state", "calc": false, "explain": "正解：孵化するまで保護する"}, {"id": 125, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "危険を感じたトカゲが自ら尾を切ることを何というか。", "a": "自切", "type": "term", "calc": false, "explain": "正解：自切"}, {"id": 126, "subject": "生物", "section": "トカゲ・カナヘビ", "q": "再び伸びたトカゲの尾は、骨ではなく何で形成されるか。", "a": "軟骨", "type": "term", "calc": false, "explain": "正解：軟骨"}, {"id": 127, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリは何類に分類されるか。", "a": "爬虫類", "type": "term", "calc": false, "explain": "正解：爬虫類"}, {"id": 128, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリの全長はおよそ何cmか。", "a": "10～14cm", "type": "number", "calc": false, "explain": "正解：10～14cm"}, {"id": 129, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリは主にどこにすむか。", "a": "人家や社寺など", "type": "place", "calc": false, "explain": "正解：人家や社寺など"}, {"id": 130, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリは昼行性か夜行性か。", "a": "夜行性", "type": "term", "calc": false, "explain": "正解：夜行性"}, {"id": 131, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリは夏の夜、何に集まる昆虫を食べるか。", "a": "灯り", "type": "term", "calc": false, "explain": "正解：灯り"}, {"id": 132, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリの四肢の指は、どのような形に広がっているか。", "a": "円く広がっている", "type": "state", "calc": false, "explain": "正解：円く広がっている"}, {"id": 133, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリの指下板には何が密生しているか。", "a": "鉤状の細かな毛", "type": "term", "calc": false, "explain": "正解：鉤状の細かな毛"}, {"id": 134, "subject": "生物", "section": "ニホンヤモリ", "q": "その細かな毛を何に引っかけて壁や天井を歩くか。", "a": "壁やガラスの凹凸", "type": "term", "calc": false, "explain": "正解：壁やガラスの凹凸"}, {"id": 135, "subject": "生物", "section": "ニホンヤモリ", "q": "ヤモリの指の裏に、カエルのような吸盤はあるか。", "a": "ない", "type": "yn", "calc": false, "explain": "正解：ない"}, {"id": 136, "subject": "生物", "section": "ニホンヤモリ", "q": "ヤモリの指の裏には何がびっしり並んでいるか。", "a": "ひだ状の鱗", "type": "term", "calc": false, "explain": "正解：ひだ状の鱗"}, {"id": 137, "subject": "生物", "section": "ニホンヤモリ", "q": "ヤモリの前足の指は何本か。", "a": "5本", "type": "number", "calc": false, "explain": "正解：5本"}, {"id": 138, "subject": "生物", "section": "ニホンヤモリ", "q": "ヤモリの後ろ足の指は何本か。", "a": "5本", "type": "number", "calc": false, "explain": "正解：5本"}, {"id": 139, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリは1回に何個の卵を産むか。", "a": "2個", "type": "number", "calc": false, "explain": "正解：2個"}, {"id": 140, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリのような、人間の生活環境に依存する野生動物を何というか。", "a": "シナントロープ", "type": "term", "calc": false, "explain": "正解：シナントロープ"}, {"id": 141, "subject": "生物", "section": "ニホンヤモリ", "q": "ニホンヤモリの目の表面を覆っているものは何か。", "a": "透明な薄いうろこ", "type": "term", "calc": false, "explain": "正解：透明な薄いうろこ"}, {"id": 142, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリは何類に分類されるか。", "a": "両生類", "type": "term", "calc": false, "explain": "正解：両生類"}, {"id": 143, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリは何目何科か。", "a": "有尾目イモリ科", "type": "group", "calc": false, "explain": "正解：有尾目イモリ科"}, {"id": 144, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリは日本固有種か。", "a": "日本固有種", "type": "term", "calc": false, "explain": "正解：日本固有種"}, {"id": 145, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリの全長はおよそ何cmか。", "a": "9～13cm", "type": "number", "calc": false, "explain": "正解：9～13cm"}, {"id": 146, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリの背面は何色か。", "a": "黒色（黒褐色）", "type": "color", "calc": false, "explain": "正解：黒色（黒褐色）"}, {"id": 147, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリの腹面は何色か。", "a": "赤～オレンジ色", "type": "color", "calc": false, "explain": "正解：赤～オレンジ色"}, {"id": 148, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリの体表面には何が密集しているか。", "a": "細かい隆起", "type": "term", "calc": false, "explain": "正解：細かい隆起"}, {"id": 149, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリの産卵期はいつごろか。", "a": "4～7月上旬", "type": "time", "calc": false, "explain": "正解：4～7月上旬"}, {"id": 150, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリの幼生は何呼吸をするか。", "a": "えら呼吸", "type": "term", "calc": false, "explain": "正解：えら呼吸"}, {"id": 151, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリは幼生から変態した後、子イモリの時期に何年かどこで生活するか。", "a": "陸上", "type": "place", "calc": false, "explain": "正解：陸上"}, {"id": 152, "subject": "生物", "section": "アカハライモリ", "q": "繁殖場所の周辺には、子イモリが生活できるどのような環境が必要か。", "a": "湿潤な湿地や林床", "type": "place", "calc": false, "explain": "正解：湿潤な湿地や林床"}, {"id": 153, "subject": "生物", "section": "アカハライモリ", "q": "イモリが生息する場所では、水域と何の連続性が保たれているか。", "a": "その周囲の湿地環境", "type": "place", "calc": false, "explain": "正解：その周囲の湿地環境"}, {"id": 154, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリの皮膚には何があるか。", "a": "毒", "type": "term", "calc": false, "explain": "正解：毒"}, {"id": 155, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリに触った後はどうするか。", "a": "よく手を洗う", "type": "method", "calc": false, "explain": "正解：よく手を洗う"}, {"id": 156, "subject": "生物", "section": "アカハライモリ", "q": "アカハライモリの特徴的な能力としてCT資料で扱われているものは何か。", "a": "高い再生能力", "type": "term", "calc": false, "explain": "正解：高い再生能力"}];
+const SPECIAL = {"溶液": ["溶質", "溶媒", "水溶液"], "水溶液": ["溶液", "溶質", "飽和水溶液"], "溶質": ["溶媒", "溶液", "水溶液"], "溶媒": ["溶質", "溶液", "水溶液"], "質量パーセント濃度": ["溶解度", "飽和水溶液", "溶解度曲線"], "溶解度": ["濃度", "沸点", "融点"], "飽和水溶液": ["水溶液", "溶液", "母液"], "溶解度曲線": ["加熱曲線", "蒸留曲線", "状態変化曲線"], "再結晶": ["蒸留", "ろ過", "蒸発"], "融解": ["凝固", "気化", "凝縮"], "凝固": ["融解", "気化", "凝縮"], "気化": ["凝縮", "融解", "凝固"], "凝縮": ["気化", "融解", "凝固"], "沸点": ["融点", "溶解度", "質量パーセント濃度"], "融点": ["沸点", "溶解度", "質量パーセント濃度"], "蒸留": ["ろ過", "再結晶", "蒸発"], "脊椎動物": ["無脊椎動物", "節足動物", "軟体動物"], "無脊椎動物": ["脊椎動物", "節足動物", "軟体動物"], "内骨格": ["外骨格", "背骨", "外とう膜"], "外骨格": ["内骨格", "背骨", "外とう膜"], "魚類・両生類・爬虫類・鳥類・哺乳類": ["魚類・甲殻類・爬虫類・鳥類・哺乳類", "魚類・両生類・昆虫類・鳥類・哺乳類", "魚類・両生類・爬虫類・軟体動物・哺乳類"], "卵生": ["胎生", "変温", "恒温"], "胎生": ["卵生", "変温", "恒温"], "変温動物": ["恒温動物", "脊椎動物", "無脊椎動物"], "恒温動物": ["変温動物", "脊椎動物", "無脊椎動物"], "節足動物": ["軟体動物", "脊椎動物", "哺乳類"], "軟体動物": ["節足動物", "爬虫類", "両生類"], "外とう膜": ["外骨格", "内骨格", "気管"], "気管": ["えら", "肺", "外とう膜"], "甲殻類": ["昆虫類", "魚類", "軟体動物"], "爬虫類": ["両生類", "魚類", "哺乳類"], "両生類": ["爬虫類", "魚類", "哺乳類"], "夜行性": ["昼行性", "恒温性", "変温性"], "昼行性": ["夜行性", "恒温性", "変温性"]};
+
+const MASTERY_STORE="rika_mastered_unique_v1";
+function masteryData(){
+  try{
+    const x=JSON.parse(localStorage.getItem(MASTERY_STORE)||"{}");
+    return {化学:Array.isArray(x.化学)?x.化学:[],生物:Array.isArray(x.生物)?x.生物:[]};
+  }catch(e){return {化学:[],生物:[]};}
+}
+function addMastered(q){
+  const m=masteryData(), arr=m[q.subject]||[];
+  if(!arr.includes(q.id)) arr.push(q.id);
+  m[q.subject]=arr;
+  localStorage.setItem(MASTERY_STORE,JSON.stringify(m));
+  updateMasteryDisplay();
+}
+function masteryCounts(){
+  const m=masteryData();
+  const cq=ALL.filter(q=>q.subject==="化学"), bq=ALL.filter(q=>q.subject==="生物");
+  const ci=new Set(cq.map(q=>q.id)), bi=new Set(bq.map(q=>q.id));
+  return {
+    chemDone:(m.化学||[]).filter(id=>ci.has(id)).length, chemTotal:cq.length,
+    bioDone:(m.生物||[]).filter(id=>bi.has(id)).length, bioTotal:bq.length
+  };
+}
+function updateMasteryDisplay(){
+  const c=masteryCounts(), e=id=>document.getElementById(id);
+  if(e("chemMastered"))e("chemMastered").textContent=c.chemDone;
+  if(e("chemTotal"))e("chemTotal").textContent=c.chemTotal;
+  if(e("bioMastered"))e("bioMastered").textContent=c.bioDone;
+  if(e("bioTotal"))e("bioTotal").textContent=c.bioTotal;
+  if(e("chemMasteryBar"))e("chemMasteryBar").style.width=(c.chemDone/c.chemTotal*100)+"%";
+  if(e("bioMasteryBar"))e("bioMasteryBar").style.width=(c.bioDone/c.bioTotal*100)+"%";
+  if(e("currentMastery")){
+    if(currentMode==="chem")e("currentMastery").textContent=`全体の消化状況　化学 ${c.chemDone} / ${c.chemTotal}`;
+    else if(currentMode==="bio")e("currentMastery").textContent=`全体の消化状況　生物 ${c.bioDone} / ${c.bioTotal}`;
+    else e("currentMastery").textContent=`全体の消化状況　化学 ${c.chemDone}/${c.chemTotal} ｜ 生物 ${c.bioDone}/${c.bioTotal}`;
+  }
+}
+const STORE = "rika_final_quiz_stats_v2";
+
+let session = [];
+let selectedTurns=3;
+let totalNormalTurns=3;
+let currentNormalTurn=1;
+let normalTurnScores=[];
+let allNormalMissedIds=new Set();
+let isReviewRound=false;
+let runMode="chem";
+
+let idx = 0;
+let currentMode = "chem";
+let timerId = null;
+let timeMax = 10;
+let timeLeft = 10;
+let locked = false;
+let results = [];
+
+const $ = s => document.querySelector(s);
+
+function shuffle(arr){
+  const x=[...arr];
+  for(let i=x.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [x[i],x[j]]=[x[j],x[i]];
+  }
+  return x;
+}
+
+function uniq(arr){ return [...new Set(arr)]; }
+function pick(arr,n){ return shuffle(arr).slice(0,Math.min(n,arr.length)); }
+
+function stats(){
+  try{ return JSON.parse(localStorage.getItem(STORE)||"{}"); }
+  catch{ return {}; }
+}
+
+function saveMiss(id,kind){
+  const s=stats(), k=String(id);
+  s[k]=s[k]||{wrong:0,timeout:0};
+  s[k][kind]=(s[k][kind]||0)+1;
+  localStorage.setItem(STORE,JSON.stringify(s));
+}
+
+function rewardCorrect(id){
+  const s=stats(), k=String(id);
+  if(!s[k]) return;
+  s[k].wrong=Math.max(0,(s[k].wrong||0)-1);
+  s[k].timeout=Math.max(0,(s[k].timeout||0)-1);
+  localStorage.setItem(STORE,JSON.stringify(s));
+}
+
+function buildSession(mode){
+  const chem=ALL.filter(q=>q.subject==="化学");
+  const bio=ALL.filter(q=>q.subject==="生物");
+  if(mode==="chem") return pick(chem,30);
+  if(mode==="bio") return pick(bio,30);
+  if(mode==="mix") return shuffle([...pick(chem,15),...pick(bio,15)]);
+  const s=stats();
+  const subjectPool=ALL.filter(q=>q.subject==="生物");
+  const weak=subjectPool.map(q=>({
+    q, score:(s[q.id]?.wrong||0)*2+(s[q.id]?.timeout||0)
+  })).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).map(x=>x.q);
+  if(weak.length>=30) return shuffle(weak.slice(0,45)).slice(0,30);
+  const rest=subjectPool.filter(q=>!weak.some(w=>w.id===q.id));
+  return shuffle([...weak,...pick(rest,30-weak.length)]);
+}
+
+function modeLabel(){
+  return {chem:"🧪 化学",bio:"🦎 生物",mix:"🔥 MIX",weak:"💀 苦手"}[currentMode]||"復習";
+}
+
+
+
+/* ---------------------------------------------------------
+   選択肢生成 v3
+   問題・正答は教材データを維持。
+   誤答選択肢だけは、中学理科の知識から「同じ問いに答え得る形」
+   のものを生成する。数字・時期は近接値にする。
+--------------------------------------------------------- */
+
+function nearNumber(q){
+  const a=q.a.replace(/\s+/g,"");
+  let m;
+
+  // 月の範囲
+  m=a.match(/^(\d+)～(\d+)月(上旬|中旬|下旬)?$/);
+  if(m){
+    const lo=+m[1], hi=+m[2], tail=m[3]||"";
+    return [
+      `${Math.max(1,lo-1)}～${Math.max(2,hi-1)}月${tail}`,
+      `${Math.min(12,lo+1)}～${Math.min(12,hi+1)}月${tail}`,
+      `${Math.max(1,lo-1)}～${hi}月${tail}`
+    ];
+  }
+
+  // 数値範囲
+  m=a.match(/^(\d+)～(\d+)(cm|個|本|g|％)$/);
+  if(m){
+    const lo=+m[1], hi=+m[2], u=m[3];
+    const d=(u==="個" && hi>=10)?2:1;
+    return [
+      `${Math.max(1,lo-d)}～${Math.max(lo,hi-d)}${u}`,
+      `${lo+d}～${hi+d}${u}`,
+      `${Math.max(1,lo-d)}～${hi+d}${u}`
+    ];
+  }
+
+  // 単一数値
+  m=a.match(/^(\d+)(g|％|本|個|対|種類|cm)$/);
+  if(m){
+    const n=+m[1], u=m[2];
+    let vals;
+    if(u==="g"){
+      let d=n>=100?20:n>=50?10:5;
+      vals=[Math.max(1,n-d),n+d,n+2*d];
+    }else if(u==="％"){
+      vals=[Math.max(1,n-5),n+5,n+10];
+    }else{
+      vals=[Math.max(1,n-1),n+1,n+2];
+    }
+    return vals.map(v=>`${v}${u}`);
+  }
+  return [];
+}
+
+function semanticDistractors(q){
+  const t=q.q, a=q.a;
+
+  // ---------- 化学 ----------
+  if(/何にあたる|何というか/.test(t) && /溶液|食塩水/.test(t) && ["溶液","水溶液","溶質","溶媒"].includes(a))
+    return ["溶質","溶媒","溶液","水溶液"].filter(x=>x!==a).slice(0,3);
+
+  if(a==="質量パーセント濃度")
+    return ["体積パーセント濃度","モル濃度","溶解度"];
+  if(a==="溶解度")
+    return ["質量パーセント濃度","密度","飽和度"];
+  if(a==="飽和水溶液")
+    return ["不飽和水溶液","過飽和水溶液","濃厚水溶液"];
+  if(a==="溶解度曲線")
+    return ["加熱曲線","冷却曲線","状態変化曲線"];
+  if(a==="再結晶")
+    return ["蒸留","ろ過","昇華"];
+  if(a==="母液")
+    return ["ろ液","蒸留液","溶媒"];
+  if(a==="蒸発")
+    return ["凝縮","沸騰","昇華"];
+  if(a==="融解") return ["凝固","気化","昇華"];
+  if(a==="凝固") return ["融解","凝縮","昇華"];
+  if(a==="気化") return ["凝縮","融解","凝固"];
+  if(a==="凝縮") return ["気化","融解","凝固"];
+  if(a==="沸点") return ["融点","凝固点","露点"];
+  if(a==="融点") return ["沸点","凝固点","露点"];
+  if(a==="蒸留") return ["ろ過","再結晶","分留"];
+  if(/粒子/.test(t) && /状態/.test(t) && a==="気体")
+    return ["固体","液体","プラズマ"];
+  if(/高くなる|大きくなる|一定に保たれる|変わらない|異なる/.test(a)){
+    const map={
+      "高くなる":["低くなる","変わらない","一定値になる"],
+      "大きくなる":["小さくなる","変わらない","0になる"],
+      "一定に保たれる":["上がり続ける","下がり続ける","不規則に変化する"],
+      "変わらない":["増える","減る","一度増えてから減る"],
+      "異なる":["同じ","必ず比例する","温度だけで決まる"]
+    };
+    return map[a];
+  }
+  if(a==="溶質の質量÷溶液の質量×100")
+    return ["溶液の質量÷溶質の質量×100","溶質の質量÷溶媒の質量×100","溶媒の質量÷溶液の質量×100"];
+  if(a==="沸点の低い方")
+    return ["沸点の高い方","質量の大きい方","密度の大きい方"];
+  if(a==="気体を液体に戻す")
+    return ["液体を気体にする","固体を液体にする","溶質を結晶にする"];
+  if(a==="水を蒸発させる")
+    return ["水溶液を冷却する","水を加えて薄める","ろ紙でろ過する"];
+  if(a==="規則正しく並んだ固体")
+    return ["不規則に並んだ固体","粒子が自由に動く固体","粒子を含まない固体"];
+
+  // ---------- 生物：分類 ----------
+  if(/何類に分類|何類というか|何類か/.test(t)){
+    if(["魚類","両生類","爬虫類","鳥類","哺乳類"].includes(a))
+      return ["魚類","両生類","爬虫類","鳥類","哺乳類"].filter(x=>x!==a).slice(0,3);
+    if(a==="甲殻類") return ["昆虫類","クモ類","多足類"];
+  }
+  if(a==="脊椎動物") return ["無脊椎動物","節足動物","軟体動物"];
+  if(a==="無脊椎動物") return ["脊椎動物","節足動物","軟体動物"];
+  if(a==="節足動物") return ["軟体動物","環形動物","刺胞動物"];
+  if(a==="軟体動物") return ["節足動物","環形動物","刺胞動物"];
+
+  // ---------- 生物：体のつくり ----------
+  if(a==="犬歯") return ["門歯","臼歯","切歯"];
+  if(a==="臼歯") return ["犬歯","門歯","切歯"];
+  if(a==="前方") return ["側方","上方","後方"];
+  if(a==="側方") return ["前方","上方","後方"];
+  if(a==="内骨格") return ["外骨格","外とう膜","殻"];
+  if(a==="外骨格") return ["内骨格","外とう膜","表皮"];
+  if(a==="背骨") return ["胸骨","肋骨","頭骨"];
+  if(a==="外とう膜") return ["外骨格","内骨格","角質層"];
+  if(a==="気管") return ["気門","えら","肺"];
+  if(a==="体側") return ["背面","腹面","頭部"];
+  if(a==="頭部・胸部・腹部")
+    return ["頭部・胴部・尾部","頭胸部・腹部・尾部","頭部・腹部・尾部"];
+
+  // ---------- 生物：呼吸 ----------
+  if(/呼吸/.test(t)){
+    if(a==="えら") return ["肺","皮膚","気管"];
+    if(a==="肺") return ["えら","皮膚","気管"];
+    if(a==="肺と皮膚") return ["えらと皮膚","肺と気管","えらと肺"];
+    if(a==="えら呼吸") return ["肺呼吸","皮膚呼吸","気管呼吸"];
+  }
+
+  // ---------- 生物：体表 ----------
+  if(/体表|皮膚|おおわれ/.test(t)){
+    if(a==="うろこ") return ["羽毛","毛","しめった皮膚"];
+    if(a==="羽毛") return ["うろこ","毛","しめった皮膚"];
+    if(a==="毛") return ["羽毛","うろこ","しめった皮膚"];
+    if(a==="しめった皮膚") return ["乾いたうろこ","羽毛","毛"];
+  }
+
+  // ---------- 生物：生殖・体温 ----------
+  if(a==="卵生") return ["胎生","卵胎生","分裂"];
+  if(a==="胎生") return ["卵生","卵胎生","出芽"];
+  if(a==="変温動物") return ["恒温動物","内温動物","定温動物"];
+  if(a==="恒温動物") return ["変温動物","外温動物","不定温動物"];
+
+  // ---------- トカゲ・ヤモリ・イモリ ----------
+  if(a==="キール") return ["指下板","外とう膜","角質板"];
+  if(a==="カナヘビ") return ["ニホントカゲ","ニホンヤモリ","アカハライモリ"];
+  if(a==="昼行性") return ["夜行性","薄明薄暮性","昼夜行性"];
+  if(a==="夜行性") return ["昼行性","薄明薄暮性","昼夜行性"];
+  if(a==="自切") return ["脱皮","再生","変態"];
+  if(a==="軟骨") return ["硬骨","結合組織","角質"];
+  if(a==="人家や社寺など") return ["草地や林縁","池や湿地","河川や水田"];
+  if(a==="円く広がっている") return ["細長くとがっている","扇状に広がっている","鉤状に曲がっている"];
+  if(a==="鉤状の細かな毛") return ["吸盤状の突起","粘液を出す腺","鉤状の爪"];
+  if(a==="壁やガラスの凹凸") return ["表面の水分","静電気だけ","粘液の膜"];
+  if(a==="ひだ状の鱗") return ["吸盤状の皮膚","板状の爪","網目状の膜"];
+  if(a==="シナントロープ") return ["エンドミック","インディケーター種","キーストーン種"];
+  if(a==="透明な薄いうろこ") return ["まぶた","瞬膜","透明な角膜だけ"];
+  if(a==="有尾目イモリ科") return ["無尾目アマガエル科","有鱗目ヤモリ科","有鱗目トカゲ科"];
+  if(a==="日本固有種") return ["外来種","帰化種","世界共通種"];
+  if(a==="細かい隆起") return ["大きな鱗","羽毛","滑らかな甲羅"];
+  if(a==="陸上") return ["水中","樹上","地中だけ"];
+  if(a==="湿潤な湿地や林床") return ["乾燥した砂地","開けた草原","海岸の岩場"];
+  if(a==="その周囲の湿地環境") return ["乾燥した草地","海水域","高木の樹冠"];
+  if(a==="毒") return ["粘液だけ","硬い鱗","羽毛"];
+  if(a==="よく手を洗う") return ["水分を拭くだけ","手を温める","何もしない"];
+  if(a==="高い再生能力") return ["高い飛翔能力","高い発光能力","高い擬態能力"];
+  if(a==="立体的に移動する") return ["平面だけを移動する","水中を遊泳する","地中だけを移動する"];
+  if(a==="孵化するまで保護する") return ["産卵後すぐ離れる","口の中で育てる","水中へ運ぶ"];
+
+  // 色
+  const colorMap={
+    "鮮やかな青色":["青緑色","紫色","黒褐色"],
+    "一様な茶褐色":["灰褐色","黒褐色","黄褐色"],
+    "橙色":["赤色","黄色","赤褐色"],
+    "黒色（黒褐色）":["灰褐色","茶褐色","暗緑色"],
+    "赤～オレンジ色":["黄～オレンジ色","赤～紫色","黒～赤褐色"]
+  };
+  if(colorMap[a]) return colorMap[a];
+
+  // 利点・状態
+  if(a==="立体的に見える範囲が広い")
+    return ["見渡せる範囲が広い","暗い場所でも色を見分けやすい","遠くの音を聞き取りやすい"];
+  if(a==="広い範囲を見渡せる")
+    return ["立体的に見える範囲が広い","近くの物だけ大きく見える","暗所で色を見分けやすい"];
+  if(a==="全体に均一に広がっている")
+    return ["底に多く集まっている","表面に多く集まっている","中央だけに集まっている"];
+  if(a==="全体に均一に散らばっている")
+    return ["底に沈んでいる","表面に浮いている","一か所に固まっている"];
+  if(a==="同じ（均一）")
+    return ["上の方が濃い","下の方が濃い","時間とともに上下が逆転する"];
+
+  // yes/no 系
+  const yn={
+    "いえない":["いえる","条件によって必ずいえる","時間がたてばいえる"],
+    "よくない":["よい","溶質が固体ならよい","水溶液が透明ならよい"],
+    "含まれる":["含まれない","ろ過直後だけ含まれない","固体としてだけ含まれる"],
+    "適している":["適していない","温度に関係しない","蒸留にだけ適している"],
+    "示す":["示さない","毎回異なる形になる","温度だけで形が決まる"],
+    "読み取れる":["読み取れない","温度だけ読み取れる","濃度だけ読み取れる"],
+    "ある":["ない","幼体にだけある","成体にだけある"],
+    "ない":["ある","幼体にだけある","成体にだけある"]
+  };
+  if(yn[a]) return yn[a];
+
+  return [];
+}
+
+function autoDistractors(q){
+  // 数値・時期は「近い値」で統一
+  if(["number","calc","time"].includes(q.type)){
+    const n=nearNumber(q);
+    if(n.length>=3) return n.slice(0,3);
+  }
+
+  // 問いの意味に合わせた、理科として紛らわしい誤答
+  const sem=semanticDistractors(q);
+  if(sem.length>=3) return sem.filter(x=>x!==q.a).slice(0,3);
+
+  // 最終フォールバックも「同じセクション＋同じ型」を最優先
+  let pool=ALL.filter(x=>x.id!==q.id && x.section===q.section && x.type===q.type && x.a!==q.a).map(x=>x.a);
+  if(pool.length<3) pool=pool.concat(ALL.filter(x=>x.id!==q.id && x.subject===q.subject && x.type===q.type && x.a!==q.a).map(x=>x.a));
+  if(pool.length<3) pool=pool.concat(ALL.filter(x=>x.id!==q.id && x.section===q.section && x.a!==q.a).map(x=>x.a));
+  return uniq(pool).slice(0,3);
+}
+
+
+document.querySelectorAll(".turn-btn").forEach(b=>{
+  b.onclick=()=>{
+    selectedTurns=Number(b.dataset.turns);
+    document.querySelectorAll(".turn-btn").forEach(x=>x.classList.toggle("selected",x===b));
+  };
+});
+
+function start(mode,custom=null,opts={}){
+  currentMode=mode;
+  isReviewRound=!!opts.review;
+
+  if(opts.newRun){
+    runMode=mode;
+    totalNormalTurns=selectedTurns;
+    currentNormalTurn=1;
+    normalTurnScores=[];
+    allNormalMissedIds=new Set();
+  }
+
+  session=custom||buildSession(mode);
+  idx=0; results=[];
+  $("#start").classList.add("hidden");
+  $("#result").classList.add("hidden");
+  $("#quiz").classList.remove("hidden");
+  showQuestion();
+}
+
+function showQuestion(){
+  locked=false;
+  clearInterval(timerId);
+
+  const q=session[idx];
+  updateMasteryDisplay();
+  $("#modePill").textContent=isReviewRound
+    ? `${modeLabel()}・復習`
+    : `${modeLabel()}・${currentNormalTurn}/${totalNormalTurns}ターン`;
+  $("#counter").textContent=`${idx+1} / ${session.length}`;
+  $("#progressBar").style.width=`${idx/session.length*100}%`;
+  $("#section").innerHTML=q.section+(q.calc?'<span class="badgecalc">計算 20秒</span>':'');
+  $("#question").textContent=q.q;
+  $("#feedback").className="feedback";
+  $("#feedback").textContent="";
+  $("#nextBtn").className="next";
+
+  let distractors=autoDistractors(q);
+  // Safety fallback if an unusual answer type lacks 3 candidates.
+  if(distractors.length<3){
+    const fallback=ALL.filter(x=>x.id!==q.id && x.subject===q.subject).map(x=>x.a).filter(a=>a!==q.a);
+    distractors=uniq([...distractors,...shuffle(fallback)]).slice(0,3);
+  }
+
+  const opts=shuffle([q.a,...distractors]);
+  $("#choices").innerHTML="";
+  opts.forEach(opt=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.textContent=opt;
+    b.onclick=()=>answer(opt,b);
+    $("#choices").appendChild(b);
+  });
+
+  timeMax=q.calc?20:10;
+  timeLeft=timeMax;
+  updateTimer();
+
+  const started=performance.now();
+  timerId=setInterval(()=>{
+    const elapsed=(performance.now()-started)/1000;
+    timeLeft=Math.max(0,timeMax-elapsed);
+    updateTimer();
+    if(timeLeft<=0) timeout();
+  },100);
+}
+
+function updateTimer(){
+  $("#timerNum").textContent=Math.ceil(timeLeft);
+  $("#timerBar").style.width=`${(timeLeft/timeMax)*100}%`;
+  const p=timeLeft/timeMax;
+  $("#timerBar").style.background=p<.30?"var(--bad)":p<.55?"var(--warn)":"var(--accent)";
+}
+
+function lockChoices(correct,clicked=null){
+  document.querySelectorAll(".choice").forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===correct) b.classList.add("correct");
+  });
+  if(clicked && clicked.textContent!==correct) clicked.classList.add("wrong");
+  $("#nextBtn").classList.add("show");
+}
+
+function answer(opt,btn){
+  if(locked) return;
+  locked=true;
+  clearInterval(timerId);
+  const q=session[idx];
+  const ok=opt===q.a;
+  results.push({id:q.id,status:ok?"correct":"wrong"});
+  if(ok){ rewardCorrect(q.id); addMastered(q); }
+  else saveMiss(q.id,"wrong");
+
+  lockChoices(q.a,btn);
+  const f=$("#feedback");
+  f.className="feedback show "+(ok?"good":"bad");
+  f.innerHTML=ok
+    ? `✅ 正解！<br><b>${q.explain}</b>`
+    : `❌ 正解は「<b>${q.a}</b>」`;
+}
+
+function timeout(){
+  if(locked) return;
+  locked=true;
+  clearInterval(timerId);
+  const q=session[idx];
+  results.push({id:q.id,status:"timeout"});
+  saveMiss(q.id,"timeout");
+  lockChoices(q.a);
+  const f=$("#feedback");
+  f.className="feedback show bad";
+  f.innerHTML=`⏰ 時間切れ！<br>正解は「<b>${q.a}</b>」`;
+}
+
+$("#nextBtn").onclick=()=>{
+  idx++;
+  if(idx>=session.length) showResult();
+  else showQuestion();
+};
+
+
+function renderRunSummary(){
+  const box=$("#runSummary");
+  if(!box) return;
+
+  if(!normalTurnScores.length){
+    box.classList.add("hidden");
+    box.innerHTML="";
+    return;
+  }
+
+  const totalCorrect=normalTurnScores.reduce((n,r)=>n+r.correct,0);
+  const totalQuestions=normalTurnScores.reduce((n,r)=>n+r.total,0);
+
+  let html="<h3>📊 今回の結果（復習ターンを除く）</h3>";
+  normalTurnScores.forEach(r=>{
+    html+=`<div class="round-row"><span>${r.turn}ターン目</span><span>${r.correct} / ${r.total}</span></div>`;
+  });
+  html+=`<div class="round-total">合計 ${totalCorrect} / ${totalQuestions}</div>`;
+  if(isReviewRound){
+    html+=`<div class="review-note">※現在の復習ターンの成績は、この合計には加えていません。</div>`;
+  }
+  box.innerHTML=html;
+  box.classList.remove("hidden");
+}
+
+function showResult(){
+  clearInterval(timerId);
+  $("#quiz").classList.add("hidden");
+  $("#result").classList.remove("hidden");
+
+  const c=results.filter(r=>r.status==="correct").length;
+  const w=results.filter(r=>r.status==="wrong").length;
+  const t=results.filter(r=>r.status==="timeout").length;
+  const score=Math.round(c/session.length*100);
+
+  if(!isReviewRound){
+    normalTurnScores.push({turn:currentNormalTurn,correct:c,total:session.length});
+    results.filter(r=>r.status!=="correct").forEach(r=>allNormalMissedIds.add(r.id));
+  }
+
+
+  $("#score").textContent=`${score}点`;
+  $("#scoreText").textContent=`${session.length}問中 ${c}問正解`;
+  $("#correctCount").textContent=c;
+  $("#wrongCount").textContent=w;
+  $("#timeoutCount").textContent=t;
+  renderRunSummary();
+
+  const miss=session.length-c;
+  $("#encourage").textContent=miss===0
+    ? "🎉 満点！このターンは完全クリアです。"
+    : `満点まであと ${miss}問！`;
+
+  if(isReviewRound){
+    $("#retryWrong").classList.add("hidden");
+    $("#sameAgain").textContent="通常ターン結果へ";
+  }else if(currentNormalTurn < totalNormalTurns){
+    $("#retryWrong").classList.add("hidden");
+    $("#sameAgain").textContent=`次のターンへ（${currentNormalTurn+1} / ${totalNormalTurns}）`;
+  }else{
+    $("#retryWrong").classList.toggle("hidden",allNormalMissedIds.size===0);
+    $("#sameAgain").textContent="同じ条件でもう一度";
+  }
+}
+
+$("#retryWrong").onclick=()=>{
+  const missed=ALL.filter(q=>allNormalMissedIds.has(q.id));
+  currentMode="weak";
+  start("weak",shuffle(missed),{review:true});
+};
+
+$("#sameAgain").onclick=()=>{
+  if(isReviewRound){
+    $("#quiz").classList.add("hidden");
+    $("#result").classList.remove("hidden");
+    isReviewRound=false;
+    currentMode=runMode;
+    renderRunSummary();
+    $("#retryWrong").classList.toggle("hidden",allNormalMissedIds.size===0);
+    $("#sameAgain").textContent="同じ条件でもう一度";
+    return;
+  }
+
+  if(currentNormalTurn < totalNormalTurns){
+    currentNormalTurn++;
+    start(runMode,null,{review:false});
+  }else{
+    start(runMode,null,{newRun:true,review:false});
+  }
+};
+
+$("#homeBtn").onclick=()=>{
+  clearInterval(timerId);
+  $("#quiz").classList.add("hidden");
+  $("#result").classList.add("hidden");
+  $("#start").classList.remove("hidden");
+  updateMasteryDisplay();
+};
+
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>start(b.dataset.mode,null,{newRun:true,review:false}));
+
+updateMasteryDisplay();
+</script>
+</body>
+</html>
