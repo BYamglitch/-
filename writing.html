@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>英単語 Apple Pencil 書き取り</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#142033;--sub:#667085;--line:#d8e1ec;--accent:#3156d3;--good:#067647;--bad:#b42318;--soft:#eef3ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;min-height:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;background:linear-gradient(#eef4ff,#f7f9fc);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;color:var(--ink);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button,input{font:inherit} button{touch-action:manipulation;-webkit-appearance:none;appearance:none;border:0;cursor:pointer}
+.hidden{display:none!important}
+.wrap{max-width:900px;margin:auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 26px rgba(20,32,51,.07)}
+h1{font-size:clamp(28px,5vw,42px);margin:0 0 8px} .lead{color:var(--sub);line-height:1.7}
+.label{font-size:13px;font-weight:900;color:var(--sub);margin:16px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.pick{min-height:48px;border:2px solid var(--line);background:#fff;border-radius:14px;font-weight:850;padding:10px}
+.pick.sel{border-color:var(--accent);background:var(--soft);color:#183aa5}
+.primary,.secondary{width:100%;min-height:52px;border-radius:14px;padding:13px 16px;font-size:18px;font-weight:900}
+.primary{background:var(--accent);color:#fff} .secondary{background:#edf1f6;color:var(--ink);margin-top:9px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.pill{padding:7px 11px;background:#edf2f8;border-radius:999px;font-size:13px;font-weight:850}
+.jp{font-size:clamp(28px,6vw,46px);font-weight:950;line-height:1.35;margin:14px 0 4px}
+.source{font-size:12px;color:var(--sub);font-weight:800}
+.audio{margin:12px 0 18px;background:#e9f3ff;color:#174a7a;border:1px solid #bcdcff;border-radius:13px;min-height:46px;padding:10px 14px;font-weight:900}
+.answerInput{width:100%;min-height:86px;border:3px solid #b8c7da;border-radius:18px;padding:14px 16px;font-size:clamp(28px,6vw,42px);font-weight:800;letter-spacing:.02em;background:#fff;outline:none}
+.answerInput:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(49,86,211,.11)}
+.hint{font-size:13px;color:var(--sub);line-height:1.6;margin:8px 0 12px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.action{min-height:49px;border-radius:13px;background:#edf1f6;font-weight:900}
+.action.main{background:var(--accent);color:#fff}
+.feedback{display:none;margin-top:14px;padding:14px;border-radius:14px;font-weight:850;line-height:1.5}
+.feedback.show{display:block} .feedback.good{background:#e9f8f0;color:var(--good)} .feedback.bad{background:#fff0ee;color:var(--bad)}
+.correctAnswer{font-size:30px;font-weight:950;letter-spacing:.02em;margin-top:4px}
+.canvasWrap{position:relative;margin-top:10px}
+canvas{width:100%;height:300px;background:white;border:3px solid #b8c7da;border-radius:18px;touch-action:none;display:block}
+.canvasHint{position:absolute;left:0;right:0;top:48%;text-align:center;color:#bdc5d0;font-size:26px;font-weight:900;pointer-events:none}
+.canvasTools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:9px}
+.smallbtn{min-height:44px;border-radius:12px;background:#edf1f6;font-weight:850}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.stat{background:#f2f5f9;border-radius:13px;padding:12px;text-align:center}.stat b{display:block;font-size:27px}
+.reviewList{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:13px;padding:8px 12px;margin:10px 0}
+.reviewItem{padding:8px 0;border-bottom:1px solid #e8edf3}
+@media(max-width:600px){.wrap{padding:10px}.card{padding:17px}.grid{grid-template-columns:1fr 1fr}.actions{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section id="setup" class="card">
+<h1>✏️ Apple Pencil<br>英単語・熟語 書き取り</h1>
+<div class="lead">日本語を見て、Apple Pencilで英語を書きます。音声ボタンで正しい発音も確認できます。</div>
+
+<div class="label">書き方</div>
+<div id="modeBtns" class="grid">
+<button class="pick sel" data-mode="scribble">✍️ Scribble判定<br><small>手書き→文字変換して自動採点</small></button>
+<button class="pick" data-mode="canvas">📝 ノート手書き<br><small>自由に書いて自己採点</small></button>
+</div>
+
+<div class="label">出題範囲</div>
+<div id="rangeBtns" class="grid">
+<button class="pick sel" data-range="all">全部</button>
+<button class="pick" data-range="L4">Lesson 4</button>
+<button class="pick" data-range="L5">Lesson 5</button>
+<button class="pick" data-range="L6">Lesson 6</button>
+<button class="pick" data-range="T1800">ターゲット1800</button>
+<button class="pick" data-range="T400">英熟語400</button>
+</div>
+
+<div class="label">1ターン</div>
+<div id="countBtns" class="grid">
+<button class="pick" data-count="10">10問</button>
+<button class="pick sel" data-count="15">15問</button>
+<button class="pick" data-count="20">20問</button>
+<button class="pick" data-count="30">30問</button>
+</div>
+
+<div class="hint">Scribble判定：Apple Pencilで解答欄に書くとiPadが文字に変換します。アプリが綴りを判定します。<br>ノート手書き：キャンバスへ直接書き、答えを表示して「○ / △ / ×」で自己採点します。</div>
+<button id="startBtn" class="primary">スタート</button>
+<button id="weakBtn" class="secondary">苦手だけ復習（<span id="weakCount">0</span>語）</button>
+</section>
+
+<section id="quiz" class="card hidden">
+<div class="topbar"><span id="counter" class="pill">1 / 15</span><span id="scorePill" class="pill">○ 0　△ 0　× 0</span></div>
+<div id="jp" class="jp"></div>
+<div id="source" class="source"></div>
+<button id="audioBtn" class="audio">🔊 英語を聞く</button>
+
+<div id="scribbleArea">
+<input id="answerInput" class="answerInput" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" placeholder="Apple Pencilでここに書く">
+<div class="hint">Apple PencilのScribbleで書いてください。入力後「答え合わせ」をタップします。</div>
+<div class="actions">
+<button id="clearInputBtn" class="action">消す</button>
+<button id="checkBtn" class="action main">答え合わせ</button>
+</div>
+</div>
+
+<div id="canvasArea" class="hidden">
+<div class="canvasWrap"><canvas id="pad"></canvas><div id="canvasHint" class="canvasHint">ここにApple Pencilで書く</div></div>
+<div class="canvasTools">
+<button id="undoBtn" class="smallbtn">↶ 1画戻す</button>
+<button id="clearCanvasBtn" class="smallbtn">全部消す</button>
+<button id="revealBtn" class="smallbtn">答えを見る</button>
+</div>
+</div>
+
+<div id="feedback" class="feedback"></div>
+<div id="gradeBtns" class="actions hidden" style="margin-top:10px">
+<button class="action" data-grade="good">○ 書けた</button>
+<button class="action" data-grade="maybe">△ 迷った</button>
+<button class="action" data-grade="bad">× 書けなかった</button>
+</div>
+<button id="nextBtn" class="primary hidden" style="margin-top:10px">次へ</button>
+</section>
+
+<section id="result" class="card hidden">
+<h1>1ターン終了！</h1>
+<div class="stats"><div class="stat"><b id="goodN">0</b>○</div><div class="stat"><b id="maybeN">0</b>△</div><div class="stat"><b id="badN">0</b>×</div></div>
+<div style="font-weight:900">今回の復習語</div><div id="reviewList" class="reviewList"></div>
+<button id="retryBtn" class="primary">△・×だけもう一度</button>
+<button id="homeBtn" class="secondary">範囲選択へ戻る</button>
+</section>
+</div>
+
+<script>
+const BANK=[{"en": "get", "jp": "得る・手に入れる", "src": "L4", "type": "word_or_phrase"}, {"en": "supermarket", "jp": "スーパーマーケット", "src": "L4", "type": "word_or_phrase"}, {"en": "get up", "jp": "起きる", "src": "L4", "type": "word_or_phrase"}, {"en": "get on", "jp": "乗る", "src": "L4", "type": "word_or_phrase"}, {"en": "get off", "jp": "降りる", "src": "L4", "type": "word_or_phrase"}, {"en": "get to", "jp": "〜に着く", "src": "L4", "type": "word_or_phrase"}, {"en": "active", "jp": "活発な", "src": "L4", "type": "word_or_phrase"}, {"en": "sport", "jp": "スポーツ", "src": "L4", "type": "word_or_phrase"}, {"en": "live", "jp": "住む", "src": "L4", "type": "word_or_phrase"}, {"en": "miss", "jp": "〜がいなくて寂しく思う", "src": "L4", "type": "word_or_phrase"}, {"en": "cooking", "jp": "料理", "src": "L4", "type": "word_or_phrase"}, {"en": "favorite", "jp": "お気に入りの・いちばん好きな", "src": "L4", "type": "word_or_phrase"}, {"en": "classmate", "jp": "クラスメート", "src": "L4", "type": "word_or_phrase"}, {"en": "be good at", "jp": "〜が得意である", "src": "L4+T400", "type": "word_or_phrase"}, {"en": "after school", "jp": "放課後", "src": "L4+T400", "type": "word_or_phrase"}, {"en": "every day", "jp": "毎日", "src": "L4", "type": "word_or_phrase"}, {"en": "every week", "jp": "毎週", "src": "L4", "type": "word_or_phrase"}, {"en": "listen to", "jp": "〜を聞く", "src": "L4", "type": "word_or_phrase"}, {"en": "video", "jp": "ビデオ・動画", "src": "L4", "type": "word_or_phrase"}, {"en": "often", "jp": "よく・しばしば", "src": "L4", "type": "word_or_phrase"}, {"en": "send", "jp": "送る", "src": "L4", "type": "word_or_phrase"}, {"en": "take", "jp": "取る・（写真などを）撮る", "src": "L4", "type": "word_or_phrase"}, {"en": "sometimes", "jp": "ときどき", "src": "L4", "type": "word_or_phrase"}, {"en": "make", "jp": "作る", "src": "L4", "type": "word_or_phrase"}, {"en": "video call", "jp": "ビデオ通話", "src": "L4", "type": "word_or_phrase"}, {"en": "doesn't", "jp": "〜しない", "src": "L4", "type": "word_or_phrase"}, {"en": "always", "jp": "いつも", "src": "L4", "type": "word_or_phrase"}, {"en": "usually", "jp": "たいてい・ふつうは", "src": "L4+T1800", "type": "word_or_phrase"}, {"en": "never", "jp": "決して〜ない", "src": "L4", "type": "word_or_phrase"}, {"en": "drink", "jp": "飲む", "src": "L4", "type": "word_or_phrase"}, {"en": "breakfast", "jp": "朝食", "src": "L4", "type": "word_or_phrase"}, {"en": "by car", "jp": "車で", "src": "L4", "type": "word_or_phrase"}, {"en": "where", "jp": "どこ", "src": "L4", "type": "word_or_phrase"}, {"en": "when", "jp": "いつ", "src": "L4", "type": "word_or_phrase"}, {"en": "what time", "jp": "何時", "src": "L4", "type": "word_or_phrase"}, {"en": "near", "jp": "〜の近くに", "src": "L4", "type": "word_or_phrase"}, {"en": "together", "jp": "一緒に", "src": "L4+T1800", "type": "word_or_phrase"}, {"en": "at the door", "jp": "ドアのところに", "src": "L4", "type": "word_or_phrase"}, {"en": "at school", "jp": "学校で", "src": "L4", "type": "word_or_phrase"}, {"en": "at the station", "jp": "駅で", "src": "L4", "type": "word_or_phrase"}, {"en": "at the library", "jp": "図書館で", "src": "L4", "type": "word_or_phrase"}, {"en": "on the table", "jp": "テーブルの上に", "src": "L4", "type": "word_or_phrase"}, {"en": "on the wall", "jp": "壁に", "src": "L4", "type": "word_or_phrase"}, {"en": "in the room", "jp": "部屋の中に", "src": "L4", "type": "word_or_phrase"}, {"en": "in Tokyo", "jp": "東京に", "src": "L4", "type": "word_or_phrase"}, {"en": "in the kitchen", "jp": "台所に", "src": "L4", "type": "word_or_phrase"}, {"en": "in Asia", "jp": "アジアに", "src": "L4", "type": "word_or_phrase"}, {"en": "under the chair", "jp": "いすの下に", "src": "L4", "type": "word_or_phrase"}, {"en": "under the tree", "jp": "木の下に", "src": "L4", "type": "word_or_phrase"}, {"en": "by the window", "jp": "窓のそばに", "src": "L4", "type": "word_or_phrase"}, {"en": "by the sea", "jp": "海のそばに", "src": "L4", "type": "word_or_phrase"}, {"en": "from ... to ...", "jp": "〜から…まで", "src": "L4", "type": "word_or_phrase"}, {"en": "at noon", "jp": "正午に", "src": "L4", "type": "word_or_phrase"}, {"en": "at night", "jp": "夜に", "src": "L4", "type": "word_or_phrase"}, {"en": "on Monday", "jp": "月曜日に", "src": "L4", "type": "word_or_phrase"}, {"en": "in September", "jp": "9月に", "src": "L4", "type": "word_or_phrase"}, {"en": "in summer", "jp": "夏に", "src": "L4", "type": "word_or_phrase"}, {"en": "in the morning", "jp": "朝に", "src": "L4", "type": "word_or_phrase"}, {"en": "before breakfast", "jp": "朝食の前に", "src": "L4", "type": "word_or_phrase"}, {"en": "after dinner", "jp": "夕食の後に", "src": "L4", "type": "word_or_phrase"}, {"en": "vacation", "jp": "休暇", "src": "L4", "type": "word_or_phrase"}, {"en": "festival", "jp": "祭り", "src": "L4", "type": "word_or_phrase"}, {"en": "room", "jp": "部屋", "src": "L4", "type": "word_or_phrase"}, {"en": "floor", "jp": "階・床", "src": "L4", "type": "word_or_phrase"}, {"en": "table", "jp": "テーブル", "src": "L4", "type": "word_or_phrase"}, {"en": "wall", "jp": "壁", "src": "L4", "type": "word_or_phrase"}, {"en": "under", "jp": "〜の下に", "src": "L4", "type": "word_or_phrase"}, {"en": "sea", "jp": "海", "src": "L4", "type": "word_or_phrase"}, {"en": "dinner", "jp": "夕食", "src": "L4", "type": "word_or_phrase"}, {"en": "animal", "jp": "動物", "src": "L4", "type": "word_or_phrase"}, {"en": "elephant", "jp": "ゾウ", "src": "L4", "type": "word_or_phrase"}, {"en": "area", "jp": "区域・エリア", "src": "L4", "type": "word_or_phrase"}, {"en": "baby", "jp": "赤ちゃん", "src": "L4", "type": "word_or_phrase"}, {"en": "walk", "jp": "歩く", "src": "L4", "type": "word_or_phrase"}, {"en": "slowly", "jp": "ゆっくり", "src": "L4", "type": "word_or_phrase"}, {"en": "cute", "jp": "かわいい", "src": "L4", "type": "word_or_phrase"}, {"en": "bath", "jp": "入浴・風呂", "src": "L4", "type": "word_or_phrase"}, {"en": "bathe", "jp": "入浴する", "src": "L4", "type": "word_or_phrase"}, {"en": "panda", "jp": "パンダ", "src": "L4", "type": "word_or_phrase"}, {"en": "lovely", "jp": "かわいらしい・すてきな", "src": "L4", "type": "word_or_phrase"}, {"en": "come from", "jp": "〜の出身である・〜から来る", "src": "L4", "type": "word_or_phrase"}, {"en": "a lot of", "jp": "たくさんの", "src": "L4", "type": "word_or_phrase"}, {"en": "bamboo", "jp": "竹", "src": "L4", "type": "word_or_phrase"}, {"en": "show", "jp": "見せる・示す", "src": "L4", "type": "word_or_phrase"}, {"en": "another", "jp": "もう一つの・別の", "src": "L4", "type": "word_or_phrase"}, {"en": "leopard", "jp": "ヒョウ", "src": "L4", "type": "word_or_phrase"}, {"en": "run", "jp": "走る", "src": "L4", "type": "word_or_phrase"}, {"en": "fast", "jp": "速い・速く", "src": "L4", "type": "word_or_phrase"}, {"en": "marking", "jp": "模様", "src": "L4", "type": "word_or_phrase"}, {"en": "also", "jp": "〜もまた", "src": "L4", "type": "word_or_phrase"}, {"en": "tail", "jp": "しっぽ", "src": "L4", "type": "word_or_phrase"}, {"en": "spend", "jp": "過ごす・費やす", "src": "L4", "type": "word_or_phrase"}, {"en": "exciting", "jp": "わくわくさせる・刺激的な", "src": "L4", "type": "word_or_phrase"}, {"en": "get home", "jp": "帰宅する", "src": "L4", "type": "word_or_phrase"}, {"en": "take a bath", "jp": "風呂に入る", "src": "L4+T400", "type": "word_or_phrase"}, {"en": "take a shower", "jp": "シャワーを浴びる", "src": "L4", "type": "word_or_phrase"}, {"en": "go to bed", "jp": "寝る", "src": "L4", "type": "word_or_phrase"}, {"en": "pet", "jp": "ペット", "src": "L4", "type": "word_or_phrase"}, {"en": "dog", "jp": "犬", "src": "L4", "type": "word_or_phrase"}, {"en": "cat", "jp": "猫", "src": "L4", "type": "word_or_phrase"}, {"en": "rabbit", "jp": "ウサギ", "src": "L4", "type": "word_or_phrase"}, {"en": "hamster", "jp": "ハムスター", "src": "L4", "type": "word_or_phrase"}, {"en": "bird", "jp": "鳥", "src": "L4", "type": "word_or_phrase"}, {"en": "picture", "jp": "絵・写真", "src": "L4", "type": "word_or_phrase"}, {"en": "zoo", "jp": "動物園", "src": "L4", "type": "word_or_phrase"}, {"en": "look at", "jp": "〜を見る", "src": "L4", "type": "word_or_phrase"}, {"en": "have", "jp": "持っている・所有している", "src": "L5", "type": "word_or_phrase"}, {"en": "headache", "jp": "頭痛", "src": "L5", "type": "word_or_phrase"}, {"en": "have a good time", "jp": "楽しい時間を過ごす", "src": "L5+T400", "type": "word_or_phrase"}, {"en": "have a headache", "jp": "頭痛がする", "src": "L5", "type": "word_or_phrase"}, {"en": "racket", "jp": "ラケット", "src": "L5", "type": "word_or_phrase"}, {"en": "bench", "jp": "ベンチ", "src": "L5", "type": "word_or_phrase"}, {"en": "mine", "jp": "私のもの", "src": "L5", "type": "word_or_phrase"}, {"en": "whose", "jp": "だれの・だれのもの", "src": "L5", "type": "word_or_phrase"}, {"en": "maybe", "jp": "たぶん・もしかすると", "src": "L5", "type": "word_or_phrase"}, {"en": "Here is ...", "jp": "ここに〜があります", "src": "L5", "type": "word_or_phrase"}, {"en": "case", "jp": "ケース・入れ物", "src": "L5", "type": "word_or_phrase"}, {"en": "ruler", "jp": "定規", "src": "L5", "type": "word_or_phrase"}, {"en": "yours", "jp": "あなたのもの", "src": "L5", "type": "word_or_phrase"}, {"en": "stapler", "jp": "ホチキス", "src": "L5", "type": "word_or_phrase"}, {"en": "ours", "jp": "私たちのもの", "src": "L5", "type": "word_or_phrase"}, {"en": "hers", "jp": "彼女のもの", "src": "L5", "type": "word_or_phrase"}, {"en": "theirs", "jp": "彼ら・彼女らのもの", "src": "L5", "type": "word_or_phrase"}, {"en": "hat", "jp": "帽子", "src": "L5", "type": "word_or_phrase"}, {"en": "children", "jp": "子どもたち", "src": "L5", "type": "word_or_phrase"}, {"en": "may", "jp": "〜してもよい・〜かもしれない", "src": "L5", "type": "word_or_phrase"}, {"en": "help", "jp": "助ける", "src": "L5", "type": "word_or_phrase"}, {"en": "jogging suit", "jp": "ジョギング用の運動着", "src": "L5", "type": "word_or_phrase"}, {"en": "dollar", "jp": "ドル", "src": "L5", "type": "word_or_phrase"}, {"en": "size", "jp": "サイズ・大きさ", "src": "L5", "type": "word_or_phrase"}, {"en": "centimeter", "jp": "センチメートル", "src": "L5", "type": "word_or_phrase"}, {"en": "foot / feet", "jp": "フィート", "src": "L5", "type": "word_or_phrase"}, {"en": "inch", "jp": "インチ", "src": "L5", "type": "word_or_phrase"}, {"en": "fine", "jp": "よい・大丈夫な", "src": "L5", "type": "word_or_phrase"}, {"en": "just", "jp": "ただ・ちょうど", "src": "L5", "type": "word_or_phrase"}, {"en": "May I help you?", "jp": "何かお探しですか", "src": "L5", "type": "word_or_phrase"}, {"en": "I'd like ...", "jp": "私は〜が欲しいです", "src": "L5", "type": "word_or_phrase"}, {"en": "meter", "jp": "メートル", "src": "L5", "type": "word_or_phrase"}, {"en": "river", "jp": "川", "src": "L5", "type": "word_or_phrase"}, {"en": "kilometer", "jp": "キロメートル", "src": "L5", "type": "word_or_phrase"}, {"en": "deep", "jp": "深い", "src": "L5", "type": "word_or_phrase"}, {"en": "ticket", "jp": "切符・チケット", "src": "L5", "type": "word_or_phrase"}, {"en": "yard", "jp": "ヤード", "src": "L5", "type": "word_or_phrase"}, {"en": "mile", "jp": "マイル", "src": "L5", "type": "word_or_phrase"}, {"en": "yen", "jp": "円", "src": "L5", "type": "word_or_phrase"}, {"en": "point", "jp": "点・小数点", "src": "L5", "type": "word_or_phrase"}, {"en": "How old ...?", "jp": "何歳ですか・どのくらい古いですか", "src": "L5", "type": "word_or_phrase"}, {"en": "How tall ...?", "jp": "身長はどのくらいですか", "src": "L5", "type": "word_or_phrase"}, {"en": "How high ...?", "jp": "高さはどのくらいですか", "src": "L5", "type": "word_or_phrase"}, {"en": "How long ...?", "jp": "長さはどのくらいですか", "src": "L5", "type": "word_or_phrase"}, {"en": "How deep ...?", "jp": "深さはどのくらいですか", "src": "L5", "type": "word_or_phrase"}, {"en": "How much ...?", "jp": "いくらですか", "src": "L5", "type": "word_or_phrase"}, {"en": "which", "jp": "どちら・どの", "src": "L5", "type": "word_or_phrase"}, {"en": "pants", "jp": "ズボン", "src": "L5", "type": "word_or_phrase"}, {"en": "shorts", "jp": "半ズボン", "src": "L5", "type": "word_or_phrase"}, {"en": "different", "jp": "異なる・違った", "src": "L5+T1800", "type": "word_or_phrase"}, {"en": "on sale", "jp": "セール中で", "src": "L5", "type": "word_or_phrase"}, {"en": "sale", "jp": "セール・販売", "src": "L5", "type": "word_or_phrase"}, {"en": "percent", "jp": "パーセント", "src": "L5", "type": "word_or_phrase"}, {"en": "wow", "jp": "わあ・うわあ", "src": "L5", "type": "word_or_phrase"}, {"en": "deal", "jp": "取引・買い物", "src": "L5", "type": "word_or_phrase"}, {"en": "That's a good deal.", "jp": "お買い得ですね", "src": "L5", "type": "word_or_phrase"}, {"en": "captain", "jp": "キャプテン・主将", "src": "L5", "type": "word_or_phrase"}, {"en": "team", "jp": "チーム", "src": "L5", "type": "word_or_phrase"}, {"en": "cup", "jp": "カップ", "src": "L5", "type": "word_or_phrase"}, {"en": "iced tea", "jp": "アイスティー", "src": "L5", "type": "word_or_phrase"}, {"en": "subject", "jp": "教科・科目", "src": "L5", "type": "word_or_phrase"}, {"en": "island", "jp": "島", "src": "L5", "type": "word_or_phrase"}, {"en": "mountain", "jp": "山", "src": "L5", "type": "word_or_phrase"}, {"en": "beach", "jp": "浜・海岸", "src": "L5", "type": "word_or_phrase"}, {"en": "god", "jp": "神", "src": "L5", "type": "word_or_phrase"}, {"en": "most", "jp": "ほとんどの・大部分の", "src": "L5", "type": "word_or_phrase"}, {"en": "people", "jp": "人々", "src": "L5", "type": "word_or_phrase"}, {"en": "custom", "jp": "習慣・風習", "src": "L5", "type": "word_or_phrase"}, {"en": "touch", "jp": "触れる", "src": "L5", "type": "word_or_phrase"}, {"en": "others", "jp": "ほかの人々・ほかのもの", "src": "L5", "type": "word_or_phrase"}, {"en": "left", "jp": "左の", "src": "L5", "type": "word_or_phrase"}, {"en": "life", "jp": "生活・人生", "src": "L5", "type": "word_or_phrase"}, {"en": "visit", "jp": "訪れる", "src": "L5+T1800", "type": "word_or_phrase"}, {"en": "someday", "jp": "いつか", "src": "L5", "type": "word_or_phrase"}, {"en": "be different from", "jp": "〜と異なる", "src": "L5", "type": "word_or_phrase"}, {"en": "want to", "jp": "〜したい", "src": "L5", "type": "word_or_phrase"}, {"en": "place", "jp": "場所", "src": "L5", "type": "word_or_phrase"}, {"en": "religious", "jp": "宗教の", "src": "L5", "type": "word_or_phrase"}, {"en": "dance", "jp": "踊り・ダンス", "src": "L5", "type": "word_or_phrase"}, {"en": "like", "jp": "〜のような", "src": "L5", "type": "word_or_phrase"}, {"en": "story", "jp": "物語", "src": "L5", "type": "word_or_phrase"}, {"en": "battle", "jp": "戦い", "src": "L5", "type": "word_or_phrase"}, {"en": "between", "jp": "〜の間に", "src": "L5", "type": "word_or_phrase"}, {"en": "witch", "jp": "魔女", "src": "L5", "type": "word_or_phrase"}, {"en": "between A and B", "jp": "AとBの間に", "src": "L5", "type": "word_or_phrase"}, {"en": "T-shirt", "jp": "Tシャツ", "src": "L5", "type": "word_or_phrase"}, {"en": "cap", "jp": "帽子・キャップ", "src": "L5", "type": "word_or_phrase"}, {"en": "change", "jp": "おつり・小銭", "src": "L5", "type": "word_or_phrase"}, {"en": "cent", "jp": "セント", "src": "L5", "type": "word_or_phrase"}, {"en": "shirt", "jp": "シャツ", "src": "L5", "type": "word_or_phrase"}, {"en": "jeans", "jp": "ジーンズ", "src": "L5", "type": "word_or_phrase"}, {"en": "skirt", "jp": "スカート", "src": "L5", "type": "word_or_phrase"}, {"en": "socks", "jp": "靴下", "src": "L5", "type": "word_or_phrase"}, {"en": "shoes", "jp": "靴", "src": "L5", "type": "word_or_phrase"}, {"en": "Here you are.", "jp": "はい、どうぞ", "src": "L5", "type": "word_or_phrase"}, {"en": "Here is your change.", "jp": "おつりです", "src": "L5", "type": "word_or_phrase"}, {"en": "shopping", "jp": "買い物", "src": "L6", "type": "word_or_phrase"}, {"en": "mall", "jp": "ショッピングモール", "src": "L6", "type": "word_or_phrase"}, {"en": "go shopping", "jp": "買い物に行く", "src": "L6", "type": "word_or_phrase"}, {"en": "street", "jp": "通り", "src": "L6", "type": "word_or_phrase"}, {"en": "straight", "jp": "まっすぐな・まっすぐに", "src": "L6", "type": "word_or_phrase"}, {"en": "along", "jp": "〜に沿って", "src": "L6", "type": "word_or_phrase"}, {"en": "block", "jp": "一区画", "src": "L6", "type": "word_or_phrase"}, {"en": "turn", "jp": "曲がる", "src": "L6", "type": "word_or_phrase"}, {"en": "corner", "jp": "角", "src": "L6", "type": "word_or_phrase"}, {"en": "problem", "jp": "問題", "src": "L6", "type": "word_or_phrase"}, {"en": "Excuse me.", "jp": "すみません", "src": "L6", "type": "word_or_phrase"}, {"en": "on one's left", "jp": "〜の左側に", "src": "L6+T400", "type": "word_or_phrase"}, {"en": "No problem.", "jp": "どういたしまして・問題ありません", "src": "L6", "type": "word_or_phrase"}, {"en": "open", "jp": "開ける", "src": "L6", "type": "word_or_phrase"}, {"en": "use", "jp": "使う", "src": "L6", "type": "word_or_phrase"}, {"en": "towel", "jp": "タオル", "src": "L6", "type": "word_or_phrase"}, {"en": "plate", "jp": "皿", "src": "L6", "type": "word_or_phrase"}, {"en": "seat", "jp": "席", "src": "L6", "type": "word_or_phrase"}, {"en": "again", "jp": "もう一度", "src": "L6", "type": "word_or_phrase"}, {"en": "sure", "jp": "もちろん・確かに", "src": "L6", "type": "word_or_phrase"}, {"en": "all", "jp": "すべて", "src": "L6", "type": "word_or_phrase"}, {"en": "sorry", "jp": "すみません・残念です", "src": "L6", "type": "word_or_phrase"}, {"en": "museum", "jp": "博物館・美術館", "src": "L6+T1800", "type": "word_or_phrase"}, {"en": "have a seat", "jp": "お座りください", "src": "L6", "type": "word_or_phrase"}, {"en": "All right.", "jp": "わかりました", "src": "L6", "type": "word_or_phrase"}, {"en": "ready", "jp": "準備ができた", "src": "L6", "type": "word_or_phrase"}, {"en": "order", "jp": "注文する", "src": "L6", "type": "word_or_phrase"}, {"en": "roast", "jp": "ローストした", "src": "L6", "type": "word_or_phrase"}, {"en": "beef", "jp": "牛肉", "src": "L6", "type": "word_or_phrase"}, {"en": "cream", "jp": "クリーム", "src": "L6", "type": "word_or_phrase"}, {"en": "pasta", "jp": "パスタ", "src": "L6", "type": "word_or_phrase"}, {"en": "would", "jp": "〜でしょう・〜していただけますか", "src": "L6", "type": "word_or_phrase"}, {"en": "can't", "jp": "〜できない", "src": "L6", "type": "word_or_phrase"}, {"en": "cannot", "jp": "〜することができない", "src": "L6", "type": "word_or_phrase"}, {"en": "read", "jp": "読む", "src": "L6", "type": "word_or_phrase"}, {"en": "Italian", "jp": "イタリアの・イタリア語", "src": "L6", "type": "word_or_phrase"}, {"en": "chocolate", "jp": "チョコレート", "src": "L6", "type": "word_or_phrase"}, {"en": "love", "jp": "大好きである", "src": "L6", "type": "word_or_phrase"}, {"en": "be ready to", "jp": "〜する準備ができている", "src": "L6+T400", "type": "word_or_phrase"}, {"en": "Would you like ...?", "jp": "〜はいかがですか", "src": "L6+T400", "type": "word_or_phrase"}, {"en": "write", "jp": "書く", "src": "L6", "type": "word_or_phrase"}, {"en": "song", "jp": "歌", "src": "L6", "type": "word_or_phrase"}, {"en": "sing", "jp": "歌う", "src": "L6", "type": "word_or_phrase"}, {"en": "band", "jp": "バンド", "src": "L6", "type": "word_or_phrase"}, {"en": "swim", "jp": "泳ぐ", "src": "L6", "type": "word_or_phrase"}, {"en": "pool", "jp": "プール", "src": "L6", "type": "word_or_phrase"}, {"en": "bread", "jp": "パン", "src": "L6", "type": "word_or_phrase"}, {"en": "salad", "jp": "サラダ", "src": "L6", "type": "word_or_phrase"}, {"en": "weekend", "jp": "週末", "src": "L6", "type": "word_or_phrase"}, {"en": "be", "jp": "〜である", "src": "L6", "type": "word_or_phrase"}, {"en": "careful", "jp": "注意深い", "src": "L6", "type": "word_or_phrase"}, {"en": "olive", "jp": "オリーブ", "src": "L6", "type": "word_or_phrase"}, {"en": "oil", "jp": "油", "src": "L6", "type": "word_or_phrase"}, {"en": "finish", "jp": "終える", "src": "L6", "type": "word_or_phrase"}, {"en": "worry", "jp": "心配する", "src": "L6", "type": "word_or_phrase"}, {"en": "bring", "jp": "持ってくる", "src": "L6", "type": "word_or_phrase"}, {"en": "later", "jp": "あとで", "src": "L6", "type": "word_or_phrase"}, {"en": "ski", "jp": "スキーをする", "src": "L6", "type": "word_or_phrase"}, {"en": "skate", "jp": "スケートをする", "src": "L6", "type": "word_or_phrase"}, {"en": "post office", "jp": "郵便局", "src": "L6", "type": "word_or_phrase"}, {"en": "everybody", "jp": "みんな", "src": "L6", "type": "word_or_phrase"}, {"en": "noisy", "jp": "うるさい", "src": "L6", "type": "word_or_phrase"}, {"en": "late", "jp": "遅れた・遅い", "src": "L6", "type": "word_or_phrase"}, {"en": "meeting", "jp": "会合・ミーティング", "src": "L6", "type": "word_or_phrase"}, {"en": "be late for", "jp": "〜に遅れる", "src": "L6", "type": "word_or_phrase"}, {"en": "interviewer", "jp": "面接官", "src": "L6", "type": "word_or_phrase"}, {"en": "international", "jp": "国際的な", "src": "L6", "type": "word_or_phrase"}, {"en": "central", "jp": "中心の", "src": "L6", "type": "word_or_phrase"}, {"en": "junior high school", "jp": "中学校", "src": "L6", "type": "word_or_phrase"}, {"en": "clean", "jp": "掃除する", "src": "L6", "type": "word_or_phrase"}, {"en": "babysit", "jp": "子守をする", "src": "L6", "type": "word_or_phrase"}, {"en": "else", "jp": "ほかに", "src": "L6", "type": "word_or_phrase"}, {"en": "pick", "jp": "拾う・選ぶ", "src": "L6", "type": "word_or_phrase"}, {"en": "litter", "jp": "ごみ", "src": "L6", "type": "word_or_phrase"}, {"en": "musical", "jp": "音楽の", "src": "L6", "type": "word_or_phrase"}, {"en": "instrument", "jp": "楽器", "src": "L6", "type": "word_or_phrase"}, {"en": "Can I ...?", "jp": "〜してもいいですか", "src": "L6", "type": "word_or_phrase"}, {"en": "let's see", "jp": "ええと・そうですね", "src": "L6", "type": "word_or_phrase"}, {"en": "pick up", "jp": "拾う", "src": "L6+T400", "type": "word_or_phrase"}, {"en": "member", "jp": "一員・会員", "src": "L6", "type": "word_or_phrase"}, {"en": "orchestra", "jp": "オーケストラ", "src": "L6", "type": "word_or_phrase"}, {"en": "nursing home", "jp": "老人ホーム", "src": "L6", "type": "word_or_phrase"}, {"en": "director", "jp": "責任者・所長", "src": "L6", "type": "word_or_phrase"}, {"en": "entrance", "jp": "入口", "src": "L6", "type": "word_or_phrase"}, {"en": "a.m.", "jp": "午前", "src": "L6", "type": "word_or_phrase"}, {"en": "elderly", "jp": "年配の", "src": "L6", "type": "word_or_phrase"}, {"en": "sit", "jp": "座る", "src": "L6", "type": "word_or_phrase"}, {"en": "talk to", "jp": "〜と話す", "src": "L6", "type": "word_or_phrase"}, {"en": "department store", "jp": "デパート", "src": "L6", "type": "word_or_phrase"}, {"en": "city", "jp": "市・都市", "src": "L6", "type": "word_or_phrase"}, {"en": "bank", "jp": "銀行", "src": "L6", "type": "word_or_phrase"}, {"en": "hospital", "jp": "病院", "src": "L6+T1800", "type": "word_or_phrase"}, {"en": "library", "jp": "図書館", "src": "L6+T1800", "type": "word_or_phrase"}, {"en": "city park", "jp": "市立公園", "src": "L6", "type": "word_or_phrase"}, {"en": "go straight", "jp": "まっすぐ進む", "src": "L6", "type": "word_or_phrase"}, {"en": "turn right", "jp": "右に曲がる", "src": "L6", "type": "word_or_phrase"}, {"en": "turn left", "jp": "左に曲がる", "src": "L6", "type": "word_or_phrase"}, {"en": "along the street", "jp": "通りに沿って", "src": "L6", "type": "word_or_phrase"}, {"en": "restaurant", "jp": "レストラン", "src": "T1800", "type": "word"}, {"en": "station", "jp": "駅", "src": "T1800", "type": "word"}, {"en": "cafeteria", "jp": "食堂・カフェテリア", "src": "T1800", "type": "word"}, {"en": "aquarium", "jp": "水族館", "src": "T1800", "type": "word"}, {"en": "dictionary", "jp": "辞書", "src": "T1800", "type": "word"}, {"en": "weather", "jp": "天気", "src": "T1800", "type": "word"}, {"en": "season", "jp": "季節", "src": "T1800", "type": "word"}, {"en": "family", "jp": "家族", "src": "T1800", "type": "word"}, {"en": "teacher", "jp": "先生", "src": "T1800", "type": "word"}, {"en": "parent", "jp": "親", "src": "T1800", "type": "word"}, {"en": "friend", "jp": "友達", "src": "T1800", "type": "word"}, {"en": "child", "jp": "子ども", "src": "T1800", "type": "word"}, {"en": "doctor", "jp": "医者", "src": "T1800", "type": "word"}, {"en": "science", "jp": "科学", "src": "T1800", "type": "word"}, {"en": "history", "jp": "歴史", "src": "T1800", "type": "word"}, {"en": "English", "jp": "英語", "src": "T1800", "type": "word"}, {"en": "music", "jp": "音楽", "src": "T1800", "type": "word"}, {"en": "study", "jp": "勉強する", "src": "T1800", "type": "word"}, {"en": "arrive", "jp": "到着する", "src": "T1800", "type": "word"}, {"en": "understand", "jp": "理解する", "src": "T1800", "type": "word"}, {"en": "beautiful", "jp": "美しい", "src": "T1800", "type": "word"}, {"en": "popular", "jp": "人気のある", "src": "T1800", "type": "word"}, {"en": "important", "jp": "重要な", "src": "T1800", "type": "word"}, {"en": "on one's right", "jp": "〜の右側に", "src": "T400", "type": "phrase"}, {"en": "take care of", "jp": "〜の世話をする", "src": "T400", "type": "phrase"}];
+const $=id=>document.getElementById(id);
+let mode="scribble",range="all",count=15,questions=[],i=0,cur=null;
+let good=0,maybe=0,bad=0,review=[],weakOnly=false;
+
+function shuffle(a){a=[...a];for(let j=a.length-1;j>0;j--){const k=Math.floor(Math.random()*(j+1));[a[j],a[k]]=[a[k],a[j]]}return a}
+function norm(s){return (s||"").trim().toLowerCase().replace(/[’‘]/g,"'").replace(/[‐‑–—]/g,"-").replace(/\s+/g," ")}
+function weakMap(){try{return JSON.parse(localStorage.getItem("pencil_vocab_weak")||"{}")}catch(e){return {}}}
+function saveWeak(m){try{localStorage.setItem("pencil_vocab_weak",JSON.stringify(m))}catch(e){}updateWeakCount()}
+function markWeak(en,n){const m=weakMap();m[en]=(m[en]||0)+n;if(m[en]<=0)delete m[en];saveWeak(m)}
+function updateWeakCount(){const m=weakMap();$("weakCount").textContent=Object.keys(m).length;$("weakBtn").disabled=Object.keys(m).length===0}
+function setSelected(box,attr,val){box.querySelectorAll(".pick").forEach(b=>b.classList.toggle("sel",b.dataset[attr]===String(val)))}
+$("modeBtns").onclick=e=>{const b=e.target.closest(".pick");if(!b)return;mode=b.dataset.mode;setSelected($("modeBtns"),"mode",mode)}
+$("rangeBtns").onclick=e=>{const b=e.target.closest(".pick");if(!b)return;range=b.dataset.range;setSelected($("rangeBtns"),"range",range)}
+$("countBtns").onclick=e=>{const b=e.target.closest(".pick");if(!b)return;count=+b.dataset.count;setSelected($("countBtns"),"count",count)}
+
+function poolForRange(){
+ if(range==="all") return BANK;
+ return BANK.filter(x=>x.src.split("+").includes(range));
+}
+function start(useWeak=false){
+ weakOnly=useWeak; good=maybe=bad=0; review=[]; i=0;
+ let p=poolForRange();
+ if(useWeak){const m=weakMap();p=p.filter(x=>m[x.en]>0).sort((a,b)=>(m[b.en]||0)-(m[a.en]||0))}
+ if(!p.length){alert("この範囲には出題できる語がありません。");return}
+ questions=shuffle(p).slice(0,Math.min(count,p.length));
+ $("setup").classList.add("hidden");$("result").classList.add("hidden");$("quiz").classList.remove("hidden");showQ();
+}
+$("startBtn").onclick=()=>start(false);$("weakBtn").onclick=()=>start(true);
+
+function speak(){
+ if(!cur||!("speechSynthesis" in window))return;
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(cur.en.replace("...","something"));u.lang="en-US";u.rate=.78;speechSynthesis.speak(u)}catch(e){}
+}
+$("audioBtn").onclick=speak;
+
+function showQ(){
+ cur=questions[i];$("counter").textContent=`${i+1} / ${questions.length}`;$("scorePill").textContent=`○ ${good}　△ ${maybe}　× ${bad}`;
+ $("jp").textContent=cur.jp;$("source").textContent=cur.src.replaceAll("+"," / ");
+ $("feedback").className="feedback";$("feedback").innerHTML="";$("gradeBtns").classList.add("hidden");$("nextBtn").classList.add("hidden");
+ $("scribbleArea").classList.toggle("hidden",mode!=="scribble");$("canvasArea").classList.toggle("hidden",mode!=="canvas");
+ $("answerInput").value="";
+ if(mode==="scribble") setTimeout(()=>$("answerInput").focus(),150); else clearCanvas();
+}
+$("clearInputBtn").onclick=()=>{$("answerInput").value="";$("answerInput").focus()};
+
+function acceptAnswers(en){
+ let a=[norm(en)];
+ // For patterns with apostrophe ellipsis, allow the literal displayed phrase only.
+ return a;
+}
+$("checkBtn").onclick=()=>{
+ const ans=norm($("answerInput").value);
+ if(!ans)return;
+ const ok=acceptAnswers(cur.en).includes(ans);
+ if(ok){
+   good++; markWeak(cur.en,-1);
+   $("feedback").className="feedback show good";$("feedback").innerHTML=`正解！<div class="correctAnswer">${cur.en}</div>`;
+   $("nextBtn").classList.remove("hidden");speak();
+ }else{
+   bad++; review.push(cur); markWeak(cur.en,2);
+   $("feedback").className="feedback show bad";$("feedback").innerHTML=`もう一度確認：<div class="correctAnswer">${cur.en}</div>`;
+   $("nextBtn").classList.remove("hidden");speak();
+ }
+ $("answerInput").disabled=true;
+}
+$("nextBtn").onclick=()=>{$("answerInput").disabled=false;i++;if(i>=questions.length)finish();else showQ()};
+
+// Canvas / Pencil support
+const canvas=$("pad"),ctx=canvas.getContext("2d");let drawing=false,strokes=[],current=[];
+function resizeCanvas(){
+ const r=canvas.getBoundingClientRect(),dpr=Math.max(1,window.devicePixelRatio||1);
+ const old=strokes.slice();canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);redraw(old);
+}
+function point(e){const r=canvas.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
+function begin(e){if(e.pointerType==="touch"&&e.isPrimary===false)return;e.preventDefault();canvas.setPointerCapture?.(e.pointerId);drawing=true;current=[point(e)];$("canvasHint").style.display="none";drawDot(current[0],e)}
+function move(e){if(!drawing)return;e.preventDefault();const p=point(e),q=current[current.length-1];ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#172033";ctx.lineWidth=e.pointerType==="pen"?Math.max(2.2,5-(e.pressure||.5)*2):3;ctx.beginPath();ctx.moveTo(q[0],q[1]);ctx.lineTo(p[0],p[1]);ctx.stroke();current.push(p)}
+function end(e){if(!drawing)return;drawing=false;if(current.length)strokes.push(current);current=[]}
+function drawDot(p,e){ctx.fillStyle="#172033";ctx.beginPath();ctx.arc(p[0],p[1],2.2,0,Math.PI*2);ctx.fill()}
+function redraw(arr=strokes){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);ctx.strokeStyle="#172033";ctx.lineWidth=3;ctx.lineCap="round";ctx.lineJoin="round";for(const s of arr){if(!s.length)continue;ctx.beginPath();ctx.moveTo(...s[0]);for(let j=1;j<s.length;j++)ctx.lineTo(...s[j]);ctx.stroke()}}
+function clearCanvas(){strokes=[];current=[];ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);$("canvasHint").style.display="block"}
+canvas.addEventListener("pointerdown",begin);canvas.addEventListener("pointermove",move);canvas.addEventListener("pointerup",end);canvas.addEventListener("pointercancel",end);
+$("clearCanvasBtn").onclick=clearCanvas;$("undoBtn").onclick=()=>{strokes.pop();redraw();if(!strokes.length)$("canvasHint").style.display="block"};
+$("revealBtn").onclick=()=>{$("feedback").className="feedback show";$("feedback").innerHTML=`答え：<div class="correctAnswer">${cur.en}</div>`;$("gradeBtns").classList.remove("hidden");speak()};
+$("gradeBtns").onclick=e=>{const b=e.target.closest("[data-grade]");if(!b)return;const g=b.dataset.grade;if(g==="good"){good++;markWeak(cur.en,-1)}else if(g==="maybe"){maybe++;review.push(cur);markWeak(cur.en,1)}else{bad++;review.push(cur);markWeak(cur.en,2)}$("gradeBtns").classList.add("hidden");$("nextBtn").classList.remove("hidden");$("scorePill").textContent=`○ ${good}　△ ${maybe}　× ${bad}`};
+
+function finish(){
+ $("quiz").classList.add("hidden");$("result").classList.remove("hidden");$("goodN").textContent=good;$("maybeN").textContent=maybe;$("badN").textContent=bad;
+ const uniq=[...new Map(review.map(x=>[x.en,x])).values()];
+ $("reviewList").innerHTML=uniq.length?uniq.map(x=>`<div class="reviewItem"><b>${x.en}</b>　${x.jp}</div>`).join(""):"<div class='reviewItem'>なし。全問クリア！</div>";
+ $("retryBtn").disabled=!uniq.length;$("retryBtn").textContent=uniq.length?`△・×だけもう一度（${uniq.length}語）`:"△・×なし";
+ $("retryBtn").onclick=()=>{questions=shuffle(uniq);i=0;good=maybe=bad=0;review=[];$("result").classList.add("hidden");$("quiz").classList.remove("hidden");showQ()};
+}
+$("homeBtn").onclick=()=>{$("result").classList.add("hidden");$("setup").classList.remove("hidden");updateWeakCount()};
+window.addEventListener("resize",()=>{if(mode==="canvas")resizeCanvas()});
+new ResizeObserver(()=>resizeCanvas()).observe(canvas);
+updateWeakCount();
+</script>
+</body></html>
