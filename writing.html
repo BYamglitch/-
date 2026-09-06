@@ -52,7 +52,7 @@ canvas{width:100%;height:300px;background:white;border:3px solid #b8c7da;border-
 <div class="wrap">
 <section id="setup" class="card">
 <h1>✏️ Apple Pencil<br>英単語・熟語 書き取り</h1>
-<div class="lead">日本語を見て、Apple Pencilで英語を書きます。間違えた語は正解するまで同じターン内で繰り返します。音声ボタンで正しい発音も確認できます。</div>
+<div class="lead">日本語を見て、Apple Pencilで英語を書きます。間違えた語は、正解するまで同じ問題を繰り返します。音声ボタンで正しい発音も確認できます。</div>
 
 <div class="label">書き方</div>
 <div id="modeBtns" class="grid">
@@ -215,9 +215,14 @@ $("checkBtn").onclick=()=>{
  $("answerInput").disabled=true;
 }
 $("nextBtn").onclick=()=>{
- $("answerInput").disabled=false;
- if(retryCurrent){showQ();return;}
- i++;if(i>=questions.length)finish();else showQ()
+  $("answerInput").disabled=false;
+  if(retryCurrent){
+    showQ();
+    return;
+  }
+  i++;
+  if(i>=questions.length) finish();
+  else showQ();
 };
 
 // Canvas / Pencil support
@@ -237,11 +242,18 @@ canvas.addEventListener("pointerdown",begin);canvas.addEventListener("pointermov
 $("clearCanvasBtn").onclick=clearCanvas;$("undoBtn").onclick=()=>{strokes.pop();redraw();if(!strokes.length)$("canvasHint").style.display="block"};
 $("revealBtn").onclick=()=>{$("feedback").className="feedback show";$("feedback").innerHTML=`答え：<div class="correctAnswer">${cur.en}</div>`;$("gradeBtns").classList.remove("hidden");speak()};
 $("gradeBtns").onclick=e=>{
- const b=e.target.closest("[data-grade]");if(!b)return;const g=b.dataset.grade;
- if(g==="good"){retryCurrent=false;good++;markWeak(cur.en,-1);$("nextBtn").textContent="次へ"}
- else if(g==="maybe"){retryCurrent=true;maybe++;review.push(cur);markWeak(cur.en,1);$("nextBtn").textContent="もう一度"}
- else{retryCurrent=true;bad++;review.push(cur);markWeak(cur.en,2);$("nextBtn").textContent="もう一度"}
- $("gradeBtns").classList.add("hidden");$("nextBtn").classList.remove("hidden");$("scorePill").textContent=`○ ${good}　△ ${maybe}　× ${bad}`;
+  const b=e.target.closest("[data-grade]"); if(!b) return;
+  const g=b.dataset.grade;
+  if(g==="good"){
+    retryCurrent=false; good++; markWeak(cur.en,-1); $("nextBtn").textContent="次へ";
+  }else if(g==="maybe"){
+    retryCurrent=true; maybe++; review.push(cur); markWeak(cur.en,1); $("nextBtn").textContent="もう一度";
+  }else{
+    retryCurrent=true; bad++; review.push(cur); markWeak(cur.en,2); $("nextBtn").textContent="もう一度";
+  }
+  $("gradeBtns").classList.add("hidden");
+  $("nextBtn").classList.remove("hidden");
+  $("scorePill").textContent=`○ ${good}　△ ${maybe}　× ${bad}`;
 };
 
 function finish(){

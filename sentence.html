@@ -333,6 +333,7 @@ function answer(btn){
       if(index<7) showQuestion();
       else finish();
     }else{
+      // 誤答・時間切れ：同じ問題を正解するまで続ける
       showQuestion();
     }
   },1200);

@@ -169,7 +169,15 @@ function nextWord(){
   $("word").textContent=cur.en;$("word").className=cur.en.length>14?"phrase":"";y=-70;$("word").style.top=y+"px";fall=base*(1+Math.min(score,30)*.012);
 }
 function addMiss(fell=false){
-  miss++;combo=0;currentNeedsRetry=true;$("miss").textContent=miss;$("combo").textContent=0;if(!bad.some(x=>x.en===cur.en))bad.push(cur);rememberSessionMistake(cur);addWeak(cur.en);if(fell)ngSound();
+  miss++;
+  combo=0;
+  currentNeedsRetry=true;
+  $("miss").textContent=miss;
+  $("combo").textContent=0;
+  if(!bad.some(x=>x.en===cur.en)) bad.push(cur);
+  rememberSessionMistake(cur);
+  addWeak(cur.en);
+  if(fell) ngSound();
 }
 choiceBtns.forEach((b,i)=>b.addEventListener("click",()=>{
   if(!running)return;
@@ -182,13 +190,18 @@ function frame(ts){
   y+=fall*dt;$("word").style.top=y+"px";
   if(y>$("gameArea").clientHeight-$("word").offsetHeight-5){
     addMiss(true);
-    y=-70;$("word").style.top=y+"px";
+    // 落ち切った語は、正解するまで同じ語をもう一度
+    y=-70;
+    $("word").style.top=y+"px";
   }
   if(rem<=0){
     if(currentNeedsRetry){
-      timeExpired=true;$("timer").textContent="追試";$("timeBar").style.transform="scaleX(0)";
+      timeExpired=true;
+      $("timer").textContent="追試";
+      $("timeBar").style.transform="scaleX(0)";
     }else{
-      finishTurn();return;
+      finishTurn();
+      return;
     }
   }
   raf=requestAnimationFrame(frame);
