@@ -1,0 +1,137 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>NEW TREASURE L4-L6 英文組み立て</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#1f2937;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
+button{font:inherit;touch-action:manipulation;cursor:pointer}.wrap{max-width:820px;margin:auto;padding:16px}.card{background:#fff;border:1px solid #d9dee8;border-radius:18px;padding:20px;box-shadow:0 4px 18px #0000000d}
+h1{font-size:25px;margin:0 0 10px}.sub{color:#667085;line-height:1.65;margin-bottom:18px}.lessonBtns{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 22px}
+.lessonBtns button,.bigBtn,.audioBtn{border:2px solid #d9dee8;background:#fff;border-radius:14px;padding:13px 18px;font-weight:800}.lessonBtns button.sel{border-color:#3559c7;background:#eef2ff}
+.bigBtn{width:100%;background:#3559c7;color:#fff;border-color:#3559c7;font-size:20px;padding:16px}.hidden{display:none!important}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800}.timer{font-size:30px;min-width:58px;text-align:right}.warn{color:#c93434}
+.jp{font-size:25px;font-weight:850;line-height:1.5;padding:16px 2px}.answerArea{min-height:88px;border:2px dashed #b8c0cf;border-radius:15px;padding:13px;display:flex;flex-wrap:wrap;gap:9px;align-content:flex-start;background:#fbfcff;margin-bottom:17px}
+.placeholder{color:#98a2b3}.bank{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}.token{border:2px solid #b8c0cf;background:#fff;border-radius:14px;padding:12px 15px;font-size:20px;font-weight:800;min-height:52px}.token.used{opacity:.2;pointer-events:none}
+.chosen{background:#eef2ff;border:2px solid #9daff0;border-radius:12px;padding:9px 11px;font-size:19px;font-weight:800}.msg{min-height:36px;font-size:19px;font-weight:850;text-align:center;margin:14px 0 4px}.good{color:#138a4a}.bad{color:#c93434}
+.audioBox{margin-top:12px;padding:12px;border-radius:12px;background:#f3f6fb;text-align:center}.audioBtn{margin-top:7px;padding:9px 13px;border-width:1px}.audioBtn:disabled{opacity:.4}.foot{margin-top:16px;color:#667085;font-size:14px;line-height:1.6}
+.resultScore{font-size:32px;font-weight:900;text-align:center;margin:14px 0}.stats{font-size:18px;line-height:1.9}
+@media(max-width:560px){.wrap{padding:10px}.card{padding:15px}.jp{font-size:22px}.token{font-size:18px;padding:11px 12px}.chosen{font-size:17px}}
+</style>
+<style id="ipad-browser-compat">
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  overscroll-behavior:none;
+  min-height:100%;
+}
+body{
+  min-height:100%;
+  min-height:100dvh;
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+  -webkit-touch-callout:none;
+}
+button, select, [role="button"]{
+  touch-action:manipulation !important;
+  -webkit-tap-highlight-color:transparent;
+}
+button{
+  -webkit-appearance:none;
+  appearance:none;
+}
+input, select, textarea, button{
+  font-size:16px;
+}
+@supports (height: 100dvh){
+  #app{height:100dvh;}
+}
+@supports not (height: 100dvh){
+  #app{height:var(--ipad-app-height,100vh);}
+}
+@media (pointer:coarse){
+  button{min-height:44px;}
+}
+@media (orientation:landscape) and (max-height:600px){
+  .card{max-height:calc(var(--ipad-app-height,100vh) - 24px);overflow:auto;}
+}
+</style>
+
+</head><body><div class="wrap">
+<section id="setup" class="card"><h1>NEW TREASURE Lesson 4–6<br>日本語 → 英文組み立て</h1>
+<div class="sub">日本語に合うように、ばらばらの語句を順番にタップして英文を完成させます。<br><b>1問20秒・1ターン20問。</b> 間違えたら、その問題は全部ばらして最初からです。</div>
+<b>範囲</b><div class="lessonBtns"><button type="button" data-lesson="4">Lesson 4</button><button type="button" data-lesson="5">Lesson 5</button><button type="button" data-lesson="6">Lesson 6</button><button type="button" data-lesson="all" class="sel">Lesson 4–6</button></div>
+<button id="startBtn" type="button" class="bigBtn">20問スタート</button>
+<div class="foot">熟語・定型表現は1ブロックにまとめますが、普通の文はできるだけ単語ごとに分けています。前置詞を含むまとまり（on the weekend など）や Would you はまとめ、like など語順を考えたい語は分けています。音声は解答中には流れず、正解完成後に1回だけ自動再生します。</div></section>
+<section id="game" class="card hidden"><div class="topbar"><div id="progress"></div><div id="lessonBadge"></div><div id="timer" class="timer">20</div></div>
+<div id="jp" class="jp"></div><div id="answerArea" class="answerArea"></div><div id="bank" class="bank"></div><div id="msg" class="msg"></div>
+<div id="audioBox" class="audioBox hidden">🔊 正しい英文を読み上げました<br><button id="replayBtn" type="button" class="audioBtn">もう1回だけ聞く</button></div></section>
+<section id="result" class="card hidden"><h1>1ターン終了！</h1><div id="scoreLine" class="resultScore"></div><div id="stats" class="stats"></div><button id="againBtn" type="button" class="bigBtn" style="margin-top:18px">もう1ターン</button></section>
+</div><script>
+const DATA=[{"lesson": 4, "jp": "マリアは放課後によくテニスをします。", "answer": "Maria often plays tennis after school.", "blocks": ["Maria", "often", "plays", "tennis", "after school", "."]}, {"lesson": 4, "jp": "ケンは毎日7時に起きます。", "answer": "Ken gets up at seven every day.", "blocks": ["Ken", "gets up", "at seven", "every day", "."]}, {"lesson": 4, "jp": "彼女はたいてい車で学校へ行きます。", "answer": "She usually goes to school by car.", "blocks": ["She", "usually", "goes", "to school", "by car", "."]}, {"lesson": 4, "jp": "パンダはたくさんの竹を食べます。", "answer": "Pandas eat a lot of bamboo.", "blocks": ["Pandas", "eat", "a lot of", "bamboo", "."]}, {"lesson": 4, "jp": "私は夕食の後にお風呂に入ります。", "answer": "I take a bath after dinner.", "blocks": ["I", "take a bath", "after dinner", "."]}, {"lesson": 4, "jp": "彼女はよく音楽を聞きます。", "answer": "She often listens to music.", "blocks": ["She", "often", "listens to", "music", "."]}, {"lesson": 4, "jp": "彼は6時に帰宅します。", "answer": "He gets home at six.", "blocks": ["He", "gets home", "at six", "."]}, {"lesson": 4, "jp": "彼らは一緒に学校へ行きます。", "answer": "They go to school together.", "blocks": ["They", "go", "to school", "together", "."]}, {"lesson": 4, "jp": "私は毎週その動画を見ます。", "answer": "I watch the video every week.", "blocks": ["I", "watch", "the", "video", "every week", "."]}, {"lesson": 4, "jp": "そのゾウはゆっくり歩きます。", "answer": "The elephant walks slowly.", "blocks": ["The", "elephant", "walks", "slowly", "."]}, {"lesson": 4, "jp": "彼女はビデオ通話をします。", "answer": "She makes a video call.", "blocks": ["She", "makes", "a", "video", "call", "."]}, {"lesson": 4, "jp": "彼女は朝食の前に起きます。", "answer": "She gets up before breakfast.", "blocks": ["She", "gets up", "before breakfast", "."]}, {"lesson": 4, "jp": "そのヒョウは速く走ります。", "answer": "The leopard runs fast.", "blocks": ["The", "leopard", "runs", "fast", "."]}, {"lesson": 4, "jp": "私は8時に学校に着きます。", "answer": "I get to school at eight.", "blocks": ["I", "get to", "school", "at eight", "."]}, {"lesson": 4, "jp": "彼女は夜にシャワーを浴びます。", "answer": "She takes a shower at night.", "blocks": ["She", "takes a shower", "at night", "."]}, {"lesson": 4, "jp": "そのパンダはアジアから来ました。", "answer": "The panda comes from Asia.", "blocks": ["The", "panda", "comes from", "Asia", "."]}, {"lesson": 4, "jp": "私は10時に寝ます。", "answer": "I go to bed at ten.", "blocks": ["I", "go to bed", "at ten", "."]}, {"lesson": 4, "jp": "彼女は毎週ビデオを送ります。", "answer": "She sends a video every week.", "blocks": ["She", "sends", "a", "video", "every week", "."]}, {"lesson": 4, "jp": "彼らは一緒にその写真を見ます。", "answer": "They look at the picture together.", "blocks": ["They", "look at", "the", "picture", "together", "."]}, {"lesson": 4, "jp": "彼女は料理が得意です。", "answer": "She is good at cooking.", "blocks": ["She", "is good at", "cooking", "."]}, {"lesson": 4, "jp": "あなたは毎日何時に起きますか。", "answer": "What time do you get up every day?", "blocks": ["What time", "do", "you", "get up", "every day", "?"]}, {"lesson": 4, "jp": "彼女はどこに住んでいますか。", "answer": "Where does she live?", "blocks": ["Where", "does", "she", "live", "?"]}, {"lesson": 4, "jp": "彼は毎週テニスをしますか。", "answer": "Does he play tennis every week?", "blocks": ["Does", "he", "play", "tennis", "every week", "?"]}, {"lesson": 4, "jp": "彼女は決して学校に遅れません。", "answer": "She never gets to school late.", "blocks": ["She", "never", "gets to", "school", "late", "."]}, {"lesson": 5, "jp": "私は頭痛がします。", "answer": "I have a headache.", "blocks": ["I", "have a headache", "."]}, {"lesson": 5, "jp": "このラケットは私のものです。", "answer": "This racket is mine.", "blocks": ["This", "racket", "is", "mine", "."]}, {"lesson": 5, "jp": "これはだれのラケットですか。", "answer": "Whose racket is this?", "blocks": ["Whose", "racket", "is", "this", "?"]}, {"lesson": 5, "jp": "この帽子はあなたのものです。", "answer": "This hat is yours.", "blocks": ["This", "hat", "is", "yours", "."]}, {"lesson": 5, "jp": "その靴は彼女のものです。", "answer": "Those shoes are hers.", "blocks": ["Those", "shoes", "are", "hers", "."]}, {"lesson": 5, "jp": "そのバッグは彼らのものです。", "answer": "That bag is theirs.", "blocks": ["That", "bag", "is", "theirs", "."]}, {"lesson": 5, "jp": "これは私たちのホチキスです。", "answer": "This is our stapler.", "blocks": ["This", "is", "our", "stapler", "."]}, {"lesson": 5, "jp": "これは彼女の帽子です。", "answer": "This is her hat.", "blocks": ["This", "is", "her", "hat", "."]}, {"lesson": 5, "jp": "私はこのTシャツが欲しいです。", "answer": "I'd like this T-shirt.", "blocks": ["I'd", "like", "this", "T-shirt", "."]}, {"lesson": 5, "jp": "この川はどのくらい深いですか。", "answer": "How deep is this river?", "blocks": ["How deep", "is", "this", "river", "?"]}, {"lesson": 5, "jp": "この山はどのくらい高いですか。", "answer": "How high is this mountain?", "blocks": ["How high", "is", "this", "mountain", "?"]}, {"lesson": 5, "jp": "このTシャツはいくらですか。", "answer": "How much is this T-shirt?", "blocks": ["How much", "is", "this", "T-shirt", "?"]}, {"lesson": 5, "jp": "この川はどのくらい長いですか。", "answer": "How long is this river?", "blocks": ["How long", "is", "this", "river", "?"]}, {"lesson": 5, "jp": "このズボンはセール中です。", "answer": "These pants are on sale.", "blocks": ["These", "pants", "are", "on sale", "."]}, {"lesson": 5, "jp": "これはお買い得ですね。", "answer": "That's a good deal.", "blocks": ["That's", "a good deal", "."]}, {"lesson": 5, "jp": "私はいつかその島を訪れたいです。", "answer": "I want to visit the island someday.", "blocks": ["I", "want to", "visit", "the", "island", "someday", "."]}, {"lesson": 5, "jp": "この習慣は私たちのものと異なります。", "answer": "This custom is different from ours.", "blocks": ["This", "custom", "is different from", "ours", "."]}, {"lesson": 5, "jp": "おつりです。", "answer": "Here is your change.", "blocks": ["Here is", "your", "change", "."]}, {"lesson": 5, "jp": "何かお探しですか。", "answer": "May I help you?", "blocks": ["May I", "help", "you", "?"]}, {"lesson": 5, "jp": "どちらのTシャツがあなたのものですか。", "answer": "Which T-shirt is yours?", "blocks": ["Which", "T-shirt", "is", "yours", "?"]}, {"lesson": 5, "jp": "これはケンの定規です。", "answer": "This is Ken's ruler.", "blocks": ["This", "is", "Ken's", "ruler", "."]}, {"lesson": 5, "jp": "この帽子は彼のものです。", "answer": "This cap is his.", "blocks": ["This", "cap", "is", "his", "."]}, {"lesson": 5, "jp": "これはあなたの帽子です。", "answer": "This is your hat.", "blocks": ["This", "is", "your", "hat", "."]}, {"lesson": 5, "jp": "そのラケットは私のものです。", "answer": "That racket is mine.", "blocks": ["That", "racket", "is", "mine", "."]}, {"lesson": 6, "jp": "私は週末に買い物に行きます。", "answer": "I go shopping on the weekend.", "blocks": ["I", "go shopping", "on the weekend", "."]}, {"lesson": 6, "jp": "この通りをまっすぐ進んでください。", "answer": "Go straight along this street.", "blocks": ["Go", "straight", "along this street", "."]}, {"lesson": 6, "jp": "次の角を右に曲がってください。", "answer": "Turn right at the next corner.", "blocks": ["Turn", "right", "at the next corner", "."]}, {"lesson": 6, "jp": "左に曲がってください。", "answer": "Turn left.", "blocks": ["Turn", "left", "."]}, {"lesson": 6, "jp": "郵便局はあなたの左側にあります。", "answer": "The post office is on your left.", "blocks": ["The", "post office", "is", "on your left", "."]}, {"lesson": 6, "jp": "すみません。博物館はどこですか。", "answer": "Excuse me. Where is the museum?", "blocks": ["Excuse me.", "Where", "is", "the", "museum", "?"]}, {"lesson": 6, "jp": "問題ありません。", "answer": "No problem.", "blocks": ["No problem", "."]}, {"lesson": 6, "jp": "ここに座ってください。", "answer": "Have a seat.", "blocks": ["Have a seat", "."]}, {"lesson": 6, "jp": "パスタはいかがですか。", "answer": "Would you like pasta?", "blocks": ["Would you", "like", "pasta", "?"]}, {"lesson": 6, "jp": "ローストビーフを注文したいです。", "answer": "I'd like to order roast beef.", "blocks": ["I'd", "like", "to", "order", "roast", "beef", "."]}, {"lesson": 6, "jp": "私は歌を書くことができます。", "answer": "I can write a song.", "blocks": ["I", "can", "write", "a", "song", "."]}, {"lesson": 6, "jp": "彼女はバンドで歌うことができます。", "answer": "She can sing in a band.", "blocks": ["She", "can", "sing", "in a band", "."]}, {"lesson": 6, "jp": "私はプールで泳ぐことができません。", "answer": "I cannot swim in the pool.", "blocks": ["I", "cannot", "swim", "in the pool", "."]}, {"lesson": 6, "jp": "心配しないでください。", "answer": "Don't worry.", "blocks": ["Don't", "worry", "."]}, {"lesson": 6, "jp": "気をつけてください。", "answer": "Be careful.", "blocks": ["Be", "careful", "."]}, {"lesson": 6, "jp": "私はあとでパンを持ってきます。", "answer": "I bring bread later.", "blocks": ["I", "bring", "bread", "later", "."]}, {"lesson": 6, "jp": "私たちはごみを拾います。", "answer": "We pick up litter.", "blocks": ["We", "pick up litter", "."]}, {"lesson": 6, "jp": "一緒に部屋を掃除しましょう。", "answer": "Let's clean the room.", "blocks": ["Let's", "clean", "the", "room", "."]}, {"lesson": 6, "jp": "私たちは高齢者と話します。", "answer": "We talk to elderly people.", "blocks": ["We", "talk to", "elderly", "people", "."]}, {"lesson": 6, "jp": "彼らは老人ホームを訪れます。", "answer": "They visit the nursing home.", "blocks": ["They", "visit", "the", "nursing", "home", "."]}, {"lesson": 6, "jp": "彼は会議に遅刻します。", "answer": "He is late for the meeting.", "blocks": ["He", "is late for", "the", "meeting", "."]}, {"lesson": 6, "jp": "あなたは部屋を掃除できますか。", "answer": "Can you clean the room?", "blocks": ["Can", "you", "clean", "the", "room", "?"]}, {"lesson": 6, "jp": "彼女は楽器を演奏できます。", "answer": "She can play a musical instrument.", "blocks": ["She", "can", "play", "a", "musical", "instrument", "."]}, {"lesson": 6, "jp": "私はこのタオルを使うことができます。", "answer": "I can use this towel.", "blocks": ["I", "can", "use", "this", "towel", "."]}];
+let lesson="all",deck=[],idx=0,current=null,selected=[],timerId=null,timeLeft=20,mistakes=0,timeouts=0,firstTry=0,attempts=0,startedAt=0,replayUsed=false;
+const $=id=>document.getElementById(id);
+document.querySelectorAll(".lessonBtns button").forEach(b=>b.addEventListener("click",()=>{lesson=b.dataset.lesson;document.querySelectorAll(".lessonBtns button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel")}));
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function speak(t){if(!("speechSynthesis"in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.82;speechSynthesis.speak(u)}
+function start(){const pool=DATA.filter(x=>lesson==="all"||String(x.lesson)===lesson);deck=shuffle(pool).slice(0,20);idx=0;mistakes=0;timeouts=0;firstTry=0;startedAt=Date.now();$("setup").classList.add("hidden");$("result").classList.add("hidden");$("game").classList.remove("hidden");showQuestion()}
+function showQuestion(){clearInterval(timerId);current=deck[idx];selected=[];attempts=0;replayUsed=false;$("progress").textContent=`${idx+1} / 20`;$("lessonBadge").textContent=`Lesson ${current.lesson}`;$("jp").textContent=current.jp;$("msg").textContent="";$("msg").className="msg";$("audioBox").classList.add("hidden");$("replayBtn").disabled=false;renderAnswer();reshuffleBank();resetTimer()}
+function renderAnswer(){const a=$("answerArea");a.innerHTML="";if(!selected.length){const s=document.createElement("span");s.className="placeholder";s.textContent="ここに英文を組み立てます";a.appendChild(s);return}selected.forEach(t=>{const s=document.createElement("span");s.className="chosen";s.textContent=t.text;a.appendChild(s)})}
+function reshuffleBank(){const b=$("bank");b.innerHTML="";shuffle(current.blocks.map((text,i)=>({text,id:i}))).forEach(tok=>{const btn=document.createElement("button");btn.type="button";btn.className="token";btn.textContent=tok.text;btn.addEventListener("click",()=>choose(tok,btn));b.appendChild(btn)})}
+function choose(tok,btn){if(btn.classList.contains("used"))return;const expected=current.blocks[selected.length];if(tok.text!==expected){mistakes++;attempts++;$("msg").textContent="ちがいます。もう一度！";$("msg").className="msg bad";selected=[];renderAnswer();reshuffleBank();resetTimer();return}selected.push(tok);btn.classList.add("used");renderAnswer();if(selected.length===current.blocks.length)completeCorrect()}
+function completeCorrect(){clearInterval(timerId);if(attempts===0)firstTry++;$("msg").textContent="正解！";$("msg").className="msg good";$("audioBox").classList.remove("hidden");speak(current.answer);setTimeout(()=>{idx++;if(idx>=20)finish();else showQuestion()},2200)}
+function resetTimer(){clearInterval(timerId);timeLeft=20;paint();timerId=setInterval(()=>{timeLeft--;paint();if(timeLeft<=0){clearInterval(timerId);timeouts++;attempts++;$("msg").textContent="時間切れ！ 語句をばらして最初から。";$("msg").className="msg bad";selected=[];renderAnswer();reshuffleBank();setTimeout(resetTimer,650)}},1000)}
+function paint(){$("timer").textContent=timeLeft;$("timer").classList.toggle("warn",timeLeft<=5)}
+function finish(){clearInterval(timerId);if("speechSynthesis"in window)speechSynthesis.cancel();$("game").classList.add("hidden");$("result").classList.remove("hidden");const sec=Math.round((Date.now()-startedAt)/1000);$("scoreLine").textContent="20問 完成！";$("stats").innerHTML=`最初からノーミスで完成：<b>${firstTry} / 20</b><br>タップミス：<b>${mistakes}回</b><br>時間切れ：<b>${timeouts}回</b><br>所要時間：<b>${Math.floor(sec/60)}分 ${sec%60}秒</b>`}
+$("startBtn").addEventListener("click",start);$("againBtn").addEventListener("click",()=>{$("result").classList.add("hidden");$("setup").classList.remove("hidden")});$("replayBtn").addEventListener("click",()=>{if(replayUsed)return;replayUsed=true;$("replayBtn").disabled=true;speak(current.answer)});
+</script>
+<script id="ipad-browser-compat-js">
+(function(){
+  "use strict";
+  var unlocked=false;
+
+  function setHeight(){
+    var h=(window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty("--ipad-app-height", Math.round(h)+"px");
+  }
+  setHeight();
+  window.addEventListener("resize", setHeight, {passive:true});
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", setHeight, {passive:true});
+  }
+
+  function unlockSpeech(){
+    if(unlocked || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+    try{
+      var u=new SpeechSynthesisUtterance(".");
+      u.lang="en-US";
+      u.rate=1;
+      u.volume=0.01;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+      unlocked=true;
+    }catch(e){}
+  }
+
+  document.addEventListener("pointerdown", unlockSpeech, {once:true, passive:true});
+  document.addEventListener("touchstart", unlockSpeech, {once:true, passive:true});
+  document.addEventListener("click", function(e){
+    var t=e.target.closest && e.target.closest("button");
+    if(t) unlockSpeech();
+  }, {passive:true});
+
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden && "speechSynthesis" in window){
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+    }
+  });
+
+  // iPad Safari/Chrome: prevent accidental double-tap zoom on game buttons.
+  var lastTouchEnd=0;
+  document.addEventListener("touchend", function(e){
+    if(!(e.target.closest && e.target.closest("button"))) return;
+    var now=Date.now();
+    if(now-lastTouchEnd<=280) e.preventDefault();
+    lastTouchEnd=now;
+  }, {passive:false});
+})();
+</script>
+
+</body></html>

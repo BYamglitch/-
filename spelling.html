@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>NEW TREASURE 文字散らしスペリング</title>
+<style>
+:root{
+  --bg:#071321;--panel:#10263b;--panel2:#0b1d30;--line:#28506e;
+  --text:#f7fbff;--muted:#abc2d3;--cyan:#64d8ff;--ok:#5ee48b;--ng:#ff7070;--gold:#ffd66b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--text)}
+body{min-height:100dvh}
+button{font:inherit;touch-action:manipulation;cursor:pointer}
+.hidden{display:none!important}
+#app{max-width:760px;min-height:100dvh;margin:auto;padding:12px;background:linear-gradient(#071321,#0b1c31)}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.title{font-weight:900;font-size:19px}.sub{font-size:11px;color:var(--muted)}
+.icon{border:1px solid var(--line);background:var(--panel);color:#fff;border-radius:12px;padding:9px 11px}
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:9px 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;text-align:center;padding:7px}
+.stat b{display:block;font-size:22px}.stat span{font-size:10px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:17px;margin-top:10px}
+.jp{font-size:clamp(24px,6.5vw,34px);font-weight:900;text-align:center;line-height:1.45;margin:7px 0}
+.badge{display:block;width:max-content;margin:0 auto 8px;background:#081827;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:var(--muted);font-size:12px}
+.answerBox{min-height:66px;border:2px solid #39789d;background:#081827;border-radius:16px;margin-top:12px;padding:10px 12px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
+.slot{display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:42px;border-bottom:3px solid #6c9ab8;font-size:28px;font-weight:900}
+.slot.filled{color:#fff;border-color:var(--cyan)}
+.scatter{position:relative;height:300px;margin-top:10px;border:1px dashed #2c536f;border-radius:18px;background:radial-gradient(circle at 50% 40%,#102c47,#081827);overflow:hidden}
+.letter{position:absolute;width:52px;height:52px;border-radius:50%;border:2px solid #5aa6cf;background:#123957;color:#fff;font-size:25px;font-weight:900;box-shadow:0 6px 12px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center}
+.letter.used{opacity:.18;transform:scale(.78);pointer-events:none}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.ctrl{border:1px solid var(--line);background:#0c2237;color:#fff;border-radius:13px;padding:11px;font-weight:850}
+.ctrl.danger{border-color:#674047}
+.listen{display:block;margin:10px auto 0;border:1px solid #39789d;background:#0b3450;color:#fff;border-radius:14px;padding:10px 14px;font-weight:900}
+.feedback{text-align:center;min-height:31px;padding-top:7px;font-weight:900}
+.feedback.ok{color:var(--ok)}.feedback.ng{color:var(--ng)}
+.primary,.secondary{width:100%;border-radius:15px;padding:14px;font-weight:900}
+.primary{border:0;background:linear-gradient(90deg,#4fc9ff,#7ae8ff);color:#052033;font-size:18px}
+.secondary{border:1px solid var(--line);background:#0d2135;color:white;margin-top:8px}
+.setup h1,.result h1{font-size:27px;margin:0 0 8px}
+.setup p,.result p{color:var(--muted);line-height:1.6}
+.pickTitle{font-size:13px;color:var(--muted);font-weight:850;margin:14px 0 7px}
+.choiceRow{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pick{border:1px solid var(--line);background:#0b1f34;color:#fff;border-radius:13px;padding:12px 8px;font-weight:850}
+.pick.selected{background:#16466a;border-color:var(--cyan);box-shadow:0 0 0 2px rgba(100,216,255,.12)}
+.tip{background:#081827;border-left:4px solid var(--cyan);padding:10px;border-radius:8px;font-size:13px;line-height:1.55;margin:12px 0}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rb{background:#081827;border:1px solid var(--line);border-radius:12px;text-align:center;padding:12px}
+.rb b{font-size:28px;display:block}
+.review{background:#081827;border-radius:12px;padding:8px 12px;margin:10px 0;max-height:220px;overflow:auto}
+.ri{padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px}
+@media(max-width:480px){.scatter{height:330px}.letter{width:50px;height:50px;font-size:24px}.slot{min-width:24px;font-size:25px}}
+</style>
+
+<style id="ipad-browser-compat">
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  overscroll-behavior:none;
+  min-height:100%;
+}
+body{
+  min-height:100%;
+  min-height:100dvh;
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+  -webkit-touch-callout:none;
+}
+button, select, [role="button"]{
+  touch-action:manipulation !important;
+  -webkit-tap-highlight-color:transparent;
+}
+button{
+  -webkit-appearance:none;
+  appearance:none;
+}
+input, select, textarea, button{
+  font-size:16px;
+}
+@supports (height: 100dvh){
+  #app{height:100dvh;}
+}
+@supports not (height: 100dvh){
+  #app{height:var(--ipad-app-height,100vh);}
+}
+@media (pointer:coarse){
+  button{min-height:44px;}
+}
+@media (orientation:landscape) and (max-height:600px){
+  .card{max-height:calc(var(--ipad-app-height,100vh) - 24px);overflow:auto;}
+}
+</style>
+
+</head>
+<body>
+<div id="app">
+<header>
+  <div><div class="title">文字散らしスペリング</div><div class="sub">Lesson 4〜6 × ターゲット1800 / 1ターン15問</div></div>
+  <button type="button" id="soundBtn" class="icon">🔊 音ON</button>
+</header>
+
+<section id="setup" class="setup">
+  <div class="card">
+    <h1>15問チャレンジ</h1>
+    <p>日本語の意味を見て、散らばったアルファベットを正しいスペルの順番にタップします。時間制限はありません。</p>
+    <div class="pickTitle">出題範囲</div>
+    <div id="rangeBtns" class="choiceRow">
+      <button type="button" class="pick selected" data-range="all">Lesson 4〜6</button>
+      <button type="button" class="pick" data-range="L4">Lesson 4</button>
+      <button type="button" class="pick" data-range="L5">Lesson 5</button>
+      <button type="button" class="pick" data-range="L6">Lesson 6</button>
+    </div>
+    <div class="pickTitle">1回にやるターン数</div>
+    <div id="turnBtns" class="choiceRow">
+      <button type="button" class="pick" data-turns="2">2ターン</button>
+      <button type="button" class="pick selected" data-turns="3">3ターン</button>
+      <button type="button" class="pick" data-turns="4">4ターン</button>
+      <button type="button" class="pick" data-turns="5">5ターン</button>
+    </div>
+    <div class="tip">選んだターン数のうち、最後の1ターンは復習用です。まず「選んだターン数－1回」を通常出題し、その間に間違えた単語があれば、最後にその単語だけを15問で復習します。間違いがなければ復習ターンは行わず終了します。</div>
+    <div class="tip">文字を1つずつタップして上の解答欄を完成させます。「← 1文字戻す」と「最初から」を使えます。正解すると英単語を読み上げます。</div>
+    <button type="button" id="startBtn" class="primary">スタート</button>
+  </div>
+</section>
+
+<section id="gameScreen" class="hidden">
+  <div class="hud">
+    <div class="stat"><b id="num">1/15</b><span>問題</span></div>
+    <div class="stat"><b id="score">0</b><span>正解</span></div>
+    <div class="stat"><b id="miss">0</b><span>ミス</span></div>
+  </div>
+
+  <div class="card">
+    <div id="badge" class="badge">Lesson</div>
+    <div id="jp" class="jp"></div>
+    <button type="button" id="listenWordBtn" class="listen">🔊 英単語を聞く</button>
+    <div id="answerBox" class="answerBox"></div>
+    <div id="scatter" class="scatter"></div>
+    <div class="controls">
+      <button type="button" id="undoBtn" class="ctrl">← 1文字戻す</button>
+      <button type="button" id="resetBtn" class="ctrl danger">最初から</button>
+    </div>
+    <div id="feedback" class="feedback"></div>
+  </div>
+</section>
+
+<section id="resultScreen" class="result hidden">
+  <div class="card">
+    <h1 id="resultTitle">ターン終了！</h1>
+    <div id="sessionScoreBox" class="rb" style="margin-bottom:12px">
+      <b id="sessionScore">0 / 0</b>今回の点数（復習ターンは除外）
+    </div>
+    <div class="results">
+      <div class="rb"><b id="rScore">0/15</b>正解</div>
+      <div class="rb"><b id="rMiss">0</b>ミス操作</div>
+      <div class="rb"><b id="rPerfect">0</b>一発正解</div>
+      <div class="rb"><b id="rReview">0</b>要復習語</div>
+    </div>
+    <div id="review" class="review"></div>
+    <button type="button" id="againBtn" class="primary">次のターンへ</button>
+    <button type="button" id="wrongBtn" class="secondary">間違えた単語だけ再挑戦</button>
+    <button type="button" id="homeBtn" class="secondary">範囲を選び直す</button>
+  </div>
+</section>
+</div>
+
+<script>
+(function(){
+"use strict";
+const BANK=[{"jp": "いつも", "en": "always", "lesson": "L4"}, {"jp": "たいてい", "en": "usually", "lesson": "L4"}, {"jp": "しばしば／よく", "en": "often", "lesson": "L4"}, {"jp": "ときどき", "en": "sometimes", "lesson": "L4"}, {"jp": "決して～ない", "en": "never", "lesson": "L4"}, {"jp": "お気に入りの／いちばん好きな", "en": "favorite", "lesson": "L4"}, {"jp": "クラスメート", "en": "classmate", "lesson": "L4"}, {"jp": "料理", "en": "cooking", "lesson": "L4"}, {"jp": "休暇", "en": "vacation", "lesson": "L4"}, {"jp": "祭り", "en": "festival", "lesson": "L4"}, {"jp": "動物", "en": "animal", "lesson": "L4"}, {"jp": "ゾウ", "en": "elephant", "lesson": "L4"}, {"jp": "地域／区域", "en": "area", "lesson": "L4"}, {"jp": "赤ちゃん", "en": "baby", "lesson": "L4"}, {"jp": "ゆっくり", "en": "slowly", "lesson": "L4"}, {"jp": "かわいい", "en": "cute", "lesson": "L4"}, {"jp": "竹", "en": "bamboo", "lesson": "L4"}, {"jp": "ヒョウ", "en": "leopard", "lesson": "L4"}, {"jp": "しっぽ", "en": "tail", "lesson": "L4"}, {"jp": "刺激的な／わくわくさせる", "en": "exciting", "lesson": "L4"}, {"jp": "頭痛", "en": "headache", "lesson": "L5"}, {"jp": "ラケット", "en": "racket", "lesson": "L5"}, {"jp": "ベンチ", "en": "bench", "lesson": "L5"}, {"jp": "だれの／だれのもの", "en": "whose", "lesson": "L5"}, {"jp": "たぶん／もしかすると", "en": "maybe", "lesson": "L5"}, {"jp": "定規", "en": "ruler", "lesson": "L5"}, {"jp": "ホチキス", "en": "stapler", "lesson": "L5"}, {"jp": "私のもの", "en": "mine", "lesson": "L5"}, {"jp": "あなたのもの", "en": "yours", "lesson": "L5"}, {"jp": "彼女のもの", "en": "hers", "lesson": "L5"}, {"jp": "私たちのもの", "en": "ours", "lesson": "L5"}, {"jp": "彼ら・彼女らのもの", "en": "theirs", "lesson": "L5"}, {"jp": "サイズ／大きさ", "en": "size", "lesson": "L5"}, {"jp": "センチメートル", "en": "centimeter", "lesson": "L5"}, {"jp": "深い", "en": "deep", "lesson": "L5"}, {"jp": "切符／チケット", "en": "ticket", "lesson": "L5"}, {"jp": "どちら／どの", "en": "which", "lesson": "L5"}, {"jp": "異なる／違った", "en": "different", "lesson": "L5"}, {"jp": "パーセント", "en": "percent", "lesson": "L5"}, {"jp": "主将／キャプテン", "en": "captain", "lesson": "L5"}, {"jp": "教科／科目", "en": "subject", "lesson": "L5"}, {"jp": "島", "en": "island", "lesson": "L5"}, {"jp": "山", "en": "mountain", "lesson": "L5"}, {"jp": "習慣／風習", "en": "custom", "lesson": "L5"}, {"jp": "触れる", "en": "touch", "lesson": "L5"}, {"jp": "宗教の", "en": "religious", "lesson": "L5"}, {"jp": "買い物", "en": "shopping", "lesson": "L6"}, {"jp": "通り", "en": "street", "lesson": "L6"}, {"jp": "まっすぐに", "en": "straight", "lesson": "L6"}, {"jp": "一区画", "en": "block", "lesson": "L6"}, {"jp": "角", "en": "corner", "lesson": "L6"}, {"jp": "タオル", "en": "towel", "lesson": "L6"}, {"jp": "皿", "en": "plate", "lesson": "L6"}, {"jp": "注文する", "en": "order", "lesson": "L6"}, {"jp": "牛肉", "en": "beef", "lesson": "L6"}, {"jp": "クリーム", "en": "cream", "lesson": "L6"}, {"jp": "週末", "en": "weekend", "lesson": "L6"}, {"jp": "注意深い", "en": "careful", "lesson": "L6"}, {"jp": "国際的な", "en": "international", "lesson": "L6"}, {"jp": "年配の", "en": "elderly", "lesson": "L6"}];
+const $=id=>document.getElementById(id);
+
+let selectedRange="all";
+let turn=[],idx=0,score=0,missOps=0,perfect=0,wrongWords=[];
+let current=null, tapped=[], soundOn=true, retryWrongOnly=false;
+let selectedTurns=3, normalTurnsTarget=2, currentNormalTurn=0;
+let sessionActive=false, finalReviewTurn=false, sessionWrongWords=[];
+let sessionTotalCorrect=0, sessionTotalQuestions=0;
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    const t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+
+function speak(text){
+  if(!soundOn || !("speechSynthesis" in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="en-US"; u.rate=0.82;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+Array.from(document.querySelectorAll("#rangeBtns .pick")).forEach(btn=>{
+  btn.addEventListener("click",function(){
+    Array.from(document.querySelectorAll("#rangeBtns .pick")).forEach(x=>x.classList.remove("selected"));
+    btn.classList.add("selected");
+    selectedRange=btn.dataset.range;
+  });
+});
+
+Array.from(document.querySelectorAll("#turnBtns .pick")).forEach(btn=>{
+  btn.addEventListener("click",function(){
+    Array.from(document.querySelectorAll("#turnBtns .pick")).forEach(x=>x.classList.remove("selected"));
+    btn.classList.add("selected");
+    selectedTurns=Number(btn.dataset.turns)||3;
+  });
+});
+
+function getPool(){
+  let p=BANK.filter(x=>selectedRange==="all" || x.lesson===selectedRange);
+
+  if(finalReviewTurn && sessionWrongWords.length){
+    const set=new Set(sessionWrongWords.map(x=>x.en));
+    const w=p.filter(x=>set.has(x.en));
+    if(w.length) p=w;
+  }else if(retryWrongOnly && wrongWords.length){
+    const set=new Set(wrongWords.map(x=>x.en));
+    const w=p.filter(x=>set.has(x.en));
+    if(w.length) p=w;
+  }
+  return p;
+}
+
+function buildTurn(){
+  const pool=getPool();
+  let arr=[];
+  while(arr.length<15 && pool.length){
+    const shuffled=shuffle(pool);
+    for(const q of shuffled){
+      if(arr.length>=15) break;
+      arr.push(q);
+    }
+  }
+  return arr.slice(0,15);
+}
+
+function rememberSessionWrong(q){
+  if(!sessionActive || finalReviewTurn || !q) return;
+  if(!sessionWrongWords.some(x=>x.en===q.en)) sessionWrongWords.push(q);
+}
+
+function makeLetters(word){
+  return word.toLowerCase().replace(/[^a-z]/g,"").split("");
+}
+
+function renderAnswer(){
+  const letters=makeLetters(current.en);
+  const box=$("answerBox");
+  box.innerHTML="";
+  letters.forEach((ch,i)=>{
+    const s=document.createElement("span");
+    s.className="slot"+(i<tapped.length?" filled":"");
+    s.textContent=i<tapped.length ? tapped[i].ch : "";
+    box.appendChild(s);
+  });
+}
+
+function nonOverlappingPositions(n,w,h,size){
+  const pts=[];
+  for(let i=0;i<n;i++){
+    let placed=false;
+    for(let tries=0;tries<250 && !placed;tries++){
+      const x=8+Math.random()*Math.max(1,w-size-16);
+      const y=8+Math.random()*Math.max(1,h-size-16);
+      let ok=true;
+      for(const p of pts){
+        const dx=x-p.x,dy=y-p.y;
+        if(Math.sqrt(dx*dx+dy*dy)<size*0.88){ok=false;break;}
+      }
+      if(ok){pts.push({x,y});placed=true;}
+    }
+    if(!placed){
+      pts.push({x:8+(i%6)*(size+5), y:8+Math.floor(i/6)*(size+7)});
+    }
+  }
+  return pts;
+}
+
+function renderScatter(){
+  const scatter=$("scatter");
+  scatter.innerHTML="";
+  const letters=shuffle(makeLetters(current.en).map((ch,i)=>({ch,id:i})));
+  const rect=scatter.getBoundingClientRect();
+  const size=52;
+  const pts=nonOverlappingPositions(letters.length,rect.width,rect.height,size);
+  letters.forEach((obj,i)=>{
+    const b=document.createElement("button");
+    b.type="button"; b.className="letter";
+    b.textContent=obj.ch; b.dataset.id=String(obj.id); b.dataset.ch=obj.ch;
+    b.style.left=pts[i].x+"px"; b.style.top=pts[i].y+"px";
+    b.addEventListener("click",()=>tapLetter(b));
+    scatter.appendChild(b);
+  });
+}
+
+function tapLetter(btn){
+  if(btn.classList.contains("used")) return;
+  const expected=makeLetters(current.en)[tapped.length];
+  const ch=btn.dataset.ch;
+  tapped.push({ch:ch, id:btn.dataset.id, el:btn});
+  btn.classList.add("used");
+  renderAnswer();
+
+  if(ch!==expected){
+    missOps++;
+    $("miss").textContent=String(missOps);
+    $("feedback").textContent="× その文字ではありません。1文字戻してみよう。";
+    $("feedback").className="feedback ng";
+    if(!wrongWords.some(x=>x.en===current.en)) wrongWords.push(current);
+    rememberSessionWrong(current);
+    return;
+  } else {
+    $("feedback").textContent="";
+    $("feedback").className="feedback";
+  }
+
+  const target=makeLetters(current.en).join("");
+  const built=tapped.map(x=>x.ch).join("");
+  if(tapped.length===target.length){
+    if(built===target){
+      score++;
+      const hadError=wrongWords.some(x=>x.en===current.en);
+      if(!hadError) perfect++;
+      $("score").textContent=String(score);
+      $("feedback").textContent="○ 正解！ "+current.en;
+      $("feedback").className="feedback ok";
+      speak(current.en);
+      setTimeout(nextQuestion,900);
+    }else{
+      if(!wrongWords.some(x=>x.en===current.en)) wrongWords.push(current);
+      rememberSessionWrong(current);
+      $("feedback").textContent="× スペルが違います。戻して直そう。";
+      $("feedback").className="feedback ng";
+    }
+  }
+}
+
+function undo(){
+  if(!tapped.length) return;
+  const last=tapped.pop();
+  if(last.el) last.el.classList.remove("used");
+  renderAnswer();
+  $("feedback").textContent="";
+  $("feedback").className="feedback";
+}
+
+function resetWord(){
+  tapped.forEach(x=>{if(x.el)x.el.classList.remove("used")});
+  tapped=[];
+  renderAnswer();
+  $("feedback").textContent="";
+  $("feedback").className="feedback";
+}
+
+function showQuestion(){
+  current=turn[idx];
+  tapped=[];
+  $("num").textContent=(idx+1)+"/15";
+  $("score").textContent=String(score);
+  $("miss").textContent=String(missOps);
+  if(finalReviewTurn){
+    $("badge").textContent="最終復習ターン｜"+current.lesson.replace("L","Lesson ");
+  }else if(sessionActive){
+    $("badge").textContent="第"+currentNormalTurn+"/"+normalTurnsTarget+"ターン｜"+current.lesson.replace("L","Lesson ");
+  }else{
+    $("badge").textContent=current.lesson.replace("L","Lesson ");
+  }
+  $("jp").textContent=current.jp;
+  $("feedback").textContent="";
+  $("feedback").className="feedback";
+  renderAnswer();
+  requestAnimationFrame(renderScatter);
+}
+
+function nextQuestion(){
+  idx++;
+  if(idx>=15) finish();
+  else showQuestion();
+}
+
+function startGame(){
+  turn=buildTurn();
+  if(!turn.length){ alert("出題できる単語がありません。"); return; }
+  idx=0;score=0;missOps=0;perfect=0;
+  wrongWords=[];
+  $("setup").classList.add("hidden");
+  $("resultScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  showQuestion();
+}
+
+function finish(){
+  $("gameScreen").classList.add("hidden");
+  $("resultScreen").classList.remove("hidden");
+
+  if(sessionActive && !finalReviewTurn){
+    sessionTotalCorrect += score;
+    sessionTotalQuestions += 15;
+  }
+  $("sessionScore").textContent=sessionTotalCorrect+" / "+sessionTotalQuestions;
+  $("sessionScoreBox").style.display=(sessionActive || finalReviewTurn) ? "block" : "none";
+
+  $("rScore").textContent=score+"/15";
+  $("rMiss").textContent=String(missOps);
+  $("rPerfect").textContent=String(perfect);
+  $("rReview").textContent=String(wrongWords.length);
+
+  const rev=$("review");
+  rev.innerHTML="";
+  if(!wrongWords.length){
+    rev.innerHTML="<b>このターンは全問一発正解！</b>";
+  }else{
+    const h=document.createElement("b");
+    h.textContent="このターンの要復習";
+    rev.appendChild(h);
+    wrongWords.forEach(q=>{
+      const d=document.createElement("div");
+      d.className="ri";
+      d.textContent=q.jp+" → "+q.en;
+      rev.appendChild(d);
+    });
+  }
+
+  const title=$("resultTitle");
+  const nextBtn=$("againBtn");
+
+  if(finalReviewTurn){
+    title.textContent="最終復習ターン終了！";
+    nextBtn.textContent="最初の画面へ";
+    nextBtn.dataset.action="done";
+    $("wrongBtn").classList.toggle("hidden",wrongWords.length===0);
+    sessionActive=false;
+    return;
+  }
+
+  if(sessionActive && currentNormalTurn<normalTurnsTarget){
+    title.textContent="第"+currentNormalTurn+"ターン終了！";
+    nextBtn.textContent="次のターンへ（"+(currentNormalTurn+1)+"/"+normalTurnsTarget+"）";
+    nextBtn.dataset.action="nextNormal";
+    $("wrongBtn").classList.add("hidden");
+    return;
+  }
+
+  if(sessionActive){
+    if(sessionWrongWords.length){
+      title.textContent="通常ターン終了！";
+      nextBtn.textContent="最後の復習ターンへ（"+sessionWrongWords.length+"語）";
+      nextBtn.dataset.action="finalReview";
+      $("wrongBtn").classList.add("hidden");
+    }else{
+      title.textContent="全ターン終了！ 間違いなし！";
+      nextBtn.textContent="最初の画面へ";
+      nextBtn.dataset.action="done";
+      $("wrongBtn").classList.add("hidden");
+      sessionActive=false;
+    }
+    return;
+  }
+
+  title.textContent="ターン終了！";
+  nextBtn.textContent="もう15問";
+  nextBtn.dataset.action="again";
+  $("wrongBtn").classList.toggle("hidden",wrongWords.length===0);
+}
+$("startBtn").addEventListener("click",()=>{
+  retryWrongOnly=false;
+  finalReviewTurn=false;
+  sessionActive=true;
+  sessionWrongWords=[];
+  sessionTotalCorrect=0;
+  sessionTotalQuestions=0;
+  $("sessionScoreBox").style.display="block";
+  normalTurnsTarget=Math.max(1,selectedTurns-1);
+  currentNormalTurn=1;
+  startGame();
+});
+
+$("againBtn").addEventListener("click",()=>{
+  const action=$("againBtn").dataset.action;
+  if(action==="nextNormal"){
+    retryWrongOnly=false;
+    finalReviewTurn=false;
+    currentNormalTurn++;
+    startGame();
+  }else if(action==="finalReview"){
+    retryWrongOnly=false;
+    finalReviewTurn=true;
+    startGame();
+  }else if(action==="done"){
+    retryWrongOnly=false;
+    finalReviewTurn=false;
+    sessionActive=false;
+    sessionWrongWords=[];
+    sessionTotalCorrect=0;
+    sessionTotalQuestions=0;
+    $("resultScreen").classList.add("hidden");
+    $("gameScreen").classList.add("hidden");
+    $("setup").classList.remove("hidden");
+  }else{
+    retryWrongOnly=false;
+    finalReviewTurn=false;
+    sessionActive=false;
+    startGame();
+  }
+});
+
+$("wrongBtn").addEventListener("click",()=>{
+  retryWrongOnly=true;
+  finalReviewTurn=false;
+  sessionActive=false;
+  $("sessionScoreBox").style.display="none";
+  startGame();
+});
+
+$("homeBtn").addEventListener("click",()=>{
+  retryWrongOnly=false;
+  finalReviewTurn=false;
+  sessionActive=false;
+  sessionWrongWords=[];
+  sessionTotalCorrect=0;
+  sessionTotalQuestions=0;
+  $("resultScreen").classList.add("hidden");
+  $("gameScreen").classList.add("hidden");
+  $("setup").classList.remove("hidden");
+});
+$("undoBtn").addEventListener("click",undo);
+$("resetBtn").addEventListener("click",resetWord);
+$("listenWordBtn").addEventListener("click",()=>{ if(current) speak(current.en); });
+$("soundBtn").addEventListener("click",()=>{
+  soundOn=!soundOn;
+  $("soundBtn").textContent=soundOn?"🔊 音ON":"🔇 音OFF";
+  if(!soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+});
+})();
+</script>
+
+<script id="ipad-browser-compat-js">
+(function(){
+  "use strict";
+  var unlocked=false;
+
+  function setHeight(){
+    var h=(window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty("--ipad-app-height", Math.round(h)+"px");
+  }
+  setHeight();
+  window.addEventListener("resize", setHeight, {passive:true});
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", setHeight, {passive:true});
+  }
+
+  function unlockSpeech(){
+    if(unlocked || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+    try{
+      var u=new SpeechSynthesisUtterance(".");
+      u.lang="en-US";
+      u.rate=1;
+      u.volume=0.01;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+      unlocked=true;
+    }catch(e){}
+  }
+
+  document.addEventListener("pointerdown", unlockSpeech, {once:true, passive:true});
+  document.addEventListener("touchstart", unlockSpeech, {once:true, passive:true});
+  document.addEventListener("click", function(e){
+    var t=e.target.closest && e.target.closest("button");
+    if(t) unlockSpeech();
+  }, {passive:true});
+
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden && "speechSynthesis" in window){
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+    }
+  });
+
+  // iPad Safari/Chrome: prevent accidental double-tap zoom on game buttons.
+  var lastTouchEnd=0;
+  document.addEventListener("touchend", function(e){
+    if(!(e.target.closest && e.target.closest("button"))) return;
+    var now=Date.now();
+    if(now-lastTouchEnd<=280) e.preventDefault();
+    lastTouchEnd=now;
+  }, {passive:false});
+})();
+</script>
+
+</body>
+</html>

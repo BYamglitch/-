@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>NEW TREASURE 落ち単語 iPad版</title>
+<style>
+:root{--bg:#07111f;--panel:#0d1d30;--line:#24445f;--text:#f7fbff;--muted:#a9c0d3;--accent:#65d7ff;--ok:#5ce08a;--ng:#ff7272;--gold:#ffd86b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg);min-height:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overscroll-behavior:none}
+button{font:inherit;-webkit-appearance:none;appearance:none;touch-action:manipulation;cursor:pointer;border:0}
+.hidden{display:none!important}
+.shell{width:min(820px,100%);min-height:100vh;min-height:100dvh;margin:auto;display:flex;flex-direction:column;background:linear-gradient(#07111f,#0b1830)}
+header{min-height:62px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line);gap:10px}
+.brand{font-weight:900;font-size:19px} .brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.soundBtn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:10px 12px;min-height:44px;font-weight:800}
+.screen{flex:1;display:flex;flex-direction:column}
+.setupWrap,.resultWrap{flex:1;display:flex;align-items:center;justify-content:center;padding:18px}
+.card{width:min(600px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 20px 60px #0007}
+.card h1,.card h2{margin:0 0 8px} .card p{color:var(--muted);line-height:1.6}
+.label{font-size:13px;color:var(--muted);font-weight:800;margin:16px 0 7px}
+.buttonRow{display:flex;flex-wrap:wrap;gap:9px}
+.optionBtn{background:#10263d;color:#fff;border:2px solid var(--line);border-radius:13px;padding:11px 14px;min-height:46px;font-weight:800}
+.optionBtn.sel{border-color:var(--accent);background:#123856}
+.tip{border-left:4px solid var(--accent);padding:9px 11px;background:#0a1a2c;border-radius:8px;color:#dbefff;font-size:13px;line-height:1.55;margin:16px 0}
+.primary,.secondary{width:100%;border-radius:14px;padding:14px;min-height:50px;font-weight:900;font-size:18px}
+.primary{background:linear-gradient(90deg,#4dc7ff,#76e7ff);color:#062032}
+.secondary{background:#10263d;color:#fff;border:1px solid var(--line);margin-top:9px}
+.primary:active,.secondary:active,.optionBtn:active,.choice:active,.soundBtn:active,.speakBtn:active{transform:scale(.985)}
+.primary:disabled,.secondary:disabled{opacity:.45}
+#hud{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:7px 9px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;text-align:center;padding:6px 2px}
+.stat b{display:block;font-size:22px} .stat span{font-size:10px;color:var(--muted)}
+#timeWrap{height:5px;background:#10263d} #timeBar{height:100%;background:linear-gradient(90deg,#65d7ff,#ffd86b);transform-origin:left}
+#gameArea{position:relative;flex:1;min-height:330px;overflow:hidden;border-bottom:1px solid var(--line)}
+.grid{position:absolute;left:0;right:0;height:1px;background:rgba(255,255,255,.04)}
+#badge{position:absolute;top:9px;left:9px;padding:5px 9px;border-radius:999px;background:#0006;border:1px solid var(--line);font-size:12px;color:var(--muted);z-index:2}
+.speakBtn{position:absolute;top:9px;right:9px;z-index:4;border:1px solid #39789d;background:#0b3450;color:#fff;border-radius:12px;padding:9px 12px;min-height:44px;font-weight:900}
+#word{position:absolute;left:50%;transform:translateX(-50%);padding:12px 18px;border-radius:17px;background:linear-gradient(#153b5b,#0e2d48);border:2px solid #4e9bc7;box-shadow:0 8px 22px #0006;font-size:clamp(27px,6vw,42px);font-weight:900;white-space:nowrap;max-width:95%;overflow:hidden;text-overflow:ellipsis}
+#word.phrase{font-size:clamp(21px,5vw,34px)}
+#flash{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);opacity:0;font-size:34px;font-weight:900;color:var(--gold);text-shadow:0 2px 8px #000}
+.show{animation:pop .45s ease} @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}40%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}100%{opacity:0;transform:translate(-50%,-65%)}}
+#choices{padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:9px;background:#081422}
+.choice{min-height:66px;border-radius:15px;border:1px solid #2a506d;background:#112a43;color:#fff;padding:10px 8px;font-weight:850;font-size:clamp(16px,3.7vw,19px);line-height:1.25;touch-action:manipulation}
+.choice.ok{background:#12472b;border-color:#38d777} .choice.ng{background:#4b1720;border-color:#ff6262}
+.gameFooter{font-size:11px;color:var(--muted);text-align:center;padding:5px 8px 8px;background:#081422}
+.resgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.box{background:#0a1a2c;border:1px solid var(--line);border-radius:12px;padding:11px;text-align:center}
+.box b{display:block;font-size:28px}
+.misslist{max-height:180px;overflow:auto;background:#071421;border-radius:12px;padding:8px 12px;margin:8px 0 12px;-webkit-overflow-scrolling:touch}
+.mi{padding:6px 0;border-bottom:1px solid #ffffff12;font-size:14px}
+@media(max-width:600px){.card{padding:17px}.setupWrap,.resultWrap{padding:10px}#gameArea{min-height:280px}}
+@media(orientation:landscape) and (max-height:650px){header{min-height:50px}#gameArea{min-height:190px}.choice{min-height:54px}.setupWrap,.resultWrap{align-items:flex-start;overflow:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header><div class="brand">NEW TREASURE 落ち単語<small>Lesson 4–6 / iPad Safari・Chrome対応</small></div><button id="soundBtn" type="button" class="soundBtn">🔊 音ON</button></header>
+
+<section id="setupScreen" class="screen">
+<div class="setupWrap"><div class="card">
+<h1>60秒 落ち単語</h1>
+<p>落ちてくる英単語・熟語の意味を、画面下の4択から選びます。</p>
+
+<div class="label">出題範囲</div>
+<div id="lessonBtns" class="buttonRow">
+<button type="button" class="optionBtn sel" data-value="all">Lesson 4〜6</button>
+<button type="button" class="optionBtn" data-value="4">Lesson 4</button>
+<button type="button" class="optionBtn" data-value="5">Lesson 5</button>
+<button type="button" class="optionBtn" data-value="6">Lesson 6</button>
+</div>
+
+<div class="label">落下速度</div>
+<div id="speedBtns" class="buttonRow">
+<button type="button" class="optionBtn" data-value="turtle">🐢 亀モード</button>
+<button type="button" class="optionBtn sel" data-value="easy">ゆっくり</button>
+<button type="button" class="optionBtn" data-value="normal">ふつう</button>
+</div>
+
+<div class="label">ターン数</div>
+<div id="turnBtns" class="buttonRow">
+<button type="button" class="optionBtn" data-value="2">2ターン</button>
+<button type="button" class="optionBtn sel" data-value="3">3ターン</button>
+<button type="button" class="optionBtn" data-value="4">4ターン</button>
+<button type="button" class="optionBtn" data-value="5">5ターン</button>
+</div>
+
+<div class="tip">選んだターン数のうち、最後の1ターンはそれまでに間違えた単語だけの復習です。間違いがなければ復習ターンを行わず終了します。</div>
+<button id="startBtn" type="button" class="primary">スタート</button>
+<button id="weakBtn" type="button" class="secondary">苦手・間違いだけ復習 <span id="weakCount">（0語）</span></button>
+</div></div>
+</section>
+
+<section id="gameScreen" class="screen hidden">
+<div id="hud"><div class="stat"><b id="score">0</b><span>正解</span></div><div class="stat"><b id="combo">0</b><span>連続</span></div><div class="stat"><b id="miss">0</b><span>ミス</span></div><div class="stat"><b id="timer">60.0</b><span>残り秒</span></div></div>
+<div id="timeWrap"><div id="timeBar"></div></div>
+<div id="gameArea"><div class="grid" style="top:25%"></div><div class="grid" style="top:50%"></div><div class="grid" style="top:75%"></div><div id="badge">Lesson 4–6</div><button id="speakBtn" type="button" class="speakBtn">🔊 発音</button><div id="word" class="hidden"></div><div id="flash"></div></div>
+<div id="choices"><button type="button" class="choice"></button><button type="button" class="choice"></button><button type="button" class="choice"></button><button type="button" class="choice"></button></div>
+<div class="gameFooter">英語が落ち切る前に日本語訳をタップ。誤答語は再登場しやすくなります。</div>
+</section>
+
+<section id="resultScreen" class="screen hidden"><div class="resultWrap"><div class="card">
+<h2 id="resultTitle">ターン終了！</h2>
+<div id="sessionScoreBox" class="box" style="margin:0 0 12px"><b id="sessionScore">0 / 0</b><div style="font-size:13px">今回の点数（復習ターンは除外）</div></div>
+<div class="resgrid"><div class="box"><b id="rScore">0</b>このターンの正解</div><div class="box"><b id="rAcc">0%</b>このターンの正答率</div><div class="box"><b id="rBest">0</b>最高記録</div><div class="box"><b id="rCombo">0</b>最大連続</div></div>
+<b>今回の要復習</b><div id="missList" class="misslist"></div>
+<button id="nextBtn" type="button" class="primary">次のターンへ</button>
+<button id="homeBtn" type="button" class="secondary">範囲を選び直す</button>
+</div></div></section>
+</div>
+
+<script>
+const BANK=[{"lesson": 4, "en": "get", "ja": "得る・手に入れる"}, {"lesson": 4, "en": "supermarket", "ja": "スーパーマーケット"}, {"lesson": 4, "en": "get up", "ja": "起きる"}, {"lesson": 4, "en": "get on", "ja": "乗る"}, {"lesson": 4, "en": "get off", "ja": "降りる"}, {"lesson": 4, "en": "get to", "ja": "〜に着く"}, {"lesson": 4, "en": "active", "ja": "活発な"}, {"lesson": 4, "en": "sport", "ja": "スポーツ"}, {"lesson": 4, "en": "live", "ja": "住む"}, {"lesson": 4, "en": "miss", "ja": "〜がいなくて寂しく思う"}, {"lesson": 4, "en": "cooking", "ja": "料理"}, {"lesson": 4, "en": "favorite", "ja": "お気に入りの・いちばん好きな"}, {"lesson": 4, "en": "classmate", "ja": "クラスメート"}, {"lesson": 4, "en": "be good at", "ja": "〜が得意である"}, {"lesson": 4, "en": "after school", "ja": "放課後"}, {"lesson": 4, "en": "every day", "ja": "毎日"}, {"lesson": 4, "en": "every week", "ja": "毎週"}, {"lesson": 4, "en": "listen to", "ja": "〜を聞く"}, {"lesson": 4, "en": "video", "ja": "ビデオ・動画"}, {"lesson": 4, "en": "often", "ja": "よく・しばしば"}, {"lesson": 4, "en": "send", "ja": "送る"}, {"lesson": 4, "en": "take", "ja": "取る・（写真などを）撮る"}, {"lesson": 4, "en": "sometimes", "ja": "ときどき"}, {"lesson": 4, "en": "make", "ja": "作る"}, {"lesson": 4, "en": "video call", "ja": "ビデオ通話"}, {"lesson": 4, "en": "doesn't", "ja": "〜しない"}, {"lesson": 4, "en": "always", "ja": "いつも"}, {"lesson": 4, "en": "usually", "ja": "たいてい"}, {"lesson": 4, "en": "never", "ja": "決して〜ない"}, {"lesson": 4, "en": "drink", "ja": "飲む"}, {"lesson": 4, "en": "breakfast", "ja": "朝食"}, {"lesson": 4, "en": "by car", "ja": "車で"}, {"lesson": 4, "en": "where", "ja": "どこ"}, {"lesson": 4, "en": "when", "ja": "いつ"}, {"lesson": 4, "en": "what time", "ja": "何時"}, {"lesson": 4, "en": "near", "ja": "〜の近くに"}, {"lesson": 4, "en": "together", "ja": "一緒に"}, {"lesson": 4, "en": "at the door", "ja": "ドアのところに"}, {"lesson": 4, "en": "at school", "ja": "学校で"}, {"lesson": 4, "en": "at the station", "ja": "駅で"}, {"lesson": 4, "en": "at the library", "ja": "図書館で"}, {"lesson": 4, "en": "on the table", "ja": "テーブルの上に"}, {"lesson": 4, "en": "on the wall", "ja": "壁に"}, {"lesson": 4, "en": "in the room", "ja": "部屋の中に"}, {"lesson": 4, "en": "in Tokyo", "ja": "東京に"}, {"lesson": 4, "en": "in the kitchen", "ja": "台所に"}, {"lesson": 4, "en": "in Asia", "ja": "アジアに"}, {"lesson": 4, "en": "under the chair", "ja": "いすの下に"}, {"lesson": 4, "en": "under the tree", "ja": "木の下に"}, {"lesson": 4, "en": "by the window", "ja": "窓のそばに"}, {"lesson": 4, "en": "by the sea", "ja": "海のそばに"}, {"lesson": 4, "en": "from ... to ...", "ja": "〜から…まで"}, {"lesson": 4, "en": "at noon", "ja": "正午に"}, {"lesson": 4, "en": "at night", "ja": "夜に"}, {"lesson": 4, "en": "on Monday", "ja": "月曜日に"}, {"lesson": 4, "en": "in September", "ja": "9月に"}, {"lesson": 4, "en": "in summer", "ja": "夏に"}, {"lesson": 4, "en": "in the morning", "ja": "朝に"}, {"lesson": 4, "en": "before breakfast", "ja": "朝食の前に"}, {"lesson": 4, "en": "after dinner", "ja": "夕食の後に"}, {"lesson": 4, "en": "vacation", "ja": "休暇"}, {"lesson": 4, "en": "festival", "ja": "祭り"}, {"lesson": 4, "en": "room", "ja": "部屋"}, {"lesson": 4, "en": "floor", "ja": "階・床"}, {"lesson": 4, "en": "table", "ja": "テーブル"}, {"lesson": 4, "en": "wall", "ja": "壁"}, {"lesson": 4, "en": "under", "ja": "〜の下に"}, {"lesson": 4, "en": "sea", "ja": "海"}, {"lesson": 4, "en": "dinner", "ja": "夕食"}, {"lesson": 4, "en": "animal", "ja": "動物"}, {"lesson": 4, "en": "elephant", "ja": "ゾウ"}, {"lesson": 4, "en": "area", "ja": "区域・エリア"}, {"lesson": 4, "en": "baby", "ja": "赤ちゃん"}, {"lesson": 4, "en": "walk", "ja": "歩く"}, {"lesson": 4, "en": "slowly", "ja": "ゆっくり"}, {"lesson": 4, "en": "cute", "ja": "かわいい"}, {"lesson": 4, "en": "bath", "ja": "入浴・風呂"}, {"lesson": 4, "en": "bathe", "ja": "入浴する"}, {"lesson": 4, "en": "panda", "ja": "パンダ"}, {"lesson": 4, "en": "lovely", "ja": "かわいらしい・すてきな"}, {"lesson": 4, "en": "come from", "ja": "〜の出身である・〜から来る"}, {"lesson": 4, "en": "a lot of", "ja": "たくさんの"}, {"lesson": 4, "en": "bamboo", "ja": "竹"}, {"lesson": 4, "en": "show", "ja": "見せる・示す"}, {"lesson": 4, "en": "another", "ja": "もう一つの・別の"}, {"lesson": 4, "en": "leopard", "ja": "ヒョウ"}, {"lesson": 4, "en": "run", "ja": "走る"}, {"lesson": 4, "en": "fast", "ja": "速い・速く"}, {"lesson": 4, "en": "marking", "ja": "模様"}, {"lesson": 4, "en": "also", "ja": "〜もまた"}, {"lesson": 4, "en": "tail", "ja": "しっぽ"}, {"lesson": 4, "en": "spend", "ja": "過ごす・費やす"}, {"lesson": 4, "en": "exciting", "ja": "わくわくさせる・刺激的な"}, {"lesson": 4, "en": "get home", "ja": "帰宅する"}, {"lesson": 4, "en": "take a bath", "ja": "風呂に入る"}, {"lesson": 4, "en": "take a shower", "ja": "シャワーを浴びる"}, {"lesson": 4, "en": "go to bed", "ja": "寝る"}, {"lesson": 4, "en": "pet", "ja": "ペット"}, {"lesson": 4, "en": "dog", "ja": "犬"}, {"lesson": 4, "en": "cat", "ja": "猫"}, {"lesson": 4, "en": "rabbit", "ja": "ウサギ"}, {"lesson": 4, "en": "hamster", "ja": "ハムスター"}, {"lesson": 4, "en": "bird", "ja": "鳥"}, {"lesson": 4, "en": "picture", "ja": "絵・写真"}, {"lesson": 4, "en": "zoo", "ja": "動物園"}, {"lesson": 4, "en": "look at", "ja": "〜を見る"}, {"lesson": 5, "en": "have", "ja": "持っている・所有している"}, {"lesson": 5, "en": "headache", "ja": "頭痛"}, {"lesson": 5, "en": "have a good time", "ja": "楽しい時間を過ごす"}, {"lesson": 5, "en": "have a headache", "ja": "頭痛がする"}, {"lesson": 5, "en": "racket", "ja": "ラケット"}, {"lesson": 5, "en": "bench", "ja": "ベンチ"}, {"lesson": 5, "en": "mine", "ja": "私のもの"}, {"lesson": 5, "en": "whose", "ja": "だれの・だれのもの"}, {"lesson": 5, "en": "maybe", "ja": "たぶん・もしかすると"}, {"lesson": 5, "en": "Here is ...", "ja": "ここに〜があります"}, {"lesson": 5, "en": "case", "ja": "ケース・入れ物"}, {"lesson": 5, "en": "ruler", "ja": "定規"}, {"lesson": 5, "en": "yours", "ja": "あなたのもの"}, {"lesson": 5, "en": "stapler", "ja": "ホチキス"}, {"lesson": 5, "en": "ours", "ja": "私たちのもの"}, {"lesson": 5, "en": "hers", "ja": "彼女のもの"}, {"lesson": 5, "en": "theirs", "ja": "彼ら・彼女らのもの"}, {"lesson": 5, "en": "hat", "ja": "帽子"}, {"lesson": 5, "en": "children", "ja": "子どもたち"}, {"lesson": 5, "en": "may", "ja": "〜してもよい・〜かもしれない"}, {"lesson": 5, "en": "help", "ja": "助ける"}, {"lesson": 5, "en": "jogging suit", "ja": "ジョギング用の運動着"}, {"lesson": 5, "en": "dollar", "ja": "ドル"}, {"lesson": 5, "en": "size", "ja": "サイズ・大きさ"}, {"lesson": 5, "en": "centimeter", "ja": "センチメートル"}, {"lesson": 5, "en": "foot / feet", "ja": "フィート"}, {"lesson": 5, "en": "inch", "ja": "インチ"}, {"lesson": 5, "en": "fine", "ja": "よい・大丈夫な"}, {"lesson": 5, "en": "just", "ja": "ただ・ちょうど"}, {"lesson": 5, "en": "May I help you?", "ja": "何かお探しですか"}, {"lesson": 5, "en": "I'd like ...", "ja": "私は〜が欲しいです"}, {"lesson": 5, "en": "meter", "ja": "メートル"}, {"lesson": 5, "en": "river", "ja": "川"}, {"lesson": 5, "en": "kilometer", "ja": "キロメートル"}, {"lesson": 5, "en": "deep", "ja": "深い"}, {"lesson": 5, "en": "ticket", "ja": "切符・チケット"}, {"lesson": 5, "en": "yard", "ja": "ヤード"}, {"lesson": 5, "en": "mile", "ja": "マイル"}, {"lesson": 5, "en": "yen", "ja": "円"}, {"lesson": 5, "en": "point", "ja": "点・小数点"}, {"lesson": 5, "en": "How old ...?", "ja": "何歳ですか・どのくらい古いですか"}, {"lesson": 5, "en": "How tall ...?", "ja": "身長はどのくらいですか"}, {"lesson": 5, "en": "How high ...?", "ja": "高さはどのくらいですか"}, {"lesson": 5, "en": "How long ...?", "ja": "長さはどのくらいですか"}, {"lesson": 5, "en": "How deep ...?", "ja": "深さはどのくらいですか"}, {"lesson": 5, "en": "How much ...?", "ja": "いくらですか"}, {"lesson": 5, "en": "which", "ja": "どちら・どの"}, {"lesson": 5, "en": "pants", "ja": "ズボン"}, {"lesson": 5, "en": "shorts", "ja": "半ズボン"}, {"lesson": 5, "en": "different", "ja": "異なる・違った"}, {"lesson": 5, "en": "on sale", "ja": "セール中で"}, {"lesson": 5, "en": "sale", "ja": "セール・販売"}, {"lesson": 5, "en": "percent", "ja": "パーセント"}, {"lesson": 5, "en": "wow", "ja": "わあ・うわあ"}, {"lesson": 5, "en": "deal", "ja": "取引・買い物"}, {"lesson": 5, "en": "That's a good deal.", "ja": "お買い得ですね"}, {"lesson": 5, "en": "captain", "ja": "キャプテン・主将"}, {"lesson": 5, "en": "team", "ja": "チーム"}, {"lesson": 5, "en": "cup", "ja": "カップ"}, {"lesson": 5, "en": "iced tea", "ja": "アイスティー"}, {"lesson": 5, "en": "subject", "ja": "教科・科目"}, {"lesson": 5, "en": "island", "ja": "島"}, {"lesson": 5, "en": "mountain", "ja": "山"}, {"lesson": 5, "en": "beach", "ja": "浜・海岸"}, {"lesson": 5, "en": "god", "ja": "神"}, {"lesson": 5, "en": "most", "ja": "ほとんどの・大部分の"}, {"lesson": 5, "en": "people", "ja": "人々"}, {"lesson": 5, "en": "custom", "ja": "習慣・風習"}, {"lesson": 5, "en": "touch", "ja": "触れる"}, {"lesson": 5, "en": "others", "ja": "ほかの人々・ほかのもの"}, {"lesson": 5, "en": "left", "ja": "左の"}, {"lesson": 5, "en": "life", "ja": "生活・人生"}, {"lesson": 5, "en": "visit", "ja": "訪れる"}, {"lesson": 5, "en": "someday", "ja": "いつか"}, {"lesson": 5, "en": "be different from", "ja": "〜と異なる"}, {"lesson": 5, "en": "want to", "ja": "〜したい"}, {"lesson": 5, "en": "place", "ja": "場所"}, {"lesson": 5, "en": "religious", "ja": "宗教の"}, {"lesson": 5, "en": "dance", "ja": "踊り・ダンス"}, {"lesson": 5, "en": "like", "ja": "〜のような"}, {"lesson": 5, "en": "story", "ja": "物語"}, {"lesson": 5, "en": "battle", "ja": "戦い"}, {"lesson": 5, "en": "between", "ja": "〜の間に"}, {"lesson": 5, "en": "witch", "ja": "魔女"}, {"lesson": 5, "en": "between A and B", "ja": "AとBの間に"}, {"lesson": 5, "en": "T-shirt", "ja": "Tシャツ"}, {"lesson": 5, "en": "cap", "ja": "帽子・キャップ"}, {"lesson": 5, "en": "change", "ja": "おつり・小銭"}, {"lesson": 5, "en": "cent", "ja": "セント"}, {"lesson": 5, "en": "shirt", "ja": "シャツ"}, {"lesson": 5, "en": "jeans", "ja": "ジーンズ"}, {"lesson": 5, "en": "skirt", "ja": "スカート"}, {"lesson": 5, "en": "socks", "ja": "靴下"}, {"lesson": 5, "en": "shoes", "ja": "靴"}, {"lesson": 5, "en": "Here you are.", "ja": "はい、どうぞ"}, {"lesson": 5, "en": "Here is your change.", "ja": "おつりです"}, {"lesson": 6, "en": "shopping", "ja": "買い物"}, {"lesson": 6, "en": "mall", "ja": "ショッピングモール"}, {"lesson": 6, "en": "go shopping", "ja": "買い物に行く"}, {"lesson": 6, "en": "street", "ja": "通り"}, {"lesson": 6, "en": "straight", "ja": "まっすぐな・まっすぐに"}, {"lesson": 6, "en": "along", "ja": "〜に沿って"}, {"lesson": 6, "en": "block", "ja": "一区画"}, {"lesson": 6, "en": "turn", "ja": "曲がる"}, {"lesson": 6, "en": "corner", "ja": "角"}, {"lesson": 6, "en": "problem", "ja": "問題"}, {"lesson": 6, "en": "Excuse me.", "ja": "すみません"}, {"lesson": 6, "en": "on one's left", "ja": "〜の左側に"}, {"lesson": 6, "en": "No problem.", "ja": "どういたしまして・問題ありません"}, {"lesson": 6, "en": "open", "ja": "開ける"}, {"lesson": 6, "en": "use", "ja": "使う"}, {"lesson": 6, "en": "towel", "ja": "タオル"}, {"lesson": 6, "en": "plate", "ja": "皿"}, {"lesson": 6, "en": "seat", "ja": "席"}, {"lesson": 6, "en": "again", "ja": "もう一度"}, {"lesson": 6, "en": "sure", "ja": "もちろん・確かに"}, {"lesson": 6, "en": "all", "ja": "すべて"}, {"lesson": 6, "en": "sorry", "ja": "すみません・残念です"}, {"lesson": 6, "en": "museum", "ja": "博物館"}, {"lesson": 6, "en": "have a seat", "ja": "お座りください"}, {"lesson": 6, "en": "All right.", "ja": "わかりました"}, {"lesson": 6, "en": "ready", "ja": "準備ができた"}, {"lesson": 6, "en": "order", "ja": "注文する"}, {"lesson": 6, "en": "roast", "ja": "ローストした"}, {"lesson": 6, "en": "beef", "ja": "牛肉"}, {"lesson": 6, "en": "cream", "ja": "クリーム"}, {"lesson": 6, "en": "pasta", "ja": "パスタ"}, {"lesson": 6, "en": "would", "ja": "〜でしょう・〜していただけますか"}, {"lesson": 6, "en": "can't", "ja": "〜できない"}, {"lesson": 6, "en": "cannot", "ja": "〜することができない"}, {"lesson": 6, "en": "read", "ja": "読む"}, {"lesson": 6, "en": "Italian", "ja": "イタリアの・イタリア語"}, {"lesson": 6, "en": "chocolate", "ja": "チョコレート"}, {"lesson": 6, "en": "love", "ja": "大好きである"}, {"lesson": 6, "en": "be ready to", "ja": "〜する準備ができている"}, {"lesson": 6, "en": "Would you like ...?", "ja": "〜はいかがですか"}, {"lesson": 6, "en": "write", "ja": "書く"}, {"lesson": 6, "en": "song", "ja": "歌"}, {"lesson": 6, "en": "sing", "ja": "歌う"}, {"lesson": 6, "en": "band", "ja": "バンド"}, {"lesson": 6, "en": "swim", "ja": "泳ぐ"}, {"lesson": 6, "en": "pool", "ja": "プール"}, {"lesson": 6, "en": "bread", "ja": "パン"}, {"lesson": 6, "en": "salad", "ja": "サラダ"}, {"lesson": 6, "en": "weekend", "ja": "週末"}, {"lesson": 6, "en": "be", "ja": "〜である"}, {"lesson": 6, "en": "careful", "ja": "注意深い"}, {"lesson": 6, "en": "olive", "ja": "オリーブ"}, {"lesson": 6, "en": "oil", "ja": "油"}, {"lesson": 6, "en": "finish", "ja": "終える"}, {"lesson": 6, "en": "worry", "ja": "心配する"}, {"lesson": 6, "en": "bring", "ja": "持ってくる"}, {"lesson": 6, "en": "later", "ja": "あとで"}, {"lesson": 6, "en": "ski", "ja": "スキーをする"}, {"lesson": 6, "en": "skate", "ja": "スケートをする"}, {"lesson": 6, "en": "post office", "ja": "郵便局"}, {"lesson": 6, "en": "everybody", "ja": "みんな"}, {"lesson": 6, "en": "noisy", "ja": "うるさい"}, {"lesson": 6, "en": "late", "ja": "遅れた・遅い"}, {"lesson": 6, "en": "meeting", "ja": "会合・ミーティング"}, {"lesson": 6, "en": "be late for", "ja": "〜に遅れる"}, {"lesson": 6, "en": "interviewer", "ja": "面接官"}, {"lesson": 6, "en": "international", "ja": "国際的な"}, {"lesson": 6, "en": "central", "ja": "中心の"}, {"lesson": 6, "en": "junior high school", "ja": "中学校"}, {"lesson": 6, "en": "clean", "ja": "掃除する"}, {"lesson": 6, "en": "babysit", "ja": "子守をする"}, {"lesson": 6, "en": "else", "ja": "ほかに"}, {"lesson": 6, "en": "pick", "ja": "拾う・選ぶ"}, {"lesson": 6, "en": "litter", "ja": "ごみ"}, {"lesson": 6, "en": "musical", "ja": "音楽の"}, {"lesson": 6, "en": "instrument", "ja": "楽器"}, {"lesson": 6, "en": "Can I ...?", "ja": "〜してもいいですか"}, {"lesson": 6, "en": "let's see", "ja": "ええと・そうですね"}, {"lesson": 6, "en": "pick up", "ja": "拾う"}, {"lesson": 6, "en": "member", "ja": "一員・会員"}, {"lesson": 6, "en": "orchestra", "ja": "オーケストラ"}, {"lesson": 6, "en": "nursing home", "ja": "老人ホーム"}, {"lesson": 6, "en": "director", "ja": "責任者・所長"}, {"lesson": 6, "en": "entrance", "ja": "入口"}, {"lesson": 6, "en": "a.m.", "ja": "午前"}, {"lesson": 6, "en": "elderly", "ja": "年配の"}, {"lesson": 6, "en": "sit", "ja": "座る"}, {"lesson": 6, "en": "talk to", "ja": "〜と話す"}, {"lesson": 6, "en": "department store", "ja": "デパート"}, {"lesson": 6, "en": "city", "ja": "市・都市"}, {"lesson": 6, "en": "bank", "ja": "銀行"}, {"lesson": 6, "en": "hospital", "ja": "病院"}, {"lesson": 6, "en": "library", "ja": "図書館"}, {"lesson": 6, "en": "city park", "ja": "市立公園"}, {"lesson": 6, "en": "go straight", "ja": "まっすぐ進む"}, {"lesson": 6, "en": "turn right", "ja": "右に曲がる"}, {"lesson": 6, "en": "turn left", "ja": "左に曲がる"}, {"lesson": 6, "en": "along the street", "ja": "通りに沿って"}];
+const $=id=>document.getElementById(id);
+const choiceBtns=[...document.querySelectorAll(".choice")];
+
+let lesson="all",speedMode="easy",plannedTurns=3;
+let pool=[],distractorPool=[],cur=null,opts=[],bad=[];
+let running=false,endAt=0,raf=0,last=0,y=-70,base=60,fall=60;
+let score=0,miss=0,combo=0,maxCombo=0,soundOn=true,ctx=null;
+let reviewMode=false,sessionActive=false,normalTurnsTarget=2,currentNormalTurn=0,sessionReview=false;
+let sessionMistakes={},sessionTotalScore=0,sessionTotalMiss=0;
+
+function selectGroup(groupId,value){
+  const box=$(groupId);
+  box.querySelectorAll(".optionBtn").forEach(b=>b.classList.toggle("sel",b.dataset.value===value));
+}
+$("lessonBtns").addEventListener("click",e=>{const b=e.target.closest(".optionBtn");if(!b)return;lesson=b.dataset.value;selectGroup("lessonBtns",lesson);updateWeakButton()});
+$("speedBtns").addEventListener("click",e=>{const b=e.target.closest(".optionBtn");if(!b)return;speedMode=b.dataset.value;selectGroup("speedBtns",speedMode)});
+$("turnBtns").addEventListener("click",e=>{const b=e.target.closest(".optionBtn");if(!b)return;plannedTurns=+b.dataset.value;selectGroup("turnBtns",String(plannedTurns))});
+
+function showScreen(name){["setupScreen","gameScreen","resultScreen"].forEach(id=>$(id).classList.toggle("hidden",id!==name))}
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function getWeakMap(){try{return JSON.parse(localStorage.getItem("ntfall_weak")||"{}")||{}}catch(e){return {}}}
+function saveWeakMap(m){try{localStorage.setItem("ntfall_weak",JSON.stringify(m))}catch(e){}}
+function weakWords(){const m=getWeakMap();return BANK.filter(x=>(lesson==="all"||String(x.lesson)===lesson)&&m[x.en]>0)}
+function updateWeakButton(){const n=weakWords().length;$("weakCount").textContent=`（${n}語）`;$("weakBtn").disabled=n===0}
+function addWeak(en){const m=getWeakMap();m[en]=(m[en]||0)+1;saveWeakMap(m);updateWeakButton()}
+function easeWeak(en){const m=getWeakMap();if(m[en]){m[en]--;if(m[en]<=0)delete m[en];saveWeakMap(m);updateWeakButton()}}
+function rememberSessionMistake(item){if(sessionActive&&!reviewMode&&item)sessionMistakes[item.en]=item}
+function sessionMistakeWords(){return Object.values(sessionMistakes)}
+
+function unlockAudio(){
+  if(!soundOn)return;
+  try{const AC=window.AudioContext||window.webkitAudioContext;if(AC){ctx=ctx||new AC();if(ctx.state==="suspended")ctx.resume()}}catch(e){}
+}
+function tone(f,d=.08,type="sine",v=.08){
+  if(!soundOn)return;
+  try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=ctx||new AC();if(ctx.state==="suspended")ctx.resume();const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(ctx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d);o.stop(ctx.currentTime+d)}catch(e){}
+}
+function okSound(){tone(660);setTimeout(()=>tone(880,.1),65)} function ngSound(){tone(150,.16,"square",.06)} function endSound(){tone(520,.1);setTimeout(()=>tone(390,.14),100);setTimeout(()=>tone(260,.22),220)}
+function speakEnglish(t){if(!soundOn||!t||!("speechSynthesis" in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.82;speechSynthesis.speak(u)}catch(e){}}
+
+function resetSession(){normalTurnsTarget=Math.max(1,plannedTurns-1);currentNormalTurn=1;sessionReview=false;sessionMistakes={};sessionTotalScore=0;sessionTotalMiss=0;sessionActive=true}
+function turnLabel(){const lt=lesson==="all"?"Lesson 4–6":"Lesson "+lesson;if(reviewMode)return "苦手復習｜"+lt;if(sessionReview)return "最終復習ターン｜"+lt;return `第${currentNormalTurn}/${normalTurnsTarget}ターン｜${lt}`}
+function setupPool(){
+  distractorPool=BANK.filter(x=>lesson==="all"||String(x.lesson)===lesson);
+  if(reviewMode)pool=weakWords();else if(sessionReview)pool=sessionMistakeWords();else pool=distractorPool.slice();
+  bad=[];base=speedMode==="turtle"?48:speedMode==="easy"?60:85;$("badge").textContent=turnLabel();
+}
+function nextWord(){
+  if(!running)return;
+  const src=bad.length&&Math.random()<.35?bad:pool;
+  cur=src[Math.floor(Math.random()*src.length)];
+  const unique=[...new Map(distractorPool.filter(x=>x.ja!==cur.ja).map(x=>[x.ja,x.ja])).values()];
+  opts=shuffle([cur.ja,...shuffle(unique).slice(0,3)]);
+  choiceBtns.forEach((b,i)=>{b.textContent=opts[i]||"";b.className="choice";b.disabled=false});
+  $("word").textContent=cur.en;$("word").className=cur.en.length>14?"phrase":"";y=-70;$("word").style.top=y+"px";fall=base*(1+Math.min(score,30)*.012);
+}
+function addMiss(fell=false){
+  miss++;combo=0;$("miss").textContent=miss;$("combo").textContent=0;if(!bad.some(x=>x.en===cur.en))bad.push(cur);rememberSessionMistake(cur);addWeak(cur.en);if(fell)ngSound();
+}
+choiceBtns.forEach((b,i)=>b.addEventListener("click",()=>{
+  if(!running)return;
+  if(opts[i]===cur.ja){b.classList.add("ok");score++;combo++;maxCombo=Math.max(maxCombo,combo);$("score").textContent=score;$("combo").textContent=combo;okSound();if(reviewMode)easeWeak(cur.en);bad=bad.filter(x=>x.en!==cur.en);if(combo>=3){$("flash").textContent=combo+" COMBO!";$("flash").classList.remove("show");void $("flash").offsetWidth;$("flash").classList.add("show")}choiceBtns.forEach(x=>x.disabled=true);setTimeout(nextWord,110)}
+  else{b.classList.add("ng");addMiss(false);ngSound();setTimeout(()=>b.classList.remove("ng"),250)}
+}));
+function frame(ts){
+  if(!running)return;if(!last)last=ts;const dt=(ts-last)/1000;last=ts;
+  const rem=Math.max(0,(endAt-performance.now())/1000);$("timer").textContent=rem.toFixed(1);$("timeBar").style.transform=`scaleX(${rem/60})`;
+  y+=fall*dt;$("word").style.top=y+"px";
+  if(y>$("gameArea").clientHeight-$("word").offsetHeight-5){addMiss(true);nextWord()}
+  if(rem<=0){finishTurn();return}
+  raf=requestAnimationFrame(frame);
+}
+function startTurn(){
+  unlockAudio();setupPool();
+  if(!pool.length){reviewMode=false;sessionReview=false;sessionActive=false;updateWeakButton();alert("この範囲には、まだ復習する単語がありません。");showScreen("setupScreen");return}
+  score=miss=combo=maxCombo=0;["score","miss","combo"].forEach(id=>$(id).textContent="0");$("timer").textContent="60.0";$("timeBar").style.transform="scaleX(1)";
+  showScreen("gameScreen");running=true;endAt=performance.now()+60000;last=0;nextWord();raf=requestAnimationFrame(frame);
+}
+function finishTurn(){
+  running=false;cancelAnimationFrame(raf);$("word").classList.add("hidden");endSound();
+  const attempts=score+miss,acc=attempts?Math.round(score/attempts*100):0,key="ntfall_"+lesson;
+  let prev=0;try{prev=+localStorage.getItem(key)||0}catch(e){}const best=Math.max(prev,score);try{localStorage.setItem(key,best)}catch(e){}
+  if(sessionActive&&!sessionReview&&!reviewMode){sessionTotalScore+=score;sessionTotalMiss+=miss}
+  $("sessionScore").textContent=`${sessionTotalScore} / ${sessionTotalScore+sessionTotalMiss}`;
+  $("rScore").textContent=score;$("rAcc").textContent=acc+"%";$("rBest").textContent=best;$("rCombo").textContent=maxCombo;
+  $("missList").innerHTML="";if(!bad.length)$("missList").innerHTML='<div class="mi">なし。全問クリア！</div>';else bad.slice(0,20).forEach(x=>{const d=document.createElement("div");d.className="mi";d.textContent=x.en+" ＝ "+x.ja;$("missList").appendChild(d)});
+  $("sessionScoreBox").style.display=reviewMode?"none":"block";
+  if(reviewMode){$("resultTitle").textContent="苦手復習ターン終了！";$("nextBtn").textContent="もう一度";$("nextBtn").dataset.action="weakAgain"}
+  else if(sessionReview){$("resultTitle").textContent="最終復習ターン終了！";$("nextBtn").textContent="最初の画面へ";$("nextBtn").dataset.action="done";sessionActive=false;sessionReview=false}
+  else if(currentNormalTurn<normalTurnsTarget){$("resultTitle").textContent=`第${currentNormalTurn}ターン終了！`;$("nextBtn").textContent=`次のターンへ（${currentNormalTurn+1}/${normalTurnsTarget}）`;$("nextBtn").dataset.action="nextNormal"}
+  else{const n=sessionMistakeWords().length;if(n>0){$("resultTitle").textContent="通常ターン終了！";$("nextBtn").textContent=`最後の復習ターンへ（${n}語）`;$("nextBtn").dataset.action="finalReview"}else{$("resultTitle").textContent="全ターン終了！ 間違いなし！";$("nextBtn").textContent="最初の画面へ";$("nextBtn").dataset.action="done";sessionActive=false}}
+  showScreen("resultScreen");
+}
+$("startBtn").addEventListener("click",()=>{reviewMode=false;resetSession();startTurn()});
+$("weakBtn").addEventListener("click",()=>{reviewMode=true;sessionActive=false;sessionReview=false;startTurn()});
+$("nextBtn").addEventListener("click",()=>{const a=$("nextBtn").dataset.action;if(a==="nextNormal"){currentNormalTurn++;sessionReview=false;reviewMode=false;startTurn()}else if(a==="finalReview"){sessionReview=true;reviewMode=false;startTurn()}else if(a==="weakAgain"){reviewMode=true;startTurn()}else{reviewMode=false;sessionReview=false;sessionActive=false;showScreen("setupScreen");updateWeakButton()}});
+$("homeBtn").addEventListener("click",()=>{reviewMode=false;sessionReview=false;sessionActive=false;showScreen("setupScreen");updateWeakButton()});
+$("speakBtn").addEventListener("click",()=>{if(running&&cur)speakEnglish(cur.en)});
+$("soundBtn").addEventListener("click",()=>{soundOn=!soundOn;$("soundBtn").textContent=soundOn?"🔊 音ON":"🔇 音OFF";if(soundOn){unlockAudio();tone(700,.05)}});
+updateWeakButton();
+</script>
+</body></html>
