@@ -97,7 +97,7 @@ header{min-height:62px;display:flex;align-items:center;justify-content:space-bet
 <div id="timeWrap"><div id="timeBar"></div></div>
 <div id="gameArea"><div class="grid" style="top:25%"></div><div class="grid" style="top:50%"></div><div class="grid" style="top:75%"></div><div id="badge">Lesson 4–6</div><button id="speakBtn" type="button" class="speakBtn">🔊 発音</button><div id="word" class="hidden"></div><div id="flash"></div></div>
 <div id="choices"><button type="button" class="choice"></button><button type="button" class="choice"></button><button type="button" class="choice"></button><button type="button" class="choice"></button></div>
-<div class="gameFooter">英語が落ち切る前に日本語訳をタップ。間違えた語・落ち切った語は、正解するまで同じターン内で繰り返します。</div>
+<div class="gameFooter">英語が落ち切る前に日本語訳をタップ。間違えた語・落ち切った語は待ち行列に入り、60秒後のターン末尾で正解するまで再出題します。</div>
 </section>
 
 <section id="resultScreen" class="screen hidden"><div class="resultWrap"><div class="card">
@@ -118,7 +118,7 @@ const choiceBtns=[...document.querySelectorAll(".choice")];
 let lesson="all",speedMode="easy",plannedTurns=3;
 let pool=[],distractorPool=[],cur=null,opts=[],bad=[];
 let running=false,endAt=0,raf=0,last=0,y=-70,base=60,fall=60;
-let score=0,miss=0,combo=0,maxCombo=0,soundOn=true,ctx=null,currentNeedsRetry=false,timeExpired=false;
+let score=0,miss=0,combo=0,maxCombo=0,soundOn=true,ctx=null,timeExpired=false,retryQueue=[];
 let reviewMode=false,sessionActive=false,normalTurnsTarget=2,currentNormalTurn=0,sessionReview=false;
 let sessionMistakes={},sessionTotalScore=0,sessionTotalMiss=0;
 
@@ -161,28 +161,40 @@ function setupPool(){
 }
 function nextWord(){
   if(!running)return;
-  const src=bad.length&&Math.random()<.35?bad:pool;
-  cur=src[Math.floor(Math.random()*src.length)];
+  if(timeExpired){
+    if(!retryQueue.length){finishTurn();return;}
+    cur=retryQueue.shift();
+  }else{
+    cur=pool[Math.floor(Math.random()*pool.length)];
+  }
   const unique=[...new Map(distractorPool.filter(x=>x.ja!==cur.ja).map(x=>[x.ja,x.ja])).values()];
   opts=shuffle([cur.ja,...shuffle(unique).slice(0,3)]);
   choiceBtns.forEach((b,i)=>{b.textContent=opts[i]||"";b.className="choice";b.disabled=false});
   $("word").textContent=cur.en;$("word").className=cur.en.length>14?"phrase":"";y=-70;$("word").style.top=y+"px";fall=base*(1+Math.min(score,30)*.012);
 }
 function addMiss(fell=false){
-  miss++;
-  combo=0;
-  currentNeedsRetry=true;
-  $("miss").textContent=miss;
-  $("combo").textContent=0;
+  miss++;combo=0;
+  $("miss").textContent=miss;$("combo").textContent=0;
+  if(!retryQueue.some(x=>x.en===cur.en)) retryQueue.push(cur);
   if(!bad.some(x=>x.en===cur.en)) bad.push(cur);
-  rememberSessionMistake(cur);
-  addWeak(cur.en);
+  rememberSessionMistake(cur);addWeak(cur.en);
   if(fell) ngSound();
 }
 choiceBtns.forEach((b,i)=>b.addEventListener("click",()=>{
   if(!running)return;
-  if(opts[i]===cur.ja){b.classList.add("ok");score++;combo++;maxCombo=Math.max(maxCombo,combo);$("score").textContent=score;$("combo").textContent=combo;okSound();if(reviewMode)easeWeak(cur.en);bad=bad.filter(x=>x.en!==cur.en);if(combo>=3){$("flash").textContent=combo+" COMBO!";$("flash").classList.remove("show");void $("flash").offsetWidth;$("flash").classList.add("show")}choiceBtns.forEach(x=>x.disabled=true);const finishAfter=timeExpired&&currentNeedsRetry;currentNeedsRetry=false;if(finishAfter)setTimeout(finishTurn,180);else setTimeout(nextWord,110)}
-  else{b.classList.add("ng");addMiss(false);ngSound();setTimeout(()=>b.classList.remove("ng"),250)}
+  if(opts[i]===cur.ja){
+    b.classList.add("ok");score++;combo++;maxCombo=Math.max(maxCombo,combo);
+    $("score").textContent=score;$("combo").textContent=combo;okSound();
+    if(reviewMode)easeWeak(cur.en);
+    bad=bad.filter(x=>x.en!==cur.en);
+    if(combo>=3){$("flash").textContent=combo+" COMBO!";$("flash").classList.remove("show");void $("flash").offsetWidth;$("flash").classList.add("show")}
+    choiceBtns.forEach(x=>x.disabled=true);
+    setTimeout(nextWord,160);
+  }else{
+    b.classList.add("ng");addMiss(false);ngSound();
+    choiceBtns.forEach(x=>x.disabled=true);
+    setTimeout(nextWord,420);
+  }
 }));
 function frame(ts){
   if(!running)return;if(!last)last=ts;const dt=(ts-last)/1000;last=ts;
@@ -190,15 +202,14 @@ function frame(ts){
   y+=fall*dt;$("word").style.top=y+"px";
   if(y>$("gameArea").clientHeight-$("word").offsetHeight-5){
     addMiss(true);
-    // 落ち切った語は、正解するまで同じ語をもう一度
-    y=-70;
-    $("word").style.top=y+"px";
+    nextWord();
   }
-  if(rem<=0){
-    if(currentNeedsRetry){
+  if(rem<=0 && !timeExpired){
+    if(retryQueue.length){
       timeExpired=true;
       $("timer").textContent="追試";
       $("timeBar").style.transform="scaleX(0)";
+      nextWord();
     }else{
       finishTurn();
       return;
@@ -209,7 +220,7 @@ function frame(ts){
 function startTurn(){
   unlockAudio();setupPool();
   if(!pool.length){reviewMode=false;sessionReview=false;sessionActive=false;updateWeakButton();alert("この範囲には、まだ復習する単語がありません。");showScreen("setupScreen");return}
-  score=miss=combo=maxCombo=0;currentNeedsRetry=false;timeExpired=false;["score","miss","combo"].forEach(id=>$(id).textContent="0");$("timer").textContent="60.0";$("timeBar").style.transform="scaleX(1)";
+  score=miss=combo=maxCombo=0;timeExpired=false;retryQueue=[];["score","miss","combo"].forEach(id=>$(id).textContent="0");$("timer").textContent="60.0";$("timeBar").style.transform="scaleX(1)";
   showScreen("gameScreen");running=true;endAt=performance.now()+60000;last=0;nextWord();raf=requestAnimationFrame(frame);
 }
 function finishTurn(){

@@ -256,7 +256,7 @@ function rememberSessionWrong(q){
 function showQuestion(){
   locked=false;
   const q = turn[index];
-  $("num").textContent=(index+1)+"/7";
+  $("num").textContent="クリア "+score+"/7";
   $("score").textContent=String(score);
   if(finalReviewTurn){
     $("badge").textContent="最終復習ターン ・ Lesson "+q.l+" ・ "+q.tag;
@@ -328,14 +328,13 @@ function answer(btn){
   $("score").textContent=String(score);
 
   setTimeout(function(){
-    if(ok){
-      index++;
-      if(index<7) showQuestion();
-      else finish();
-    }else{
-      // 誤答・時間切れ：同じ問題を正解するまで続ける
-      showQuestion();
+    if(!ok){
+      // 誤答・時間切れは、現在ターンの末尾へ回す
+      turn.push(q);
     }
+    index++;
+    if(index<turn.length) showQuestion();
+    else finish();
   },1200);
 }
 

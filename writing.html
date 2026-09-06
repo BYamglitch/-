@@ -164,7 +164,7 @@ function speak(){
 $("audioBtn").onclick=speak;
 
 function showQ(){
- cur=questions[i];$("counter").textContent=`${i+1} / ${questions.length}`;$("scorePill").textContent=`○ ${good}　△ ${maybe}　× ${bad}`;
+ cur=questions[i];$("counter").textContent=`クリア ${good} / ${count}`;$("scorePill").textContent=`○ ${good}　△ ${maybe}　× ${bad}`;
  $("jp").textContent=cur.jp;$("source").textContent=cur.src.replaceAll("+"," / ");
  $("feedback").className="feedback";$("feedback").innerHTML="";$("gradeBtns").classList.add("hidden");$("nextBtn").classList.add("hidden");
  $("scribbleArea").classList.toggle("hidden",mode!=="scribble");$("canvasArea").classList.toggle("hidden",mode!=="canvas");
@@ -207,19 +207,16 @@ $("checkBtn").onclick=()=>{
    $("feedback").className="feedback show good";$("feedback").innerHTML=`正解！<div class="correctAnswer">${shown}</div>`;
    $("nextBtn").textContent="次へ";$("nextBtn").classList.remove("hidden");speak();
  }else{
-   retryCurrent=true;
+   retryCurrent=false;
    bad++; review.push(cur); markWeak(cur.en,2);
-   $("feedback").className="feedback show bad";$("feedback").innerHTML=`もう一度確認：<div class="correctAnswer">${cur.en}</div><div style="font-size:13px;margin-top:6px">この問題は正解するまで続きます。</div>`;
-   $("nextBtn").textContent="もう一度";$("nextBtn").classList.remove("hidden");speak();
+   questions.push(cur);
+   $("feedback").className="feedback show bad";$("feedback").innerHTML=`もう一度確認：<div class="correctAnswer">${cur.en}</div><div style="font-size:13px;margin-top:6px">この問題はターンの末尾でもう一度出ます。</div>`;
+   $("nextBtn").textContent="次へ";$("nextBtn").classList.remove("hidden");speak();
  }
  $("answerInput").disabled=true;
 }
 $("nextBtn").onclick=()=>{
   $("answerInput").disabled=false;
-  if(retryCurrent){
-    showQ();
-    return;
-  }
   i++;
   if(i>=questions.length) finish();
   else showQ();
@@ -247,9 +244,9 @@ $("gradeBtns").onclick=e=>{
   if(g==="good"){
     retryCurrent=false; good++; markWeak(cur.en,-1); $("nextBtn").textContent="次へ";
   }else if(g==="maybe"){
-    retryCurrent=true; maybe++; review.push(cur); markWeak(cur.en,1); $("nextBtn").textContent="もう一度";
+    retryCurrent=false; maybe++; review.push(cur); markWeak(cur.en,1); questions.push(cur); $("nextBtn").textContent="次へ";
   }else{
-    retryCurrent=true; bad++; review.push(cur); markWeak(cur.en,2); $("nextBtn").textContent="もう一度";
+    retryCurrent=false; bad++; review.push(cur); markWeak(cur.en,2); questions.push(cur); $("nextBtn").textContent="次へ";
   }
   $("gradeBtns").classList.add("hidden");
   $("nextBtn").classList.remove("hidden");
