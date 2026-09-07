@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>技術・前期期末試験対策 4択ドリル</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#17202a;--muted:#607080;--line:#d8e0e8;--accent:#374151;--good:#087443;--bad:#a32922;--warn:#b36b00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif}
+.wrap{max-width:940px;margin:auto;padding:18px}.card{background:var(--card);border-radius:22px;padding:24px;box-shadow:0 8px 28px #14202d14;margin:16px 0}
+h1{font-size:34px;line-height:1.25;margin:0 0 10px}.sub{color:var(--muted);line-height:1.7}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}
+select,button{font:inherit}select{width:100%;margin-top:8px;padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:16px}
+button{border:0;border-radius:14px;padding:14px 18px;font-weight:800;cursor:pointer;touch-action:manipulation}.primary{background:#303a48;color:white}.secondary{background:#e9eef3;color:#26323e}.hidden{display:none!important}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.badge{padding:7px 10px;border-radius:999px;background:#edf1f5;font-weight:800;font-size:14px}.progress{height:10px;background:#e5e9ee;border-radius:999px;overflow:hidden;margin:15px 0}.progress>div{height:100%;background:#4b5563;width:0;transition:width .2s}
+.timer{height:8px;background:#e8edf2;border-radius:999px;overflow:hidden;margin:9px 0 20px}.timer>div{height:100%;background:#64748b;width:100%;transition:width .1s linear}.timer.low>div{background:#b45309}.timer.critical>div{background:#b91c1c}
+.kicker{font-size:14px;color:var(--muted);font-weight:800}.q{font-size:30px;line-height:1.5;font-weight:900;margin:12px 0 20px}.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}.opt{min-height:72px;padding:15px;text-align:left;background:#f7f9fb;border:2px solid #dde4eb;color:#19232d;font-size:18px;line-height:1.45}.opt:hover{background:#f0f4f7}.opt.correct{border-color:#21a268;background:#e7f7ef}.opt.wrong{border-color:#d8564e;background:#fff0ee}.opt.dim{opacity:.55}.opt:disabled{cursor:default}
+.feedback{display:none;margin-top:16px;padding:15px;border-radius:13px;font-size:18px;font-weight:800;line-height:1.55}.feedback.show{display:block}.feedback.good{background:#e7f7ef;color:#086b3c}.feedback.bad{background:#fff0ee;color:#962d27}.next{display:none;margin-top:14px}.next.show{display:inline-block}
+.scoregrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0}.score{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fbfcfe}.score b{display:block;font-size:27px;margin-top:3px}.tiny{font-size:13px;color:var(--muted);line-height:1.6}.scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.scope span{padding:9px 11px;border-radius:10px;background:#f4f6f8;font-weight:700}
+@media(max-width:700px){.wrap{padding:10px}.card{padding:18px}.grid,.opts,.scope{grid-template-columns:1fr}.q{font-size:25px}.opt{min-height:62px;font-size:17px}h1{font-size:29px}}
+@media(orientation:landscape) and (min-width:800px){.opts{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body><main class="wrap">
+<section id="start" class="card">
+<h1>🛠 技術・前期期末試験対策<br>4択ドリル</h1>
+<p class="sub">今回発表された試験範囲に合わせて、旧アプリの<b>「生物育成・エネルギー変換・情報」を除外</b>し、材料と加工の既存問題を再編しました。1ターンは<b>20問</b>。間違い・時間切れは同じターンの末尾へ回り、<b>20問すべて正解するまで終了しません</b>。</p>
+<div class="scope"><span>① 問題解決</span><span>② 工夫と材料</span><span>③ 危険と安全</span><span>④ 木材の加工と構造</span></div>
+<div class="grid">
+<label><b>ターン数</b><select id="turnCount"><option value="2">2ターン</option><option value="3" selected>3ターン</option><option value="4">4ターン</option><option value="5">5ターン</option></select></label>
+<label><b>出題範囲</b><select id="cat"><option value="ALL">4分野MIX</option><option value="問題解決">問題解決</option><option value="工夫と材料">工夫と材料</option><option value="危険と安全">危険と安全</option><option value="木材の加工と構造">木材の加工と構造</option><option value="WEAK">苦手優先</option></select></label>
+</div>
+<button id="startBtn" class="primary">スタート</button>
+<p class="tiny">20秒／問。正解は1秒後に自動で次へ。不正解・時間切れは正解表示後に「次へ」で進み、同じ問題がそのターン末尾に再登場します。</p>
+</section>
+<section id="quiz" class="card hidden">
+<div class="topline"><span id="turnBadge" class="badge"></span><span id="meta" class="badge"></span></div>
+<div class="progress"><div id="prog"></div></div><div id="timer" class="timer"><div id="timerBar"></div></div>
+<div id="kicker" class="kicker"></div><div id="q" class="q"></div><div id="opts" class="opts"></div>
+<div id="feedback" class="feedback"></div><button id="nextBtn" class="secondary next">次へ</button>
+</section>
+<section id="turnResult" class="card hidden"><h1 id="trTitle"></h1><div class="scoregrid"><div class="score">クリア<b>20 / 20</b></div><div class="score">初回正解<b id="firstScore"></b></div><div class="score">誤答回数<b id="wrongCount"></b></div><div class="score">時間切れ<b id="timeoutCount"></b></div><div class="score">総挑戦数<b id="attemptCount"></b></div></div><p id="trMsg" class="sub"></p><button id="continueBtn" class="primary"></button></section>
+<section id="final" class="card hidden"><h1>全ターン終了！</h1><div id="finalGrid" class="scoregrid"></div><p class="sub">苦手記録はこの端末に保存されます。もう一度「苦手優先」を選ぶと、間違えやすい問題から出題します。</p><button class="primary" onclick="location.reload()">最初の画面へ</button></section>
+</main>
+<script>
+const Q=[
+{id:1,cat:'工夫と材料',q:'木材の特徴として最も適切なのはどれか。',a:'繊維方向によって強さや加工のしやすさが異なる',d:['どの方向でも全く同じ性質をもつ','水分を全く含まない','熱を加えると必ず透明になる']},
+{id:2,cat:'工夫と材料',q:'木材の年輪から読み取れることとして最も適切なのはどれか。',a:'成長の様子',d:['電気抵抗','融点','磁力']},
+{id:3,cat:'工夫と材料',q:'木材を乾燥させる主な目的として適切なのはどれか。',a:'変形や割れを減らし利用しやすくする',d:['必ず色を白くする','金属に変える','電気を通しやすくする']},
+{id:4,cat:'工夫と材料',q:'木質材料の例として最も適切なのはどれか。',a:'合板',d:['PET','アルミニウム','鋼']},
+{id:5,cat:'工夫と材料',q:'合板は主にどのように作られるか。',a:'薄い板を繊維方向を変えて重ねて接着する',d:['木粉を溶かして鋳型に流す','金属板を重ねて溶接する','樹脂を発泡させる']},
+{id:6,cat:'工夫と材料',q:'集成材の説明として適切なのはどれか。',a:'ひき板などを接着してつくる木質材料',d:['薄板を必ず直角に重ねる材料','金属粉を焼き固めた材料','熱可塑性樹脂を成形した材料']},
+{id:7,cat:'工夫と材料',q:'金属の性質として一般に当てはまりやすいものはどれか。',a:'熱や電気を伝えやすい',d:['全て水に浮く','全て磁石につく','全て透明である']},
+{id:8,cat:'工夫と材料',q:'鉄を主成分とする金属材料として最も適切なのはどれか。',a:'鋼',d:['アルミニウム','銅','チタン']},
+{id:9,cat:'工夫と材料',q:'アルミニウムの特徴として適切なのはどれか。',a:'比較的軽い',d:['必ず磁石に強くつく','木材より必ず重い','透明である']},
+{id:10,cat:'工夫と材料',q:'銅の利用例として適切なのはどれか。',a:'電線',d:['木製家具','ガラス窓','紙袋']},
+{id:11,cat:'工夫と材料',q:'プラスチックの特徴として適切なのはどれか。',a:'種類によって性質が異なり成形しやすいものが多い',d:['全て同じ温度で溶ける','全て水に溶ける','全て金属より重い']},
+{id:12,cat:'工夫と材料',q:'PETの分類として適切なのはどれか。',a:'プラスチック',d:['木質材料','金属材料','セラミックス']},
+{id:13,cat:'工夫と材料',q:'プラスチックの識別表示が役立つ主な目的はどれか。',a:'分別やリサイクル',d:['木材の乾燥','金属の熱処理','発電量の測定']},
+{id:14,cat:'木材の加工と構造',q:'丈夫な構造にする工夫として適切なのはどれか。',a:'三角形を利用する',d:['細長い部材だけを使う','接合部を固定しない','必ず曲線だけにする']},
+{id:15,cat:'木材の加工と構造',q:'構造を丈夫にする方法として適切なのはどれか。',a:'筋かいを入れる',d:['接合部をゆるくする','材料をできるだけ薄くする','支えをなくす']},
+{id:16,cat:'木材の加工と構造',q:'製図で、物体を正面・平面・側面などから表す方法はどれか。',a:'第三角法による正投影図',d:['透視図','地形図','円グラフ']},
+{id:17,cat:'木材の加工と構造',q:'製作図に寸法を記入する主な目的はどれか。',a:'必要な大きさを正確に伝える',d:['色だけを伝える','材料の価格だけを示す','作業時間だけを示す']},
+{id:18,cat:'問題解決',q:'問題解決の最初の段階として最も適切なのはどれか。',a:'問題を見いだし課題を設定する',d:['完成品を評価する','材料を廃棄する','仕上げだけを行う']},
+{id:19,cat:'問題解決',q:'問題解決の流れで、課題設定の次に行うこととして適切なのはどれか。',a:'構想・設計',d:['評価・改善','廃棄','販売']},
+{id:20,cat:'問題解決',q:'試作品や製作品を評価する主な目的はどれか。',a:'課題が解決できたか確かめ改善につなげる',d:['必ず作り直す','材料を全て変える','価格だけを見る']},
+{id:21,cat:'木材の加工と構造',q:'木材を切断する代表的な工具はどれか。',a:'のこぎり',d:['ペンチ','ドライバ','はんだごて']},
+{id:22,cat:'木材の加工と構造',q:'木材の表面を削って整える代表的な工具はどれか。',a:'かんな',d:['ニッパ','テスタ','はさみ']},
+{id:23,cat:'木材の加工と構造',q:'木材に穴をあける工具として適切なのはどれか。',a:'きり・ドリル',d:['げんのう','かんな','やすりだけ']},
+{id:24,cat:'木材の加工と構造',q:'木材を接合するときに使うものとして適切なのはどれか。',a:'釘や木ねじ',d:['乾電池','抵抗器','LED']},
+{id:25,cat:'木材の加工と構造',q:'木ねじを締める工具として最も適切なのはどれか。',a:'ドライバ',d:['のこぎり','かんな','さしがね']},
+{id:26,cat:'木材の加工と構造',q:'材料取りで重要なことはどれか。',a:'必要寸法と切りしろを考えて配置する',d:['材料を無計画に切る','寸法を測らない','節や欠点を全く見ない']},
+{id:27,cat:'木材の加工と構造',q:'切断線をけがくときに重要なのはどれか。',a:'基準面から正確に測る',d:['目分量だけで決める','毎回別の面から測る','寸法を記録しない']},
+{id:28,cat:'危険と安全',q:'木材の切断で、のこぎりを使い始めるときに適切なのはどれか。',a:'刃を安定させて少しずつ切り始める',d:['強く押しつけて一気に切る','材料を手で持ち上げたまま切る','刃を横向きに当てる']},
+{id:29,cat:'木材の加工と構造',q:'やすりがけの目的として適切なのはどれか。',a:'表面や切断面を滑らかに整える',d:['材料を接着する','電気を測定する','プログラムを書く']},
+{id:30,cat:'木材の加工と構造',q:'仕上げを行う目的として適切なのはどれか。',a:'表面を保護し見た目や耐久性を高める',d:['材料を必ず重くする','寸法を大きくする','電気を発生させる']},
+// 以下は上の教科書データと同じ知識を、問い方を変えて再確認する問題
+{id:31,cat:'問題解決',q:'「問題を見いだす→課題を設定する」のあとに続く段階はどれか。',a:'構想・設計',d:['評価・改善','仕上げのみ','廃棄']},
+{id:32,cat:'問題解決',q:'製作品の完成後、課題が解決できたかを確かめる段階はどれか。',a:'評価・改善',d:['課題設定','材料取り','けがき']},
+{id:33,cat:'問題解決',q:'問題解決で「評価」を行う理由として最も近いものはどれか。',a:'改善につなげるため',d:['必ず廃棄するため','値段だけ決めるため','材料を全て交換するため']},
+{id:34,cat:'問題解決',q:'製作前にまず行うべきこととして適切なのはどれか。',a:'問題を見いだして課題を設定する',d:['完成品を評価する','仕上げをする','作品を廃棄する']},
+{id:35,cat:'問題解決',q:'構想・設計より前に行うものはどれか。',a:'課題設定',d:['評価・改善','仕上げ','販売']},
+{id:36,cat:'問題解決',q:'評価の結果、課題が十分に解決できていないと分かったときの考え方として適切なのはどれか。',a:'改善につなげる',d:['必ずそのままにする','価格だけを見る','材料を全て捨てる']},
+{id:37,cat:'工夫と材料',q:'薄い板の繊維方向を変えて重ね、接着して作る材料はどれか。',a:'合板',d:['集成材','鋼','PET']},
+{id:38,cat:'工夫と材料',q:'ひき板などを接着して作る木質材料はどれか。',a:'集成材',d:['合板','銅','PET']},
+{id:39,cat:'工夫と材料',q:'木材で方向によって違いが出やすいものはどれか。',a:'強さや加工のしやすさ',d:['融点だけ','磁力だけ','透明度だけ']},
+{id:40,cat:'工夫と材料',q:'木材を利用しやすくするために乾燥させる理由はどれか。',a:'変形や割れを減らすため',d:['必ず白くするため','金属に変えるため','電気を通しやすくするため']},
+{id:41,cat:'工夫と材料',q:'比較的軽い金属として、元の問題で扱っているものはどれか。',a:'アルミニウム',d:['鋼','銅','合板']},
+{id:42,cat:'工夫と材料',q:'電線の利用例として扱っている材料はどれか。',a:'銅',d:['木材','PET','合板']},
+{id:43,cat:'工夫と材料',q:'種類によって性質が異なり、成形しやすいものが多い材料はどれか。',a:'プラスチック',d:['木材だけ','金属だけ','合板だけ']},
+{id:44,cat:'工夫と材料',q:'分別やリサイクルに役立つものはどれか。',a:'プラスチックの識別表示',d:['木材の年輪','製作図の寸法','のこぎりの刃']},
+{id:45,cat:'工夫と材料',q:'木質材料に分類されるものはどれか。',a:'合板',d:['PET','鋼','アルミニウム']},
+{id:46,cat:'工夫と材料',q:'木材の年輪から分かるものはどれか。',a:'成長の様子',d:['電気抵抗','磁力','融点']},
+{id:47,cat:'木材の加工と構造',q:'四角形の構造を丈夫にする工夫として適切なのはどれか。',a:'筋かいを入れる',d:['接合部をゆるくする','支えをなくす','固定しない']},
+{id:48,cat:'木材の加工と構造',q:'構造を安定させる形として元の問題で扱っているものはどれか。',a:'三角形',d:['細長い線だけ','固定しない四角形','支えのない形']},
+{id:49,cat:'木材の加工と構造',q:'正面・平面・側面などから物体を表す製図法はどれか。',a:'第三角法による正投影図',d:['透視図','地形図','円グラフ']},
+{id:50,cat:'木材の加工と構造',q:'製作図の寸法が伝えるものはどれか。',a:'必要な大きさ',d:['材料の価格だけ','作業時間だけ','色だけ']},
+{id:51,cat:'木材の加工と構造',q:'木材の切断に使う工具はどれか。',a:'のこぎり',d:['かんな','ドライバ','きり']},
+{id:52,cat:'木材の加工と構造',q:'木材の表面を削って整える工具はどれか。',a:'かんな',d:['のこぎり','ドライバ','きり']},
+{id:53,cat:'木材の加工と構造',q:'木材に穴をあけるときに使う工具はどれか。',a:'きり・ドリル',d:['かんな','のこぎり','ドライバだけ']},
+{id:54,cat:'木材の加工と構造',q:'木ねじを締めるときに使う工具はどれか。',a:'ドライバ',d:['のこぎり','かんな','さしがね']},
+{id:55,cat:'木材の加工と構造',q:'材料取りで考える必要がある組み合わせはどれか。',a:'必要寸法と切りしろ',d:['色と価格だけ','電圧と電流','気温と湿度']},
+{id:56,cat:'木材の加工と構造',q:'けがきで寸法を測る基準として適切なのはどれか。',a:'基準面',d:['毎回別の面','目分量','材料の色']},
+{id:57,cat:'木材の加工と構造',q:'やすりがけで整えるものはどれか。',a:'表面や切断面',d:['電気回路','プログラム','材料の価格']},
+{id:58,cat:'木材の加工と構造',q:'仕上げによって高められるものとして適切なのはどれか。',a:'見た目や耐久性',d:['寸法そのもの','材料の重さだけ','発電量']},
+{id:59,cat:'木材の加工と構造',q:'木材の接合に使うものはどれか。',a:'釘や木ねじ',d:['乾電池','抵抗器','LED']},
+{id:60,cat:'木材の加工と構造',q:'切断線を正確に示す作業に関係するものはどれか。',a:'けがき',d:['仕上げ','評価','廃棄']},
+{id:61,cat:'危険と安全',q:'のこぎり作業の始め方として避けるべきものはどれか。',a:'強く押しつけて一気に切る',d:['刃を安定させる','少しずつ切り始める','切断の位置を確認する']},
+{id:62,cat:'危険と安全',q:'のこぎり作業で元の問題が不適切としている扱いはどれか。',a:'材料を手で持ち上げたまま切る',d:['刃を安定させる','少しずつ切り始める','切断線を確認する']},
+{id:63,cat:'危険と安全',q:'のこぎりの刃の当て方として元の問題で不適切なのはどれか。',a:'刃を横向きに当てる',d:['刃を安定させる','少しずつ切り始める','切る位置を確認する']},
+{id:64,cat:'危険と安全',q:'木材切断の安全な始め方として適切なのはどれか。',a:'刃を安定させて少しずつ切り始める',d:['一気に強く押しつける','材料を持ち上げたまま切る','刃を横向きに当てる']},
+{id:65,cat:'危険と安全',q:'工具の用途の組み合わせとして適切なのはどれか。',a:'のこぎり―切断',d:['かんな―穴あけ','ドライバ―表面削り','きり―木ねじ締め']},
+{id:66,cat:'危険と安全',q:'工具の用途の組み合わせとして適切なのはどれか。',a:'かんな―表面を削って整える',d:['のこぎり―木ねじ締め','ドライバ―切断','きり―仕上げ塗装']},
+{id:67,cat:'危険と安全',q:'工具の用途の組み合わせとして適切なのはどれか。',a:'きり・ドリル―穴あけ',d:['かんな―接合','のこぎり―木ねじ締め','ドライバ―切断']},
+{id:68,cat:'危険と安全',q:'工具の用途の組み合わせとして適切なのはどれか。',a:'ドライバ―木ねじ締め',d:['のこぎり―穴あけ','かんな―切断','きり―表面削り']}
+];
+const $=s=>document.querySelector(s), shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const STORE='technologyFinalScopeWeak_v1';
+function weak(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch{return{}}}function save(w){localStorage.setItem(STORE,JSON.stringify(w))}function miss(id){let w=weak();w[id]=(w[id]||0)+1;save(w)}function reward(id){let w=weak();if(w[id]){w[id]=Math.max(0,w[id]-1);save(w)}}
+let nTurns=3,turn=0,mode='ALL',slots=[],queue=[],current=null,locked=false,timerId=null,timeLeft=20,results=[];
+function pool(){if(mode==='ALL')return Q;if(mode==='WEAK'){let w=weak();return [...Q].sort((a,b)=>(w[b.id]||0)-(w[a.id]||0));}return Q.filter(x=>x.cat===mode)}
+function makeSlots(){let p=pool(),picked=[];if(mode==='WEAK'){picked=p.slice(0,20);if(picked.length<20)picked=picked.concat(shuffle(Q.filter(x=>!picked.includes(x))).slice(0,20-picked.length))}else if(mode==='ALL'){
+ const cats=['問題解決','工夫と材料','危険と安全','木材の加工と構造']; const need=[4,5,4,7]; cats.forEach((c,i)=>picked.push(...shuffle(Q.filter(x=>x.cat===c)).slice(0,need[i]))); picked=shuffle(picked);
+ }else{while(picked.length<20){let batch=shuffle(p);for(const q of batch){picked.push(q);if(picked.length===20)break}}}
+ return picked.slice(0,20).map((q,i)=>({slot:i,q,cleared:false,first:true}))}
+function beginTurn(){slots=makeSlots();queue=[...slots];results[turn]={firstCorrect:0,wrong:0,timeout:0,attempts:0};$('#turnResult').classList.add('hidden');$('#quiz').classList.remove('hidden');show()}
+function start(){nTurns=+$('#turnCount').value;mode=$('#cat').value;turn=0;results=[];$('#start').classList.add('hidden');beginTurn()}
+function show(){clearInterval(timerId);locked=false;current=queue.shift();let r=results[turn],cleared=slots.filter(s=>s.cleared).length;$('#turnBadge').textContent=`${turn+1} / ${nTurns} ターン`;$('#meta').textContent=`クリア ${cleared} / 20　｜　挑戦 ${r.attempts+1}回`;$('#prog').style.width=`${cleared/20*100}%`;$('#kicker').textContent=current.q.cat;$('#q').textContent=current.q.q;$('#feedback').className='feedback';$('#feedback').textContent='';$('#nextBtn').classList.remove('show');let opts=shuffle([current.q.a,...current.q.d]);$('#opts').innerHTML='';opts.forEach(t=>{let b=document.createElement('button');b.className='opt';b.textContent=t;b.onclick=()=>answer(t,b);$('#opts').appendChild(b)});startTimer()}
+function startTimer(){timeLeft=20;$('#timer').className='timer';$('#timerBar').style.width='100%';timerId=setInterval(()=>{timeLeft-=.1;let pct=Math.max(0,timeLeft/20*100);$('#timerBar').style.width=pct+'%';$('#timer').className='timer'+(pct<=25?' critical':pct<=50?' low':'');if(timeLeft<=0){clearInterval(timerId);timeout()}},100)}
+function paint(answer,clicked){document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===answer)b.classList.add('correct');else if(b===clicked)b.classList.add('wrong');else b.classList.add('dim')})}
+function answer(choice,btn){if(locked)return;locked=true;clearInterval(timerId);let q=current.q,r=results[turn];r.attempts++;let ok=choice===q.a;if(ok){if(current.first)r.firstCorrect++;current.cleared=true;reward(q.id);paint(q.a,btn);$('#feedback').className='feedback show good';$('#feedback').innerHTML=`✅ 正解！ <b>${q.a}</b>`;updateMeta();setTimeout(advance,1000)}else{r.wrong++;miss(q.id);current.first=false;queue.push(current);paint(q.a,btn);$('#feedback').className='feedback show bad';$('#feedback').innerHTML=`❌ 正解は <b>${q.a}</b>。この問題はターン末尾でもう一度出ます。`;updateMeta();$('#nextBtn').classList.add('show')}}
+function timeout(){if(locked)return;locked=true;let q=current.q,r=results[turn];r.attempts++;r.timeout++;miss(q.id);current.first=false;queue.push(current);paint(q.a,null);$('#feedback').className='feedback show bad';$('#feedback').innerHTML=`⏰ 時間切れ。正解は <b>${q.a}</b>。この問題はターン末尾でもう一度出ます。`;updateMeta();$('#nextBtn').classList.add('show')}
+function updateMeta(){let r=results[turn],cleared=slots.filter(s=>s.cleared).length;$('#meta').textContent=`クリア ${cleared} / 20　｜　挑戦 ${r.attempts}回`;$('#prog').style.width=`${cleared/20*100}%`}
+function advance(){if(slots.every(s=>s.cleared)){finishTurn()}else show()}
+function finishTurn(){clearInterval(timerId);$('#quiz').classList.add('hidden');$('#turnResult').classList.remove('hidden');let r=results[turn];$('#trTitle').textContent=`第${turn+1}ターン クリア！`;$('#firstScore').textContent=`${r.firstCorrect} / 20`;$('#wrongCount').textContent=`${r.wrong}回`;$('#timeoutCount').textContent=`${r.timeout}回`;$('#attemptCount').textContent=`${r.attempts}回`;$('#trMsg').textContent='20問すべて正解しました。初回正解数は「見た瞬間に出せた」定着度の目安です。';$('#continueBtn').textContent=turn===nTurns-1?'最終結果を見る':'次のターンへ'}
+$('#nextBtn').onclick=advance;$('#continueBtn').onclick=()=>{if(turn===nTurns-1){showFinal()}else{turn++;beginTurn()}};
+function showFinal(){$('#turnResult').classList.add('hidden');$('#final').classList.remove('hidden');let first=results.reduce((s,r)=>s+r.firstCorrect,0),wrong=results.reduce((s,r)=>s+r.wrong,0),to=results.reduce((s,r)=>s+r.timeout,0),att=results.reduce((s,r)=>s+r.attempts,0),total=nTurns*20;$('#finalGrid').innerHTML=`<div class="score">全問クリア<b>${total} / ${total}</b></div><div class="score">初回正解<b>${first} / ${total}</b></div><div class="score">誤答回数<b>${wrong}回</b></div><div class="score">時間切れ<b>${to}回</b></div><div class="score">総挑戦数<b>${att}回</b></div>`}
+$('#startBtn').onclick=start;
+</script></body></html>
