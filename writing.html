@@ -25,7 +25,11 @@ h1{font-size:clamp(28px,5vw,42px);margin:0 0 8px} .lead{color:var(--sub);line-he
 .pill{padding:7px 11px;background:#edf2f8;border-radius:999px;font-size:13px;font-weight:850}
 .jp{font-size:clamp(28px,6vw,46px);font-weight:950;line-height:1.35;margin:14px 0 4px}
 .source{font-size:12px;color:var(--sub);font-weight:800}
-.audio{margin:12px 0 18px;background:#e9f3ff;color:#174a7a;border:1px solid #bcdcff;border-radius:13px;min-height:46px;padding:10px 14px;font-weight:900}
+.audio{margin:12px 0 10px;background:#e9f3ff;color:#174a7a;border:1px solid #bcdcff;border-radius:13px;min-height:46px;padding:10px 14px;font-weight:900}
+.letterHintBox{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.letterHintBtn{min-height:45px;padding:10px 15px;border-radius:13px;background:#fff7d6;color:#665200;border:1px solid #ead77e;font-weight:900}
+.letterHintDisplay{min-height:45px;flex:1;display:flex;align-items:center;padding:8px 13px;border-radius:13px;border:1px dashed #cbd5e1;background:#fafbfc;color:#b3bdc9;font-size:clamp(24px,5vw,34px);font-weight:900;letter-spacing:.08em}
+.letterHintDisplay.empty{font-size:13px;letter-spacing:0;font-weight:800;color:#98a2b3}
 .answerInput{width:100%;min-height:86px;border:3px solid #b8c7da;border-radius:18px;padding:14px 16px;font-size:clamp(28px,6vw,42px);font-weight:800;letter-spacing:.02em;background:#fff;outline:none}
 .answerInput:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(49,86,211,.11)}
 .hint{font-size:13px;color:var(--sub);line-height:1.6;margin:8px 0 12px}
@@ -88,6 +92,10 @@ canvas{width:100%;height:300px;background:white;border:3px solid #b8c7da;border-
 <div id="jp" class="jp"></div>
 <div id="source" class="source"></div>
 <button id="audioBtn" class="audio">🔊 英語を聞く</button>
+<div class="letterHintBox">
+  <button id="letterHintBtn" class="letterHintBtn">💡 1文字ヒント</button>
+  <div id="letterHintDisplay" class="letterHintDisplay empty">ヒントはまだ使っていません</div>
+</div>
 
 <div id="scribbleArea">
 <input id="answerInput" class="answerInput" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" placeholder="Apple Pencilでここに書く">
@@ -163,9 +171,76 @@ function speak(){
 }
 $("audioBtn").onclick=speak;
 
+let hintRevealCount=0;
+
+// 1回押すごとに「次の英字」を1文字だけ追加表示。
+// スペース・アポストロフィ・ハイフンなどは、次の英字までの区切りとして自動表示する。
+function revealNextLetter(){
+ if(!cur)return;
+ const answer=String(cur.en || "").replace("...","").trim();
+ if(!answer)return;
+
+ let shown="";
+ let lettersSeen=0;
+ let i=0;
+
+ while(i<answer.length){
+   const ch=answer[i];
+   if(/[A-Za-z]/.test(ch)){
+     if(lettersSeen>=hintRevealCount+1) break;
+     lettersSeen++;
+     shown+=ch;
+   }else{
+     // すでに1文字以上ヒントを出している範囲の区切り記号だけ表示
+     if(lettersSeen>0 && lettersSeen<=hintRevealCount+1) shown+=ch;
+   }
+   i++;
+ }
+
+ const totalLetters=(answer.match(/[A-Za-z]/g)||[]).length;
+ if(hintRevealCount<totalLetters) hintRevealCount++;
+
+ // 新しいhintRevealCountに合わせて描画し直す
+ shown="";
+ lettersSeen=0;
+ i=0;
+ while(i<answer.length){
+   const ch=answer[i];
+   if(/[A-Za-z]/.test(ch)){
+     if(lettersSeen>=hintRevealCount) break;
+     lettersSeen++;
+     shown+=ch;
+   }else{
+     if(lettersSeen>0 && lettersSeen<=hintRevealCount) shown+=ch;
+   }
+   i++;
+ }
+
+ const box=$("letterHintDisplay");
+ box.textContent=shown || "ヒントはまだ使っていません";
+ box.classList.toggle("empty",!shown);
+ $("letterHintBtn").textContent=hintRevealCount>=totalLetters ? "💡 すべて表示済み" : `💡 次の1文字（${hintRevealCount}）`;
+}
+
+$("letterHintBtn").onclick=()=>{
+ revealNextLetter();
+ if(mode==="scribble"){
+   // ヒントを見たあと、そのままPencil/キーボード入力を続けやすくする
+   setTimeout(()=>{try{$("answerInput").focus()}catch(e){}},0);
+ }
+};
+
+function resetLetterHint(){
+ hintRevealCount=0;
+ $("letterHintDisplay").textContent="ヒントはまだ使っていません";
+ $("letterHintDisplay").classList.add("empty");
+ $("letterHintBtn").textContent="💡 1文字ヒント";
+}
+
 function showQ(){
  cur=questions[i];$("counter").textContent=`クリア ${good} / ${count}`;$("scorePill").textContent=`○ ${good}　△ ${maybe}　× ${bad}`;
  $("jp").textContent=cur.jp;$("source").textContent=cur.src.replaceAll("+"," / ");
+ resetLetterHint();
  $("feedback").className="feedback";$("feedback").innerHTML="";$("gradeBtns").classList.add("hidden");$("nextBtn").classList.add("hidden");
  $("scribbleArea").classList.toggle("hidden",mode!=="scribble");$("canvasArea").classList.toggle("hidden",mode!=="canvas");
  $("answerInput").value="";
