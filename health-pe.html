@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>保健体育 4択ドリル</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#18212f;--muted:#67748a;--line:#dbe2ec;--accent:#315fb4;--ok:#1a7f4b;--ng:#b63b3b}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:900px;margin:auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 24px #0000000d}
+h1{font-size:30px;margin:0 0 10px} .lead{color:var(--muted);line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:18px 0}
+.mode,.primary,.choice,.next{border:0;border-radius:16px;padding:16px;font-size:18px;font-weight:800;cursor:pointer}
+.mode{background:#edf2fb;text-align:left} .mode small{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.primary{width:100%;background:var(--accent);color:white}
+.hidden{display:none!important}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px;font-weight:800}
+.barbg{height:14px;background:#e6ebf2;border-radius:999px;overflow:hidden;margin:8px 0 18px}
+.bar{height:100%;width:100%;background:var(--accent);transform-origin:left center}
+.q{font-size:27px;line-height:1.55;font-weight:900;margin:8px 0 20px}
+.choices{display:grid;gap:12px}
+.choice{background:#f7f9fc;border:2px solid var(--line);text-align:left;min-height:66px}
+.choice.correct{border-color:var(--ok);background:#eefaf3} .choice.wrong{border-color:var(--ng);background:#fff1f1}
+.feedback{min-height:52px;margin-top:14px;font-size:18px;font-weight:800;line-height:1.5}
+.next{width:100%;background:#202a3a;color:#fff;margin-top:6px}
+.pill{display:inline-block;background:#eef2f7;border-radius:999px;padding:6px 10px;font-size:13px;color:var(--muted);font-weight:800}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.stat{background:#f5f7fb;border-radius:14px;padding:14px;text-align:center} .stat b{display:block;font-size:25px}
+@media(max-width:600px){.grid{grid-template-columns:1fr} .q{font-size:23px} .choice{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section id="start" class="card">
+<h1>🏃 保健体育 期末対策<br>4択ドリル</h1>
+<p class="lead">夏休みプリントの「運動と健康」「運動やスポーツの多様な楽しみ方」「食事と健康」を中心に作成。<b>1ターン20問・1問20秒</b>。間違い・時間切れはターンの最後へ回り、<b>20問すべて正解するまで終了しません</b>。</p>
+<div class="grid">
+<button class="mode" data-mode="all">🔥 総合MIX<small>全分野から20問</small></button>
+<button class="mode" data-mode="運動と健康">💪 運動と健康<small>発達・有酸素運動・心身への効果</small></button>
+<button class="mode" data-mode="スポーツの楽しみ方">🤝 スポーツの楽しみ方<small>健康・競争・交流・生涯スポーツ</small></button>
+<button class="mode" data-mode="食事と健康">🍚 食事と健康<small>栄養・欠乏/過剰・食事のリズム</small></button>
+<button class="mode" data-mode="weak">💀 苦手優先<small>誤答・時間切れの多い問題を優先</small></button>
+</div>
+</section>
+
+<section id="quiz" class="card hidden">
+<div class="top">
+<span id="modeLabel"></span>
+<span id="progress"></span>
+</div>
+<div class="barbg"><div id="bar" class="bar"></div></div>
+<div><span id="cat" class="pill"></span></div>
+<div id="question" class="q"></div>
+<div id="choices" class="choices"></div>
+<div id="feedback" class="feedback"></div>
+<button id="next" class="next hidden">次へ</button>
+</section>
+
+<section id="result" class="card hidden">
+<h1>✅ ターン完了</h1>
+<p class="lead">最初の20問をすべて正解しました。</p>
+<div class="statgrid">
+<div class="stat"><b id="firstScore"></b>初回正解</div>
+<div class="stat"><b id="wrongCount"></b>誤答</div>
+<div class="stat"><b id="timeoutCount"></b>時間切れ</div>
+</div>
+<button id="again" class="primary">もう1ターン</button>
+</section>
+</div>
+<script>
+const ALL=[{"id": 1, "cat": "運動と健康", "q": "運動をすることで発達する体の機能として、プリントに挙げられているものはどれ？", "a": "骨や筋肉、呼吸器・循環器", "d": ["視力だけ", "消化器だけ", "皮膚だけ"]}, {"id": 2, "cat": "運動と健康", "q": "骨や筋肉を発達させる運動としてプリントに挙げられているものはどれ？", "a": "左右とび・トランポリン", "d": ["読書・将棋", "昼寝・入浴", "深呼吸だけ"]}, {"id": 3, "cat": "運動と健康", "q": "骨の発達のピークは、男女ともおよそ何歳前後？", "a": "14歳前後", "d": ["8歳前後", "20歳前後", "30歳前後"]}, {"id": 4, "cat": "運動と健康", "q": "筋肉を発達させる3要素の1つはどれ？", "a": "運動（トレーニング）", "d": ["ゲーム時間", "昼寝だけ", "読書量"]}, {"id": 5, "cat": "運動と健康", "q": "筋肉を発達させる3要素の1つとして、運動以外にプリントにあるものはどれ？", "a": "食事・栄養", "d": ["日光浴だけ", "テレビ視聴", "冷水浴"]}, {"id": 6, "cat": "運動と健康", "q": "筋肉を発達させる3要素の1つとして、プリントにあるものはどれ？", "a": "休養・睡眠", "d": ["長時間のスマホ", "夜ふかし", "空腹"]}, {"id": 7, "cat": "運動と健康", "q": "筋肉を発達させるため、食事・栄養で重要とされているのはどれ？", "a": "炭水化物・ビタミン・ミネラルなどの摂取", "d": ["脂肪だけを摂る", "水分をとらない", "食事を抜く"]}, {"id": 8, "cat": "運動と健康", "q": "筋肉の発達のため、食事をとる何が重要とされている？", "a": "タイミング", "d": ["色", "器の大きさ", "食べる場所"]}, {"id": 9, "cat": "運動と健康", "q": "休養・睡眠では、何時間の睡眠が理想とプリントにある？", "a": "8時間", "d": ["4時間", "12時間", "2時間"]}, {"id": 10, "cat": "運動と健康", "q": "筋肉痛があるときの対応として適切なのはどれ？", "a": "無理せず、別の部位を鍛えるか休む", "d": ["同じ部位をさらに強く鍛える", "睡眠を減らす", "食事を抜く"]}, {"id": 11, "cat": "運動と健康", "q": "呼吸器・循環器を発達させる運動としてプリントにあるものはどれ？", "a": "持久的な運動", "d": ["一瞬だけの運動", "読書", "昼寝"]}, {"id": 12, "cat": "運動と健康", "q": "持久的な運動の例としてプリントに書かれているものはどれ？", "a": "ランニング", "d": ["腕相撲", "将棋", "読書"]}, {"id": 13, "cat": "運動と健康", "q": "有酸素運動とはどのような運動？", "a": "酸素を取り入れながら比較的低〜中程度の負荷を長時間かけて行う運動", "d": ["息を止めて最大負荷を一瞬かける運動", "筋肉を動かさない運動", "睡眠中の運動"]}, {"id": 14, "cat": "運動と健康", "q": "運動による身体への効果としてプリントにあるものはどれ？", "a": "体力がつく", "d": ["必ず身長が止まる", "眠れなくなる", "食欲がなくなる"]}, {"id": 15, "cat": "運動と健康", "q": "運動による身体への効果としてプリントにあるものはどれ？", "a": "筋力がつく", "d": ["視力が必ず2.0になる", "骨が弱くなる", "疲労が必ず増える"]}, {"id": 16, "cat": "運動と健康", "q": "運動による身体への効果としてプリントにあるものはどれ？", "a": "免疫力の向上", "d": ["骨量の低下", "心拍数が必ず上がり続ける", "食欲の消失"]}, {"id": 17, "cat": "運動と健康", "q": "運動による心への効果としてプリントにあるものはどれ？", "a": "気分転換", "d": ["集中力の低下", "不安の増加", "睡眠不足"]}, {"id": 18, "cat": "運動と健康", "q": "運動による心への効果としてプリントにあるものはどれ？", "a": "ストレスへの対処", "d": ["ストレスを必ず増やす", "感情をなくす", "疲労だけ増やす"]}, {"id": 19, "cat": "スポーツの楽しみ方", "q": "運動やスポーツの多様な楽しみ方の1つはどれ？", "a": "体力を維持するときの楽しみ方", "d": ["必ず勝つことだけ", "記録を一切取らないこと", "一人でしか行わないこと"]}, {"id": 20, "cat": "スポーツの楽しみ方", "q": "競争するときの楽しみ方として大切なのはどれ？", "a": "ルールやマナーを守りながらフェアにたたかう", "d": ["相手をだます", "ルールを無視する", "勝てば何をしてもよい"]}, {"id": 21, "cat": "スポーツの楽しみ方", "q": "競争の楽しみ方として、結果にかかわらず何をたたえ合う？", "a": "健闘", "d": ["失敗だけ", "年齢", "身長"]}, {"id": 22, "cat": "スポーツの楽しみ方", "q": "だれもが参加できるように工夫するものとしてプリントにあるのはどれ？", "a": "ルールや用具", "d": ["天気だけ", "校舎だけ", "制服だけ"]}, {"id": 23, "cat": "スポーツの楽しみ方", "q": "仲間と協力する楽しみ方では、互いの違いやよさを認め合い、何を達成していく？", "a": "目標", "d": ["宿題", "順位だけ", "罰則"]}, {"id": 24, "cat": "スポーツの楽しみ方", "q": "ランニングの楽しみ方のうち「健康」に含まれるものはどれ？", "a": "運動不足の解消", "d": ["相手に勝つこと", "作戦会議", "審判をすること"]}, {"id": 25, "cat": "スポーツの楽しみ方", "q": "ランニングの楽しみ方のうち「健康」に含まれるものはどれ？", "a": "リフレッシュ", "d": ["順位更新だけ", "チーム分け", "ルール変更"]}, {"id": 26, "cat": "スポーツの楽しみ方", "q": "ランニングの楽しみ方のうち「競争」に含まれるものはどれ？", "a": "体力向上のため", "d": ["友人との会話", "集団での助け合い", "地域交流"]}, {"id": 27, "cat": "スポーツの楽しみ方", "q": "ランニングの楽しみ方のうち「競争」に含まれるものはどれ？", "a": "記録更新のため", "d": ["健康診断", "仲間の意見交換", "散歩"]}, {"id": 28, "cat": "スポーツの楽しみ方", "q": "ランニングの楽しみ方のうち「交流」に含まれるものはどれ？", "a": "仲間との交流", "d": ["自己記録だけ", "体力測定だけ", "個人練習だけ"]}, {"id": 29, "cat": "スポーツの楽しみ方", "q": "ランニングの楽しみ方のうち「交流」に含まれるものはどれ？", "a": "仲間との意見交換", "d": ["順位だけ", "疲労だけ", "勝敗だけ"]}, {"id": 30, "cat": "スポーツの楽しみ方", "q": "運動やスポーツを楽しむために必要な能力として、プリントにあるものはどれ？", "a": "自分に適した楽しみ方を見つける力", "d": ["相手を避ける力", "ルールをなくす力", "運動をしない力"]}, {"id": 31, "cat": "スポーツの楽しみ方", "q": "運動やスポーツを楽しむために必要な能力として、プリントにあるものはどれ？", "a": "ルールや用具などを工夫する力", "d": ["必ず同じ方法だけで行う力", "全員を同じ体力にする力", "勝敗をなくす力"]}, {"id": 32, "cat": "スポーツの楽しみ方", "q": "運動やスポーツを楽しむために必要な能力として、プリントにあるものはどれ？", "a": "うまくコミュニケーションをとる力", "d": ["無言で行う力", "一人だけで決める力", "相手を無視する力"]}, {"id": 33, "cat": "スポーツの楽しみ方", "q": "運動やスポーツを楽しむために必要な能力として、プリントにあるものはどれ？", "a": "メンバーで役割分担する力", "d": ["役割を一人に集中させる力", "全員同じ役割に固定する力", "役割を決めない力"]}, {"id": 34, "cat": "スポーツの楽しみ方", "q": "生涯スポーツを楽しむため、中学生のうちから意識するものとしてプリントにあるのはどれ？", "a": "自己・相手・仲間の違いや努力", "d": ["勝敗だけ", "記録だけ", "用具の値段だけ"]}, {"id": 35, "cat": "スポーツの楽しみ方", "q": "運動やスポーツの継続に有効な3つの「間」として挙げられているものはどれ？", "a": "仲間・空間・時間", "d": ["朝・昼・夜", "心・技・体", "食・住・衣"]}, {"id": 36, "cat": "食事と健康", "q": "食事の役割として、たんぱく質やカルシウム、鉄などの何で体はできている？", "a": "栄養素", "d": ["水分だけ", "空気", "運動"]}, {"id": 37, "cat": "食事と健康", "q": "炭水化物や脂質は、体を動かすための何を生み出す？", "a": "エネルギー", "d": ["骨", "血液だけ", "睡眠"]}, {"id": 38, "cat": "食事と健康", "q": "食べ物は何によって体の中に取り入れられる？", "a": "消化", "d": ["発汗", "睡眠", "呼吸"]}, {"id": 39, "cat": "食事と健康", "q": "たんぱく質の不足による障害の例として、プリントにあるものはどれ？", "a": "貧血", "d": ["肥満", "大腸がん", "動脈硬化"]}, {"id": 40, "cat": "食事と健康", "q": "カルシウム不足による障害の例として、プリントにあるものはどれ？", "a": "骨や歯の発育不良", "d": ["肥満", "高血圧", "大腸がん"]}, {"id": 41, "cat": "食事と健康", "q": "鉄不足による障害の例として、プリントにあるものはどれ？", "a": "めまい・息切れ", "d": ["肥満", "皮膚病", "動脈硬化"]}, {"id": 42, "cat": "食事と健康", "q": "ビタミンA不足による障害の例として、プリントにあるものはどれ？", "a": "抵抗力の低下・皮膚病", "d": ["大腸がん", "高血圧", "骨や歯の発育不良"]}, {"id": 43, "cat": "食事と健康", "q": "脂肪のとりすぎによる障害の例として、プリントにあるものはどれ？", "a": "肥満・動脈硬化", "d": ["貧血", "視力低下だけ", "骨折"]}, {"id": 44, "cat": "食事と健康", "q": "ナトリウム（食塩）のとりすぎによる障害の例として、プリントにあるものはどれ？", "a": "大腸がん", "d": ["骨や歯の発育不良", "皮膚病", "筋肉量の減少"]}, {"id": 45, "cat": "食事と健康", "q": "なるべく多くの食材をとる目安として、プリントにある1日の回数は？", "a": "3回", "d": ["1回", "5回", "10回"]}, {"id": 46, "cat": "食事と健康", "q": "なるべく多くの食材を組み合わせるとき、基本として挙げられているものはどれ？", "a": "野菜・肉・米", "d": ["菓子・清涼飲料・塩", "油・砂糖・塩", "肉だけ"]}, {"id": 47, "cat": "食事と健康", "q": "一汁三菜とは、主食の「飯」に何を組み合わせた献立？", "a": "汁物と3つの菜（おかず）", "d": ["菓子と飲み物", "果物だけ", "肉だけ"]}, {"id": 48, "cat": "食事と健康", "q": "適切なエネルギー量について大切なのはどれ？", "a": "自分に必要な量を知り、過不足なく体に取り入れる", "d": ["できるだけ多くとる", "できるだけ少なくする", "毎日同じ量に固定する"]}, {"id": 49, "cat": "食事と健康", "q": "必要なエネルギー量は何によって一人ひとり異なる？", "a": "年齢・性別・体重・身長など", "d": ["好きな色", "座席", "血液型だけ"]}, {"id": 50, "cat": "食事と健康", "q": "規則正しい食事のリズムで、朝食をとると何が上昇するとプリントにある？", "a": "体温", "d": ["身長", "視力", "握力"]}, {"id": 51, "cat": "食事と健康", "q": "就寝直前の食事は何に負担がかかる？", "a": "消化器", "d": ["視覚器", "聴覚器", "皮膚"]}, {"id": 52, "cat": "食事と健康", "q": "食事には適切な何が必要とプリントにある？", "a": "量・栄養・水分", "d": ["糖分・塩分・脂肪だけ", "運動・睡眠・読書", "朝・昼・夜だけ"]}, {"id": 53, "cat": "食事と健康", "q": "朝食と健康状態のグラフで、朝食を毎日食べる群は何が少ない傾向？", "a": "調子が悪いと感じる割合", "d": ["睡眠時間", "身長", "運動時間"]}, {"id": 54, "cat": "食事と健康", "q": "食事の役割で、スポーツなどで体を動かすためのエネルギーを生み出す栄養素として挙げられているのはどれ？", "a": "炭水化物や脂質", "d": ["カルシウムだけ", "鉄だけ", "ビタミンAだけ"]}, {"id": 55, "cat": "総合", "q": "「酸素を取り入れながら、比較的低〜中程度の負荷を長時間行う運動」を何という？", "a": "有酸素運動", "d": ["無酸素運動", "瞬発運動", "休養"]}, {"id": 56, "cat": "総合", "q": "「学校以外の施設などで一緒に行う」楽しみ方に近いものはどれ？", "a": "地域のスポーツクラブの活動", "d": ["体育の授業だけ", "家庭学習", "睡眠"]}, {"id": 57, "cat": "総合", "q": "「互いに高め合い、たたえ合う」楽しみ方に最も近い分類はどれ？", "a": "競争", "d": ["健康", "交流", "休養"]}, {"id": 58, "cat": "総合", "q": "「仲間との交流や意見交換」に最も近い楽しみ方の分類はどれ？", "a": "交流", "d": ["競争", "健康", "休養"]}, {"id": 59, "cat": "総合", "q": "「ルールやマナーを守りながらフェアにたたかう」ことと最も関係が深いものはどれ？", "a": "公正な競争", "d": ["休養", "睡眠", "消化"]}, {"id": 60, "cat": "総合", "q": "「仲間・空間・時間」は何の継続に有効な3つの『間』？", "a": "運動やスポーツ", "d": ["食事", "睡眠", "勉強だけ"]}, {"id": 61, "cat": "総合", "q": "「野菜・肉・米を基本になるべく多くの食材を組み合わせる」という内容は何に関するもの？", "a": "食事のとり方", "d": ["運動の強度", "睡眠時間", "競技ルール"]}, {"id": 62, "cat": "総合", "q": "「年齢・性別・体重・身長などによって一人ひとり異なる」のは何？", "a": "必要なエネルギー量", "d": ["ルール", "睡眠場所", "運動種目"]}];
+const STORE="health_pe_quiz_v1";
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=(a,n)=>shuffle(a).slice(0,Math.min(n,a.length));
+function stats(){try{return JSON.parse(localStorage.getItem(STORE)||"{}")}catch(e){return {}}}
+function saveStat(id,key){const s=stats();s[id]=s[id]||{wrong:0,timeout:0,correct:0};s[id][key]++;localStorage.setItem(STORE,JSON.stringify(s))}
+
+let mode="all", queue=[], totalSlots=20, slotDone=new Set(), firstAttempt=new Map();
+let current=null, currentSlot=null, timer=null, deadline=0, answered=false;
+let wrong=0, timeouts=0;
+
+function buildSession(m){
+ const base=m==="all"?ALL:m==="weak"?null:ALL.filter(q=>q.cat===m || (m==="運動と健康"&&q.cat==="総合") || (m==="食事と健康"&&q.cat==="総合") || (m==="スポーツの楽しみ方"&&q.cat==="総合"));
+ if(m==="weak"){
+   const s=stats();
+   const ranked=ALL.map(q=>({q,score:(s[q.id]?.wrong||0)*2+(s[q.id]?.timeout||0)})).sort((a,b)=>b.score-a.score);
+   const weak=ranked.filter(x=>x.score>0).map(x=>x.q);
+   const rest=ALL.filter(q=>!weak.some(w=>w.id===q.id));
+   return shuffle([...weak.slice(0,20),...pick(rest,20-weak.slice(0,20).length)]);
+ }
+ return pick(base,20);
+}
+
+function start(m){
+ mode=m; const qs=buildSession(m);
+ queue=qs.map((q,i)=>({q,slot:i}));
+ totalSlots=queue.length; slotDone=new Set(); firstAttempt=new Map(); wrong=0; timeouts=0;
+ $("#start").classList.add("hidden"); $("#result").classList.add("hidden"); $("#quiz").classList.remove("hidden");
+ $("#modeLabel").textContent={all:"🔥 総合MIX",weak:"💀 苦手優先"}[m]||m;
+ nextQ();
+}
+
+function nextQ(){
+ clearInterval(timer); answered=false; $("#feedback").textContent=""; $("#next").classList.add("hidden");
+ if(queue.length===0) return finish();
+ const item=queue.shift(); current=item.q; currentSlot=item.slot;
+ $("#cat").textContent=current.cat;
+ $("#question").textContent=current.q;
+ $("#progress").textContent=`正解済み ${slotDone.size} / ${totalSlots}`;
+ const choices=shuffle([current.a,...current.d]);
+ const box=$("#choices"); box.innerHTML="";
+ choices.forEach(c=>{
+   const b=document.createElement("button"); b.className="choice"; b.textContent=c;
+   b.onclick=()=>answer(c,b); box.appendChild(b);
+ });
+ deadline=Date.now()+20000;
+ updateBar(); timer=setInterval(updateBar,100);
+}
+
+function updateBar(){
+ const left=Math.max(0,deadline-Date.now());
+ $("#bar").style.transform=`scaleX(${left/20000})`;
+ if(left<=0){clearInterval(timer);timeout();}
+}
+
+function markButtons(correct,clicked=null){
+ [...document.querySelectorAll(".choice")].forEach(b=>{
+   b.disabled=true;
+   if(b.textContent===current.a)b.classList.add("correct");
+ });
+ if(clicked&&clicked.textContent!==current.a)clicked.classList.add("wrong");
+}
+
+function answer(val,btn){
+ if(answered)return; answered=true; clearInterval(timer);
+ const isFirst=!firstAttempt.has(currentSlot);
+ if(isFirst) firstAttempt.set(currentSlot,val===current.a);
+ if(val===current.a){
+   saveStat(current.id,"correct"); markButtons(true,btn);
+   $("#feedback").textContent="○ 正解！";
+   slotDone.add(currentSlot);
+   setTimeout(nextQ,900);
+ }else{
+   wrong++; saveStat(current.id,"wrong"); markButtons(false,btn);
+   $("#feedback").textContent=`× 正解は「${current.a}」`;
+   queue.push({q:current,slot:currentSlot});
+   $("#next").classList.remove("hidden");
+ }
+}
+
+function timeout(){
+ if(answered)return; answered=true; timeouts++; saveStat(current.id,"timeout");
+ const isFirst=!firstAttempt.has(currentSlot); if(isFirst) firstAttempt.set(currentSlot,false);
+ markButtons(false);
+ $("#feedback").textContent=`時間切れ。正解は「${current.a}」`;
+ queue.push({q:current,slot:currentSlot});
+ $("#next").classList.remove("hidden");
+}
+$("#next").onclick=nextQ;
+
+function finish(){
+ $("#quiz").classList.add("hidden"); $("#result").classList.remove("hidden");
+ const first=[...firstAttempt.values()].filter(Boolean).length;
+ $("#firstScore").textContent=`${first}/${totalSlots}`;
+ $("#wrongCount").textContent=wrong;
+ $("#timeoutCount").textContent=timeouts;
+}
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>start(b.dataset.mode));
+$("#again").onclick=()=>{$("#result").classList.add("hidden");$("#start").classList.remove("hidden")};
+</script>
+</body></html>
