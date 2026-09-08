@@ -23,7 +23,7 @@ button{border:0;border-radius:14px;padding:14px 18px;font-weight:800;cursor:poin
 <body><main class="wrap">
 <section id="start" class="card">
 <h1>🛠 技術・前期期末試験対策<br>4択ドリル</h1>
-<p class="sub">試験範囲完全版。教科書の「材料と加工の技術」を再監査し、<b>問題解決・工夫と材料・危険と安全・木材の加工と構造</b>に限定して内容を拡充しました。1ターンは<b>20問</b>。間違い・時間切れは同じターンの末尾へ回り、<b>20問すべて正解するまで終了しません</b>。</p>
+<p class="sub">試験範囲完全版。教科書＋授業資料を再監査し、<b>問題解決・工夫と材料・危険と安全・木材の加工と構造</b>に限定。追加配布資料「紙やすり（サンドペーパー）のコツ」も反映済みです。1ターンは<b>20問</b>。間違い・時間切れは同じターンの末尾へ回り、<b>20問すべて正解するまで終了しません</b>。</p>
 <div class="scope"><span>① 問題解決</span><span>② 工夫と材料</span><span>③ 危険と安全</span><span>④ 木材の加工と構造</span></div>
 <div class="grid">
 <label><b>ターン数</b><select id="turnCount"><option value="2">2ターン</option><option value="3" selected>3ターン</option><option value="4">4ターン</option><option value="5">5ターン</option></select></label>
@@ -43,6 +43,7 @@ button{border:0;border-radius:14px;padding:14px 18px;font-weight:800;cursor:poin
 </main>
 <script>
 const Q=[
+
 
 {id:1,cat:'工夫と材料',q:'木材の特徴として最も適切なのはどれか。',a:'繊維方向によって強さや加工のしやすさが異なる',d:['どの方向でも全く同じ性質をもつ','水分を全く含まない','熱を加えると必ず透明になる']},
 {id:2,cat:'工夫と材料',q:'木材の年輪から読み取れることとして最も適切なのはどれか。',a:'成長の様子',d:['電気抵抗','融点','磁力']},
@@ -189,10 +190,17 @@ const Q=[
 {id:142,cat:'木材の加工と構造',q:'木材の繊維を横切って切るときに使う刃はどれか。',a:'横びき用の刃',d:['縦びき用の刃','かんな刃','やすり']},
 {id:143,cat:'木材の加工と構造',q:'かんなを使う主な目的はどれか。',a:'表面を削って平らに整える',d:['穴をあける','木ねじを締める','寸法を測る']},
 {id:144,cat:'木材の加工と構造',q:'研磨紙で木材表面を磨く主な目的はどれか。',a:'表面を滑らかにする',d:['木材を接着する','穴をあける','寸法を測る']},
-{id:145,cat:'木材の加工と構造',q:'塗装を行う目的として適切なのはどれか。',a:'表面を保護し、見た目を整える',d:['必ず寸法を大きくする','木材を金属に変える','切断線を消す']}
+{id:145,cat:'木材の加工と構造',q:'塗装を行う目的として適切なのはどれか。',a:'表面を保護し、見た目を整える',d:['必ず寸法を大きくする','木材を金属に変える','切断線を消す']},
+{id:146,cat:'木材の加工と構造',q:'紙やすり（サンドペーパー）で木材を削る向きとして、配布資料で示されているのはどれか。',a:'木目の方向で削る',d:['木目と直角方向だけに削る','円を描くように強く削る','向きは気にせず削る']},
+{id:147,cat:'危険と安全',q:'紙やすり（サンドペーパー）を使うときの力加減として適切なのはどれか。',a:'力を入れすぎない',d:['できるだけ強く押しつける','体重をかけて削る','最初から最大の力で削る']},
+{id:148,cat:'木材の加工と構造',q:'紙やすり（サンドペーパー）の番手は、どのような順で使うのがよいか。',a:'荒い番から細かい番へ変えていく',d:['細かい番から荒い番へ変えていく','同じ番手だけを最後まで使う','番手は順番に関係なく使う']},
+{id:149,cat:'木材の加工と構造',q:'紙やすり（サンドペーパー）の目が詰まったとき、どうするか。',a:'新しいものに交換する',d:['さらに強く押しつける','水でぬらしてそのまま使う','机にこすりつけて目を開く']},
+{id:150,cat:'危険と安全',q:'紙やすりを使う作業で、作業台について注意することはどれか。',a:'机まで削らないようにする',d:['机も一緒に削って平らにする','机の角だけを削る','机に材料を固定せず直接削る']},
+{id:151,cat:'木材の加工と構造',q:'配布資料では、紙やすりを使う作業についてどのような注意が書かれているか。',a:'やすりがけは時間がかかる',d:['短時間で必ず終わる','加工の中で最も時間がかからない','時間を考えず続ければよい']},
+{id:152,cat:'危険と安全',q:'紙やすりを使うときの作業時間について、配布資料の注意として適切なのはどれか。',a:'熱中しすぎない',d:['時間を忘れるまで続ける','休まず長時間続ける','削り終わるまで他の作業をしない']}
 ];
 const $=s=>document.querySelector(s), shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-const STORE='technologyFinalScopeWeak_complete_v2';
+const STORE='technologyFinalScopeWeak_complete_v3';
 function weak(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch{return{}}}function save(w){localStorage.setItem(STORE,JSON.stringify(w))}function miss(id){let w=weak();w[id]=(w[id]||0)+1;save(w)}function reward(id){let w=weak();if(w[id]){w[id]=Math.max(0,w[id]-1);save(w)}}
 let nTurns=3,turn=0,mode='ALL',slots=[],queue=[],current=null,locked=false,timerId=null,timeLeft=20,results=[];
 function pool(){if(mode==='ALL')return Q;if(mode==='WEAK'){let w=weak();return [...Q].sort((a,b)=>(w[b.id]||0)-(w[a.id]||0));}return Q.filter(x=>x.cat===mode)}
