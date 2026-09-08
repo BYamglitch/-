@@ -90,7 +90,7 @@ canvas{width:100%;height:270px;border:3px solid #9fc5e8;border-radius:18px;backg
 <button class="pick" data-mode="canvas">📝 自由手書き・自己判定</button>
 </div>
 
-<div class="lead" style="margin:14px 0">1ターン20問・1問30秒。💡「1文字ヒント」は押すたびに次の文字を薄く表示します。絵の中には答えとなる英単語を表示しません。熟語・複数語表現は出題しません。</div>
+<div class="lead" style="margin:14px 0">1ターン20問・時間制限なし。💡「1文字ヒント」は押すたびに次の文字を薄く表示します。絵の中には答えとなる英単語を表示しません。熟語・複数語表現は出題しません。</div>
 <button id="startBtn" class="primary">スタート</button>
 </section>
 
@@ -98,7 +98,7 @@ canvas{width:100%;height:270px;border:3px solid #9fc5e8;border-radius:18px;backg
 <div class="topbar">
 <span id="turnPill" class="pill">Turn 1 / 2</span>
 <span id="progressPill" class="pill">習得 0 / 20</span>
-<span id="timerPill" class="pill timer">残り 30秒</span>
+
 </div>
 <div class="progressTrack"><div id="progressBar" class="progressBar"></div></div>
 
@@ -145,7 +145,7 @@ canvas{width:100%;height:270px;border:3px solid #9fc5e8;border-radius:18px;backg
 <h1 id="turnTitle">ターン終了！</h1>
 <div class="resultStats">
 <div class="stat"><b id="attemptsN">0</b>総出題</div>
-<div class="stat"><b id="mistakesN">0</b>誤答・時間切れ</div>
+<div class="stat"><b id="mistakesN">0</b>誤答</div>
 <div class="stat"><b>100%</b>最終習得</div>
 </div>
 <button id="nextTurnBtn" class="primary">次のターンへ</button>
@@ -165,7 +165,7 @@ const $=id=>document.getElementById(id);
 let range="all",turnCount=2,mode="scribble";
 let allTurnSets=[],turnIndex=0,queue=[],mastered=new Set(),cur=null;
 let attempts=0,mistakes=0,totalAttempts=0,totalMistakes=0;
-let timer=null,timeLeft=30,locked=false,hintCount=0;
+let locked=false,hintCount=0;
 
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function norm(s){
@@ -220,7 +220,7 @@ function startTurn(){
  showQ();
 }
 function showQ(){
- clearInterval(timer);locked=false;hintCount=0;
+ locked=false;hintCount=0;
  if(mastered.size===20) return finishTurn();
  cur=queue.shift();
  if(!cur) return finishTurn();
@@ -240,25 +240,10 @@ function showQ(){
  $("scribbleArea").classList.toggle("hidden",mode!=="scribble");
  $("canvasArea").classList.toggle("hidden",mode!=="canvas");
  if(mode==="canvas")clearCanvas();
- startTimer();
  setTimeout(()=>{if(mode==="scribble")$("answerInput").focus()},80);
 }
-function startTimer(){
- timeLeft=30;renderTimer();
- timer=setInterval(()=>{timeLeft--;renderTimer();if(timeLeft<=0){clearInterval(timer);timeoutQ()}},1000);
-}
-function renderTimer(){
- $("timerPill").textContent=`残り ${timeLeft}秒`;
- $("timerPill").classList.toggle("warn",timeLeft<=10);
-}
-function timeoutQ(){
- if(locked)return;locked=true;attempts++;totalAttempts++;mistakes++;totalMistakes++;
- queue.push(cur);
- showFeedback(false,`時間切れ。正解：${cur.en}　→ ターンの最後でもう一度`);
- setTimeout(showQ,1400);
-}
 function submitAnswer(){
- if(locked)return;clearInterval(timer);
+ if(locked)return;
  const v=norm($("answerInput").value);
  const ok=aliases(cur).includes(v);
  locked=true;attempts++;totalAttempts++;
@@ -299,7 +284,7 @@ function speak(){
 $("audioBtn").onclick=speak;
 
 function finishTurn(){
- clearInterval(timer);$("quiz").classList.add("hidden");$("turnResult").classList.remove("hidden");
+ $("quiz").classList.add("hidden");$("turnResult").classList.remove("hidden");
  $("turnTitle").textContent=`Turn ${turnIndex+1}：100%習得！`;
  $("attemptsN").textContent=attempts;$("mistakesN").textContent=mistakes;
  if(turnIndex===turnCount-1)$("nextTurnBtn").textContent="結果を見る";else $("nextTurnBtn").textContent="次のターンへ";
@@ -308,7 +293,7 @@ $("nextTurnBtn").onclick=()=>{
  turnIndex++;
  if(turnIndex>=turnCount){
    $("turnResult").classList.add("hidden");$("finalResult").classList.remove("hidden");
-   $("finalText").textContent=`${turnCount}ターン完了。総出題 ${totalAttempts}回、誤答・時間切れ ${totalMistakes}回。各ターン20問を100%正解までやり切りました。`;
+   $("finalText").textContent=`${turnCount}ターン完了。総出題 ${totalAttempts}回、誤答 ${totalMistakes}回。各ターン20問を100%正解までやり切りました。`;
  }else startTurn();
 };
 $("homeBtn").onclick=()=>location.reload();
@@ -371,7 +356,7 @@ canvas.addEventListener("pointerup",()=>drawing=false);canvas.addEventListener("
 function clearCanvas(){strokes=[];current=[];redraw()}
 $("clearCanvasBtn").onclick=clearCanvas;
 $("undoBtn").onclick=()=>{strokes.pop();redraw()};
-$("revealBtn").onclick=()=>{if(locked)return;clearInterval(timer);locked=true;$("feedback").textContent="正解："+cur.en;$("feedback").className="feedback show bad";$("gradeBtns").classList.remove("hidden")};
+$("revealBtn").onclick=()=>{if(locked)return;locked=true;$("feedback").textContent="正解："+cur.en;$("feedback").className="feedback show bad";$("gradeBtns").classList.remove("hidden")};
 document.querySelectorAll("#gradeBtns [data-grade]").forEach(b=>b.onclick=()=>{
  attempts++;totalAttempts++;
  if(b.dataset.grade==="good"){mastered.add(cur._id);showFeedback(true,"○ 書けた！");setTimeout(showQ,700)}
