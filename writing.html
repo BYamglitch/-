@@ -168,13 +168,24 @@ let attempts=0,mistakes=0,totalAttempts=0,totalMistakes=0;
 let timer=null,timeLeft=30,locked=false,hintCount=0;
 
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function norm(s){return String(s||"").trim().toLocaleLowerCase("en-US").replace(/[’‘]/g,"'").replace(/\s+/g," ")}
+function norm(s){
+ const t=String(s||"")
+   .normalize("NFKC")
+   .toLocaleLowerCase("en-US")
+   .replace(/[\u2018\u2019\u02BC\uFF07]/g,"'")
+   .replace(/[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000]/g," ")
+   .replace(/\s+/g," ")
+   .trim()
+   .replace(/[.!?。！？]+$/g,"")
+   .trim();
+ return t;
+}
 function aliases(q){
  const e=norm(q.en), a=[e];
- if(e==="doesn't")a.push("does not");
- if(e==="can't")a.push("cannot","can not");
- if(e==="i'd like...")a.push("i would like...");
- return a;
+ if(e==="doesn't")a.push(norm("does not"));
+ if(e==="can't")a.push(norm("cannot"),norm("can not"));
+ if(e==="i'd like")a.push(norm("i would like"));
+ return [...new Set(a)];
 }
 function inRange(q){
  if(range==="all")return true;
