@@ -19,6 +19,81 @@ button{border:0;border-radius:14px;padding:14px 18px;font-weight:800;cursor:poin
 @media(max-width:700px){.wrap{padding:10px}.card{padding:18px}.grid,.opts,.scope{grid-template-columns:1fr}.q{font-size:25px}.opt{min-height:62px;font-size:17px}h1{font-size:29px}}
 @media(orientation:landscape) and (min-width:800px){.opts{grid-template-columns:1fr 1fr}}
 </style>
+
+<script>
+/* ===== 共通学習ログ v2 ===== */
+(function(){
+  if(window.StudyLog) return;
+  const KEY="studyLogV1";
+  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
+
+  function now(){ return Date.now(); }
+  function localDate(ts){
+    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  }
+  function addActive(){
+    if(running && !document.hidden && last){
+      activeSec += Math.max(0,(now()-last)/1000);
+    }
+    last=now();
+  }
+  function load(){
+    try{
+      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
+      return Array.isArray(x)?x:[];
+    }catch(e){ return []; }
+  }
+  function save(rows){
+    if(rows.length>1000) rows=rows.slice(-1000);
+    localStorage.setItem(KEY,JSON.stringify(rows));
+  }
+
+  window.StudyLog={
+    startTurn(m={}){
+      if(running) return;
+      meta=m||{};
+      running=true;
+      activeSec=0;
+      last=now();
+      turnStartedAt=last;
+    },
+    finishTurn(m={}){
+      if(!running) return;
+      addActive();
+      running=false;
+      const ended=now();
+      const x=Object.assign({},meta,m||{});
+      const rows=load();
+      rows.push({
+        id: ended+"-"+Math.random().toString(36).slice(2,8),
+        date: localDate(ended),
+        subject: x.subject||"未分類",
+        app: x.app||document.title||location.pathname.split("/").pop(),
+        turnLabel: x.turnLabel||"1ターン",
+        durationSec: Math.max(1,Math.round(activeSec)),
+        startedAt: turnStartedAt||ended,
+        endedAt: ended
+      });
+      save(rows);
+      activeSec=0; last=0; turnStartedAt=null; meta={};
+      window.dispatchEvent(new Event("studylogchange"));
+    },
+    cancelTurn(){
+      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
+    }
+  };
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){
+      if(running) addActive();
+    }else if(running){
+      last=now();
+    }
+  });
+})();
+</script>
+
 </head>
 <body><main class="wrap">
 <section id="start" class="card">
@@ -208,7 +283,8 @@ function makeSlots(){let p=pool(),picked=[];if(mode==='WEAK'){picked=p.slice(0,2
  const cats=['問題解決','工夫と材料','危険と安全','木材の加工と構造']; const need=[4,5,4,7]; cats.forEach((c,i)=>picked.push(...shuffle(Q.filter(x=>x.cat===c)).slice(0,need[i]))); picked=shuffle(picked);
  }else{while(picked.length<20){let batch=shuffle(p);for(const q of batch){picked.push(q);if(picked.length===20)break}}}
  return picked.slice(0,20).map((q,i)=>({slot:i,q,cleared:false,first:true}))}
-function beginTurn(){slots=makeSlots();queue=[...slots];results[turn]={firstCorrect:0,wrong:0,timeout:0,attempts:0};$('#turnResult').classList.add('hidden');$('#quiz').classList.remove('hidden');show()}
+function beginTurn(){
+StudyLog.startTurn({subject:'技術',app:'技術・正式範囲',turnLabel:`第${turn+1}ターン`});slots=makeSlots();queue=[...slots];results[turn]={firstCorrect:0,wrong:0,timeout:0,attempts:0};$('#turnResult').classList.add('hidden');$('#quiz').classList.remove('hidden');show()}
 function start(){nTurns=+$('#turnCount').value;mode=$('#cat').value;turn=0;results=[];$('#start').classList.add('hidden');beginTurn()}
 function show(){clearInterval(timerId);locked=false;current=queue.shift();let r=results[turn],cleared=slots.filter(s=>s.cleared).length;$('#turnBadge').textContent=`${turn+1} / ${nTurns} ターン`;$('#meta').textContent=`クリア ${cleared} / 20　｜　挑戦 ${r.attempts+1}回`;$('#prog').style.width=`${cleared/20*100}%`;$('#kicker').textContent=current.q.cat;$('#q').textContent=current.q.q;$('#feedback').className='feedback';$('#feedback').textContent='';$('#nextBtn').classList.remove('show');let opts=shuffle([current.q.a,...current.q.d]);$('#opts').innerHTML='';opts.forEach(t=>{let b=document.createElement('button');b.className='opt';b.textContent=t;b.onclick=()=>answer(t,b);$('#opts').appendChild(b)});startTimer()}
 function startTimer(){timeLeft=20;$('#timer').className='timer';$('#timerBar').style.width='100%';timerId=setInterval(()=>{timeLeft-=.1;let pct=Math.max(0,timeLeft/20*100);$('#timerBar').style.width=pct+'%';$('#timer').className='timer'+(pct<=25?' critical':pct<=50?' low':'');if(timeLeft<=0){clearInterval(timerId);timeout()}},100)}
@@ -217,7 +293,8 @@ function answer(choice,btn){if(locked)return;locked=true;clearInterval(timerId);
 function timeout(){if(locked)return;locked=true;let q=current.q,r=results[turn];r.attempts++;r.timeout++;miss(q.id);current.first=false;queue.push(current);paint(q.a,null);$('#feedback').className='feedback show bad';$('#feedback').innerHTML=`⏰ 時間切れ。正解は <b>${q.a}</b>。この問題はターン末尾でもう一度出ます。`;updateMeta();$('#nextBtn').classList.add('show')}
 function updateMeta(){let r=results[turn],cleared=slots.filter(s=>s.cleared).length;$('#meta').textContent=`クリア ${cleared} / 20　｜　挑戦 ${r.attempts}回`;$('#prog').style.width=`${cleared/20*100}%`}
 function advance(){if(slots.every(s=>s.cleared)){finishTurn()}else show()}
-function finishTurn(){clearInterval(timerId);$('#quiz').classList.add('hidden');$('#turnResult').classList.remove('hidden');let r=results[turn];$('#trTitle').textContent=`第${turn+1}ターン クリア！`;$('#firstScore').textContent=`${r.firstCorrect} / 20`;$('#wrongCount').textContent=`${r.wrong}回`;$('#timeoutCount').textContent=`${r.timeout}回`;$('#attemptCount').textContent=`${r.attempts}回`;$('#trMsg').textContent='20問すべて正解しました。初回正解数は「見た瞬間に出せた」定着度の目安です。';$('#continueBtn').textContent=turn===nTurns-1?'最終結果を見る':'次のターンへ'}
+function finishTurn(){
+StudyLog.finishTurn({subject:'技術',app:'技術・正式範囲',turnLabel:`第${turn+1}ターン`});clearInterval(timerId);$('#quiz').classList.add('hidden');$('#turnResult').classList.remove('hidden');let r=results[turn];$('#trTitle').textContent=`第${turn+1}ターン クリア！`;$('#firstScore').textContent=`${r.firstCorrect} / 20`;$('#wrongCount').textContent=`${r.wrong}回`;$('#timeoutCount').textContent=`${r.timeout}回`;$('#attemptCount').textContent=`${r.attempts}回`;$('#trMsg').textContent='20問すべて正解しました。初回正解数は「見た瞬間に出せた」定着度の目安です。';$('#continueBtn').textContent=turn===nTurns-1?'最終結果を見る':'次のターンへ'}
 $('#nextBtn').onclick=advance;$('#continueBtn').onclick=()=>{if(turn===nTurns-1){showFinal()}else{turn++;beginTurn()}};
 function showFinal(){$('#turnResult').classList.add('hidden');$('#final').classList.remove('hidden');let first=results.reduce((s,r)=>s+r.firstCorrect,0),wrong=results.reduce((s,r)=>s+r.wrong,0),to=results.reduce((s,r)=>s+r.timeout,0),att=results.reduce((s,r)=>s+r.attempts,0),total=nTurns*20;$('#finalGrid').innerHTML=`<div class="score">全問クリア<b>${total} / ${total}</b></div><div class="score">初回正解<b>${first} / ${total}</b></div><div class="score">誤答回数<b>${wrong}回</b></div><div class="score">時間切れ<b>${to}回</b></div><div class="score">総挑戦数<b>${att}回</b></div>`}
 $('#startBtn').onclick=start;

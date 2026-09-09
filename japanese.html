@@ -4,7 +4,82 @@
 <style>
 :root{--ink:#1a2030;--sub:#697184;--line:#d9d1e8;--purple:#7046ad;--soft:#f1ebfb}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:linear-gradient(#eee8f6,#faf9fc);font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;color:var(--ink)}button,input{font:inherit}button{border:0;touch-action:manipulation}.hidden{display:none!important}.wrap{max-width:980px;margin:auto;padding:14px}.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 8px 24px #0000000d}h1{font-size:clamp(29px,5vw,44px);margin:0 0 8px}.lead{color:var(--sub);font-size:16px;line-height:1.65}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}.pick,.primary,.secondary,.tool,.grade{min-height:52px;border-radius:14px;padding:11px 14px;font-weight:900;font-size:17px}.pick{background:#fff;border:2px solid var(--line)}.pick.sel{border-color:var(--purple);background:var(--soft);color:#53308a}.primary{width:100%;background:var(--purple);color:#fff;margin-top:10px}.secondary,.tool{background:#edf0f5;color:var(--ink)}.top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.pill{background:#efecf5;border-radius:999px;padding:8px 12px;font-weight:900;font-size:14px}.progress{height:10px;background:#e4dfeb;border-radius:999px;overflow:hidden;margin:10px 0 18px}.progress>div{height:100%;background:#7b54b6;width:0}.questionCard{border:2px solid var(--line);border-radius:20px;padding:18px;background:#fcfbfe;margin-bottom:14px}.readLabel{font-size:14px;color:var(--sub);font-weight:900}.reading{font-size:clamp(38px,7vw,62px);font-weight:950;margin:6px 0 8px}.audio{background:#e8f1ff;color:#185f9b;border-radius:13px;padding:10px 14px;font-weight:900}.hintBox{margin-top:10px;padding:12px 14px;border-radius:14px;background:#fff8dd;border:1px solid #eedc92;font-size:18px;line-height:1.55}.modeTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.modeTabs button{border:2px solid var(--line);background:#fff;border-radius:13px;padding:10px;font-weight:900}.modeTabs button.sel{border-color:var(--purple);background:var(--soft);color:#53308a}.canvasWrap{height:270px;border:3px solid #a894ce;border-radius:18px;background:#fff;position:relative;overflow:hidden}canvas{width:100%;height:100%;touch-action:none;display:block}.canvasHelp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#b0a8bc;font-weight:900;font-size:25px;pointer-events:none}.textInput{width:100%;min-height:90px;border:3px solid #a894ce;border-radius:18px;padding:14px 17px;font-size:40px;font-weight:950;background:#fff;color:#111}.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}.tool{font-size:15px}.answerBox{margin-top:12px;border:2px solid #d6c7e8;border-radius:18px;padding:14px;background:#faf7ff;text-align:center}.answerKanji{font-size:96px;line-height:1.1;font-weight:950}.answerMeta{color:var(--sub);font-weight:800;margin-top:8px}.gradeRow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.grade.good{background:#e7f7ee;color:#11673f}.grade.bad{background:#fff0ef;color:#9b312c}.feedback{min-height:28px;font-size:18px;font-weight:900;margin-top:9px}.note{font-size:13px;color:var(--sub);line-height:1.55;margin-top:10px}@media(max-width:720px){.grid{grid-template-columns:1fr}}
-</style></head><body><main class="wrap">
+</style>
+<script>
+/* ===== 共通学習ログ v2 ===== */
+(function(){
+  if(window.StudyLog) return;
+  const KEY="studyLogV1";
+  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
+
+  function now(){ return Date.now(); }
+  function localDate(ts){
+    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  }
+  function addActive(){
+    if(running && !document.hidden && last){
+      activeSec += Math.max(0,(now()-last)/1000);
+    }
+    last=now();
+  }
+  function load(){
+    try{
+      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
+      return Array.isArray(x)?x:[];
+    }catch(e){ return []; }
+  }
+  function save(rows){
+    if(rows.length>1000) rows=rows.slice(-1000);
+    localStorage.setItem(KEY,JSON.stringify(rows));
+  }
+
+  window.StudyLog={
+    startTurn(m={}){
+      if(running) return;
+      meta=m||{};
+      running=true;
+      activeSec=0;
+      last=now();
+      turnStartedAt=last;
+    },
+    finishTurn(m={}){
+      if(!running) return;
+      addActive();
+      running=false;
+      const ended=now();
+      const x=Object.assign({},meta,m||{});
+      const rows=load();
+      rows.push({
+        id: ended+"-"+Math.random().toString(36).slice(2,8),
+        date: localDate(ended),
+        subject: x.subject||"未分類",
+        app: x.app||document.title||location.pathname.split("/").pop(),
+        turnLabel: x.turnLabel||"1ターン",
+        durationSec: Math.max(1,Math.round(activeSec)),
+        startedAt: turnStartedAt||ended,
+        endedAt: ended
+      });
+      save(rows);
+      activeSec=0; last=0; turnStartedAt=null; meta={};
+      window.dispatchEvent(new Event("studylogchange"));
+    },
+    cancelTurn(){
+      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
+    }
+  };
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){
+      if(running) addActive();
+    }else if(running){
+      last=now();
+    }
+  });
+})();
+</script>
+
+</head><body><main class="wrap">
 <section id="setup" class="card"><h1>📘 国語・漢字の書き<br>期末試験範囲版</h1>
 <p class="lead">出題する漢字は、指定PDFの<b>「恥」〜「威」</b>だけです。元教材画像は表示しません。</p>
 <div class="grid" id="turnBtns"><button class="pick sel" data-turns="2">2ターン</button><button class="pick" data-turns="3">3ターン</button><button class="pick" data-turns="4">4ターン</button><button class="pick" data-turns="5">5ターン</button></div>
@@ -31,7 +106,8 @@ $('#turnBtns').onclick=e=>{const b=e.target.closest('button');if(!b)return;docum
 $('#modeTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#modeTabs button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');mode=b.dataset.mode;$('#canvasArea').classList.toggle('hidden',mode!=='canvas');$('#textArea').classList.toggle('hidden',mode!=='text')};
 function makeTurn(){let fresh=BANK.filter(x=>!used.has(x.kanji));if(fresh.length<20){used.clear();fresh=[...BANK]}const pool=[...fresh].sort((a,b)=>(weak[b.kanji]||0)-(weak[a.kanji]||0)).slice(0,Math.min(50,fresh.length));const picked=shuffle(pool).slice(0,20);picked.forEach(x=>used.add(x.kanji));return picked.map(x=>({item:x}))}
 $('#startBtn').onclick=()=>{$('#setup').classList.add('hidden');startTurn()};
-function startTurn(){queue=makeTurn();cleared=0;miss=0;$('#quiz').classList.remove('hidden');$('#turnEnd').classList.add('hidden');renderNext()}
+function startTurn(){
+StudyLog.startTurn({subject:'国語',app:'国語・漢字の書き',turnLabel:`第${currentTurn}ターン`});queue=makeTurn();cleared=0;miss=0;$('#quiz').classList.remove('hidden');$('#turnEnd').classList.add('hidden');renderNext()}
 function renderNext(){if(!queue.length)return endTurn();current=queue.shift();const x=current.item;$('#turnPill').textContent=`${currentTurn} / ${turns}ターン`;$('#progressPill').textContent=`クリア ${cleared} / 20`;$('#pagePill').textContent=x.page;$('#bar').style.width=(cleared/20*100)+'%';$('#reading').textContent=x.reading;$('#hintBox').textContent=x.hint;$('#hintBox').classList.add('hidden');$('#answerBox').classList.add('hidden');$('#answerKanji').textContent=x.kanji;$('#answerMeta').textContent=`読み：${x.reading}`;$('#feedback').textContent='';$('#answerInput').value='';clearCanvas()}
 $('#hintBtn').onclick=()=>$('#hintBox').classList.toggle('hidden');
 $('#audioBtn').onclick=()=>{const u=new SpeechSynthesisUtterance(current.item.reading);u.lang='ja-JP';u.rate=.8;speechSynthesis.cancel();speechSynthesis.speak(u)};
@@ -39,7 +115,8 @@ function showAnswer(){$('#answerInput').blur();$('#answerBox').classList.remove(
 $('#goodBtn').onclick=()=>{weak[current.item.kanji]=Math.max(0,(weak[current.item.kanji]||0)-1);localStorage.setItem(STORE,JSON.stringify(weak));cleared++;$('#feedback').textContent='✅ クリア';setTimeout(renderNext,500)};
 $('#badBtn').onclick=()=>{weak[current.item.kanji]=(weak[current.item.kanji]||0)+2;localStorage.setItem(STORE,JSON.stringify(weak));miss++;totalMiss++;queue.push(current);$('#feedback').textContent='↩ この漢字をターンの最後へ回します';setTimeout(renderNext,650)};
 $('#deleteBtn').onclick=()=>{const a=Array.from($('#answerInput').value);a.pop();$('#answerInput').value=a.join('');$('#answerInput').focus()};$('#clearTextBtn').onclick=()=>{$('#answerInput').value='';$('#answerInput').focus()};
-function endTurn(){$('#quiz').classList.add('hidden');$('#turnEnd').classList.remove('hidden');$('#turnSummary').textContent=`20問すべてクリア。書けなかった延べ回数：${miss}回`;$('#nextTurnBtn').textContent=currentTurn>=turns?'結果を見る':'次のターンへ'}
+function endTurn(){
+StudyLog.finishTurn({subject:'国語',app:'国語・漢字の書き',turnLabel:`第${currentTurn}ターン`});$('#quiz').classList.add('hidden');$('#turnEnd').classList.remove('hidden');$('#turnSummary').textContent=`20問すべてクリア。書けなかった延べ回数：${miss}回`;$('#nextTurnBtn').textContent=currentTurn>=turns?'結果を見る':'次のターンへ'}
 $('#nextTurnBtn').onclick=()=>{if(currentTurn>=turns){$('#turnEnd').classList.add('hidden');$('#final').classList.remove('hidden');$('#finalSummary').textContent=`${turns}ターン終了。書けなかった延べ回数：${totalMiss}回。次回は苦手漢字が少し出やすくなります。`}else{currentTurn++;startTurn()}};
 const canvas=$('#pad'),ctx=canvas.getContext('2d');let drawing=false,strokes=[],stroke=[];
 function resize(){const r=canvas.getBoundingClientRect(),d=devicePixelRatio||1;canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);ctx.setTransform(d,0,0,d,0,0);redraw()}

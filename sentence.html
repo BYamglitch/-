@@ -83,6 +83,81 @@ input, select, textarea, button{
 }
 </style>
 
+
+<script>
+/* ===== 共通学習ログ v2 ===== */
+(function(){
+  if(window.StudyLog) return;
+  const KEY="studyLogV1";
+  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
+
+  function now(){ return Date.now(); }
+  function localDate(ts){
+    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  }
+  function addActive(){
+    if(running && !document.hidden && last){
+      activeSec += Math.max(0,(now()-last)/1000);
+    }
+    last=now();
+  }
+  function load(){
+    try{
+      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
+      return Array.isArray(x)?x:[];
+    }catch(e){ return []; }
+  }
+  function save(rows){
+    if(rows.length>1000) rows=rows.slice(-1000);
+    localStorage.setItem(KEY,JSON.stringify(rows));
+  }
+
+  window.StudyLog={
+    startTurn(m={}){
+      if(running) return;
+      meta=m||{};
+      running=true;
+      activeSec=0;
+      last=now();
+      turnStartedAt=last;
+    },
+    finishTurn(m={}){
+      if(!running) return;
+      addActive();
+      running=false;
+      const ended=now();
+      const x=Object.assign({},meta,m||{});
+      const rows=load();
+      rows.push({
+        id: ended+"-"+Math.random().toString(36).slice(2,8),
+        date: localDate(ended),
+        subject: x.subject||"未分類",
+        app: x.app||document.title||location.pathname.split("/").pop(),
+        turnLabel: x.turnLabel||"1ターン",
+        durationSec: Math.max(1,Math.round(activeSec)),
+        startedAt: turnStartedAt||ended,
+        endedAt: ended
+      });
+      save(rows);
+      activeSec=0; last=0; turnStartedAt=null; meta={};
+      window.dispatchEvent(new Event("studylogchange"));
+    },
+    cancelTurn(){
+      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
+    }
+  };
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){
+      if(running) addActive();
+    }else if(running){
+      last=now();
+    }
+  });
+})();
+</script>
+
 </head>
 <body>
 <div id="app">
@@ -348,6 +423,7 @@ $("listenBtn").addEventListener("click",function(){
 });
 
 function startGame(){
+StudyLog.startTurn({subject:'英語',app:'英語・日本語→英文',turnLabel:'7問チャレンジ'});
   turn=buildTurn();
   if(turn.length<7){
     alert("出題データが不足しています。");
@@ -361,6 +437,7 @@ function startGame(){
 }
 
 function finish(){
+StudyLog.finishTurn({subject:'英語',app:'英語・日本語→英文',turnLabel:'7問チャレンジ'});
   $("gameScreen").classList.add("hidden");
   $("resultScreen").classList.remove("hidden");
 

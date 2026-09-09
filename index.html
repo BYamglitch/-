@@ -90,6 +90,21 @@ h1{
   .hero{padding:20px}
   .card{min-height:108px}
 }
+
+.studyDash{margin:22px auto 0;max-width:1100px;background:#fff;border:1px solid #dfe5ec;border-radius:24px;padding:20px;box-shadow:0 8px 24px rgba(20,30,50,.06)}
+.studyDash h2{margin:0 0 12px;font-size:26px}
+.dashTabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.dashTabs button{border:0;border-radius:999px;padding:10px 14px;font-weight:900;background:#edf2f7;color:#263445}
+.dashTabs button.on{background:#334155;color:#fff}
+.summaryRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.sumBox{background:#f7f9fc;border:1px solid #dfe5ec;border-radius:16px;padding:14px;text-align:center}
+.sumBox b{display:block;font-size:28px;margin-top:3px}
+.logList{display:grid;gap:10px}
+.logRow{display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:10px;align-items:center;padding:13px 14px;border:1px solid #dfe5ec;border-radius:15px;background:#fbfcfe}
+.logApp{font-weight:900}.logSub{font-size:13px;color:#718096;margin-top:2px}.logNum{text-align:center;font-weight:900}
+.emptyLog{text-align:center;color:#718096;padding:22px}
+@media(max-width:720px){.logRow{grid-template-columns:1fr auto auto}.studyDash{padding:16px}.sumBox b{font-size:22px}}
+
 </style>
 </head>
 <body>
@@ -166,6 +181,52 @@ h1{
 
     <div class="note">GitHub Pages用トップ画面 / iPad Safari・Chrome対応</div>
   </section>
+
+<section class="studyDash" id="studyDash">
+  <h2>📊 今日の学習</h2>
+  <div class="dashTabs">
+    <button class="on" data-range="today">今日</button>
+    <button data-range="yesterday">昨日</button>
+    <button data-range="7days">過去7日</button>
+  </div>
+  <div class="summaryRow">
+    <div class="sumBox">ターン数<b id="sumTurns">0</b></div>
+    <div class="sumBox">学習時間<b id="sumTime">0分</b></div>
+    <div class="sumBox">アプリ数<b id="sumApps">0</b></div>
+  </div>
+  <div id="logList" class="logList"></div>
+</section>
+
 </main>
+
+<script>
+(function(){
+ const KEY="studyLogV1", $=s=>document.querySelector(s); let range="today";
+ const z=n=>String(n).padStart(2,"0");
+ const ds=d=>`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+ function all(){try{const x=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(x)?x:[]}catch(e){return[]}}
+ function fmt(sec){sec=Math.round(sec||0);if(sec<60)return sec+"秒";const m=Math.floor(sec/60),s=sec%60;return s?`${m}分${s}秒`:`${m}分`}
+ function filtered(){
+   const n=new Date(),td=ds(n),y=new Date(n);y.setDate(y.getDate()-1);
+   if(range==="today") return all().filter(r=>r.date===td);
+   if(range==="yesterday") return all().filter(r=>r.date===ds(y));
+   const cut=new Date(n);cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-6);
+   return all().filter(r=>(r.endedAt||0)>=cut.getTime());
+ }
+ function render(){
+   const a=filtered();
+   $("#sumTurns").textContent=a.length;
+   $("#sumTime").textContent=fmt(a.reduce((s,r)=>s+(r.durationSec||0),0));
+   $("#sumApps").textContent=new Set(a.map(r=>r.app)).size;
+   const by={};
+   a.forEach(r=>{const k=r.app||"未分類";if(!by[k])by[k]={subject:r.subject||"",turns:0,sec:0,last:0};by[k].turns++;by[k].sec+=r.durationSec||0;by[k].last=Math.max(by[k].last,r.endedAt||0)});
+   const v=Object.entries(by).sort((a,b)=>b[1].last-a[1].last);
+   $("#logList").innerHTML=v.length?v.map(([name,x])=>`<div class="logRow"><div><div class="logApp">${name}</div><div class="logSub">${x.subject}</div></div><div class="logNum">${x.turns}ターン</div><div class="logNum">${fmt(x.sec)}</div></div>`).join(""):`<div class="emptyLog">まだ学習記録がありません。</div>`;
+ }
+ document.querySelectorAll(".dashTabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".dashTabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");range=b.dataset.range;render()});
+ addEventListener("pageshow",render);addEventListener("storage",render);render();
+})();
+</script>
+
 </body>
 </html>

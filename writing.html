@@ -61,6 +61,81 @@ canvas{width:100%;height:270px;border:3px solid #9fc5e8;border-radius:18px;backg
 .queueNote{font-size:13px;color:var(--sub);margin-top:8px}
 @media(max-width:760px){.qgrid{grid-template-columns:1fr}.artCard{min-height:240px}.art{min-height:210px}.actions{grid-template-columns:1fr 1fr 1fr}}
 </style>
+
+<script>
+/* ===== 共通学習ログ v2 ===== */
+(function(){
+  if(window.StudyLog) return;
+  const KEY="studyLogV1";
+  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
+
+  function now(){ return Date.now(); }
+  function localDate(ts){
+    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  }
+  function addActive(){
+    if(running && !document.hidden && last){
+      activeSec += Math.max(0,(now()-last)/1000);
+    }
+    last=now();
+  }
+  function load(){
+    try{
+      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
+      return Array.isArray(x)?x:[];
+    }catch(e){ return []; }
+  }
+  function save(rows){
+    if(rows.length>1000) rows=rows.slice(-1000);
+    localStorage.setItem(KEY,JSON.stringify(rows));
+  }
+
+  window.StudyLog={
+    startTurn(m={}){
+      if(running) return;
+      meta=m||{};
+      running=true;
+      activeSec=0;
+      last=now();
+      turnStartedAt=last;
+    },
+    finishTurn(m={}){
+      if(!running) return;
+      addActive();
+      running=false;
+      const ended=now();
+      const x=Object.assign({},meta,m||{});
+      const rows=load();
+      rows.push({
+        id: ended+"-"+Math.random().toString(36).slice(2,8),
+        date: localDate(ended),
+        subject: x.subject||"未分類",
+        app: x.app||document.title||location.pathname.split("/").pop(),
+        turnLabel: x.turnLabel||"1ターン",
+        durationSec: Math.max(1,Math.round(activeSec)),
+        startedAt: turnStartedAt||ended,
+        endedAt: ended
+      });
+      save(rows);
+      activeSec=0; last=0; turnStartedAt=null; meta={};
+      window.dispatchEvent(new Event("studylogchange"));
+    },
+    cancelTurn(){
+      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
+    }
+  };
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){
+      if(running) addActive();
+    }else if(running){
+      last=now();
+    }
+  });
+})();
+</script>
+
 </head>
 <body>
 <main class="wrap">
@@ -214,6 +289,7 @@ $("startBtn").onclick=()=>{
  $("setup").classList.add("hidden");startTurn();
 };
 function startTurn(){
+StudyLog.startTurn({subject:'英語',app:'英語・書き',turnLabel:`第${currentTurn}ターン`});
  queue=shuffle(allTurnSets[turnIndex]).map((q,i)=>({...q,_id:turnIndex+"-"+i}));
  mastered=new Set();attempts=0;mistakes=0;
  $("turnResult").classList.add("hidden");$("quiz").classList.remove("hidden");
@@ -284,6 +360,7 @@ function speak(){
 $("audioBtn").onclick=speak;
 
 function finishTurn(){
+StudyLog.finishTurn({subject:'英語',app:'英語・書き',turnLabel:`第${currentTurn}ターン`});
  $("quiz").classList.add("hidden");$("turnResult").classList.remove("hidden");
  $("turnTitle").textContent=`Turn ${turnIndex+1}：100%習得！`;
  $("attemptsN").textContent=attempts;$("mistakesN").textContent=mistakes;

@@ -53,6 +53,81 @@ header{min-height:62px;display:flex;align-items:center;justify-content:space-bet
 @media(max-width:600px){.card{padding:17px}.setupWrap,.resultWrap{padding:10px}#gameArea{min-height:280px}}
 @media(orientation:landscape) and (max-height:650px){header{min-height:50px}#gameArea{min-height:190px}.choice{min-height:54px}.setupWrap,.resultWrap{align-items:flex-start;overflow:auto}}
 </style>
+
+<script>
+/* ===== 共通学習ログ v2 ===== */
+(function(){
+  if(window.StudyLog) return;
+  const KEY="studyLogV1";
+  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
+
+  function now(){ return Date.now(); }
+  function localDate(ts){
+    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  }
+  function addActive(){
+    if(running && !document.hidden && last){
+      activeSec += Math.max(0,(now()-last)/1000);
+    }
+    last=now();
+  }
+  function load(){
+    try{
+      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
+      return Array.isArray(x)?x:[];
+    }catch(e){ return []; }
+  }
+  function save(rows){
+    if(rows.length>1000) rows=rows.slice(-1000);
+    localStorage.setItem(KEY,JSON.stringify(rows));
+  }
+
+  window.StudyLog={
+    startTurn(m={}){
+      if(running) return;
+      meta=m||{};
+      running=true;
+      activeSec=0;
+      last=now();
+      turnStartedAt=last;
+    },
+    finishTurn(m={}){
+      if(!running) return;
+      addActive();
+      running=false;
+      const ended=now();
+      const x=Object.assign({},meta,m||{});
+      const rows=load();
+      rows.push({
+        id: ended+"-"+Math.random().toString(36).slice(2,8),
+        date: localDate(ended),
+        subject: x.subject||"未分類",
+        app: x.app||document.title||location.pathname.split("/").pop(),
+        turnLabel: x.turnLabel||"1ターン",
+        durationSec: Math.max(1,Math.round(activeSec)),
+        startedAt: turnStartedAt||ended,
+        endedAt: ended
+      });
+      save(rows);
+      activeSec=0; last=0; turnStartedAt=null; meta={};
+      window.dispatchEvent(new Event("studylogchange"));
+    },
+    cancelTurn(){
+      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
+    }
+  };
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){
+      if(running) addActive();
+    }else if(running){
+      last=now();
+    }
+  });
+})();
+</script>
+
 </head>
 <body>
 <div class="shell">
@@ -218,12 +293,14 @@ function frame(ts){
   raf=requestAnimationFrame(frame);
 }
 function startTurn(){
+StudyLog.startTurn({subject:'英語',app:'英語・落ち単語',turnLabel:turnLabel()});
   unlockAudio();setupPool();
   if(!pool.length){reviewMode=false;sessionReview=false;sessionActive=false;updateWeakButton();alert("この範囲には、まだ復習する単語がありません。");showScreen("setupScreen");return}
   score=miss=combo=maxCombo=0;timeExpired=false;retryQueue=[];["score","miss","combo"].forEach(id=>$(id).textContent="0");$("timer").textContent="60.0";$("timeBar").style.transform="scaleX(1)";
   showScreen("gameScreen");running=true;endAt=performance.now()+60000;last=0;nextWord();raf=requestAnimationFrame(frame);
 }
 function finishTurn(){
+StudyLog.finishTurn({subject:'英語',app:'英語・落ち単語',turnLabel:turnLabel()});
   running=false;cancelAnimationFrame(raf);$("word").classList.add("hidden");endSound();
   const attempts=score+miss,acc=attempts?Math.round(score/attempts*100):0,key="ntfall_"+lesson;
   let prev=0;try{prev=+localStorage.getItem(key)||0}catch(e){}const best=Math.max(prev,score);try{localStorage.setItem(key,best)}catch(e){}

@@ -36,6 +36,81 @@ h1{font-size:clamp(28px,5vw,40px);line-height:1.2;margin:0 0 10px} .lead{color:v
 .oralQ{font-size:clamp(24px,4vw,32px);font-weight:950;line-height:1.5;margin:18px 0}
 @media(max-width:600px){.tabs,.modes{grid-template-columns:1fr} .hints{grid-template-columns:repeat(2,1fr)} .choice{font-size:17px} .sourceQ img{max-height:190px}}
 </style>
+
+<script>
+/* ===== 共通学習ログ v2 ===== */
+(function(){
+  if(window.StudyLog) return;
+  const KEY="studyLogV1";
+  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
+
+  function now(){ return Date.now(); }
+  function localDate(ts){
+    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  }
+  function addActive(){
+    if(running && !document.hidden && last){
+      activeSec += Math.max(0,(now()-last)/1000);
+    }
+    last=now();
+  }
+  function load(){
+    try{
+      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
+      return Array.isArray(x)?x:[];
+    }catch(e){ return []; }
+  }
+  function save(rows){
+    if(rows.length>1000) rows=rows.slice(-1000);
+    localStorage.setItem(KEY,JSON.stringify(rows));
+  }
+
+  window.StudyLog={
+    startTurn(m={}){
+      if(running) return;
+      meta=m||{};
+      running=true;
+      activeSec=0;
+      last=now();
+      turnStartedAt=last;
+    },
+    finishTurn(m={}){
+      if(!running) return;
+      addActive();
+      running=false;
+      const ended=now();
+      const x=Object.assign({},meta,m||{});
+      const rows=load();
+      rows.push({
+        id: ended+"-"+Math.random().toString(36).slice(2,8),
+        date: localDate(ended),
+        subject: x.subject||"未分類",
+        app: x.app||document.title||location.pathname.split("/").pop(),
+        turnLabel: x.turnLabel||"1ターン",
+        durationSec: Math.max(1,Math.round(activeSec)),
+        startedAt: turnStartedAt||ended,
+        endedAt: ended
+      });
+      save(rows);
+      activeSec=0; last=0; turnStartedAt=null; meta={};
+      window.dispatchEvent(new Event("studylogchange"));
+    },
+    cancelTurn(){
+      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
+    }
+  };
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){
+      if(running) addActive();
+    }else if(running){
+      last=now();
+    }
+  });
+})();
+</script>
+
 </head>
 <body><div class="app">
 <section id="home" class="card">
@@ -99,6 +174,7 @@ function initModes(){
  Object.keys(DATA).forEach(r=>{const b=document.createElement("button");b.className="mode";b.innerHTML=`${r}<small>予備テスト30問</small>`;b.onclick=()=>startQuiz(r);box.appendChild(b)})
 }
 function startQuiz(region){
+StudyLog.startTurn({subject:'社会',app:'社会・予備テスト',turnLabel:'1ターン'});
  currentRegion=region;queue=DATA[region].map((q,i)=>({q,slot:i,attempt:1}));cleared=new Set();firstCorrect=wrong=timeoutN=totalAttempts=0;
  $("#home").classList.add("hidden");$("#result").classList.add("hidden");$("#quiz").classList.remove("hidden");showQuestion();
 }
@@ -132,7 +208,8 @@ function doTimeout(){
  $("#feedback").textContent=`⏰ 時間切れ。正解は「${current.q.a}」。最後にもう一度出ます。`;$("#nextBtn").classList.remove("hidden");
 }
 $("#nextBtn").onclick=showQuestion;
-function finishQuiz(){$("#quiz").classList.add("hidden");$("#result").classList.remove("hidden");$("#score").textContent=`${firstCorrect} / 30`;$("#resultText").textContent=`初回正解 ${firstCorrect}問 ／ 誤答 ${wrong}回 ／ 時間切れ ${timeoutN}回`}
+function finishQuiz(){
+StudyLog.finishTurn({subject:'社会',app:'社会・予備テスト',turnLabel:'1ターン'});$("#quiz").classList.add("hidden");$("#result").classList.remove("hidden");$("#score").textContent=`${firstCorrect} / 30`;$("#resultText").textContent=`初回正解 ${firstCorrect}問 ／ 誤答 ${wrong}回 ／ 時間切れ ${timeoutN}回`}
 $("#againBtn").onclick=()=>startQuiz(currentRegion);$("#backBtn").onclick=goHome;
 
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");const oral=b.dataset.tab==="oral";$("#quizStart").classList.toggle("hidden",oral);$("#oralStart").classList.toggle("hidden",!oral)})
