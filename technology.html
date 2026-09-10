@@ -94,6 +94,78 @@ button{border:0;border-radius:14px;padding:14px 18px;font-weight:800;cursor:poin
 })();
 </script>
 
+
+<script>
+/* ===== 共通苦手ログ v1 ===== */
+(function(){
+  if(window.WeakLog) return;
+  const KEY="weakLogV1";
+  let active=null;
+  const now=()=>Date.now();
+  function load(){
+    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
+    catch(e){return {}}
+  }
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  function cleanKey(s){return String(s??"").trim().slice(0,240)}
+  window.WeakLog={
+    start(meta={}){
+      active={...meta,startedAt:now()};
+    },
+    result(kind,meta={},elapsedSec=null){
+      const m={...(active||{}),...(meta||{})};
+      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
+      const a=cleanKey(m.answer||m.a||m.en||"");
+      if(!q && !m.key) return;
+      const subject=cleanKey(m.subject||"未分類");
+      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
+      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
+      const db=load();
+      const r=db[key]||{
+        subject,app,
+        category:cleanKey(m.category||m.cat||m.tag||""),
+        question:q,answer:a,
+        correct:0,wrong:0,timeout:0,
+        attempts:0,totalResponseSec:0,
+        firstSeenAt:now(),lastSeenAt:now()
+      };
+      if(kind==="correct") r.correct++;
+      else if(kind==="timeout") r.timeout++;
+      else r.wrong++;
+      r.attempts++;
+      let sec=elapsedSec;
+      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
+      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
+      r.lastSeenAt=now();
+      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
+      db[key]=r; save(db); active=null;
+    },
+    importWeak(meta,list){
+      const db=load();
+      for(const x of (list||[])){
+        if(!x||!(x.wrong>0||x.timeout>0)) continue;
+        const subject=cleanKey(meta.subject||x.subject||"未分類");
+        const app=cleanKey(meta.app||x.app||"");
+        const q=cleanKey(x.question||x.q||"");
+        const a=cleanKey(x.answer||x.a||"");
+        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
+        const cur=db[key]||{
+          subject,app,category:cleanKey(x.category||x.cat||""),
+          question:q,answer:a,correct:0,wrong:0,timeout:0,
+          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
+        };
+        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
+        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
+        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
+        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
+        cur.lastSeenAt=now(); db[key]=cur;
+      }
+      save(db);
+    }
+  };
+})();
+</script>
+
 </head>
 <body><main class="wrap">
 <section id="start" class="card">
@@ -195,16 +267,18 @@ let nTurns=3,turn=0,mode='ALL',slots=[],queue=[],current=null,locked=false,timer
 function pool(){if(mode==='ALL')return Q;if(mode==='WEAK'){let w=weak();return [...Q].sort((a,b)=>(w[b.id]||0)-(w[a.id]||0));}return Q.filter(x=>x.cat===mode)}
 function makeSlots(){let p=pool(),picked=[];if(mode==='WEAK'){picked=p.slice(0,20);if(picked.length<20)picked=picked.concat(shuffle(Q.filter(x=>!picked.includes(x))).slice(0,20-picked.length))}else if(mode==='ALL'){
  const cats=['問題解決','工夫と材料','危険と安全','木材の加工と構造']; const need=[4,5,4,7]; cats.forEach((c,i)=>picked.push(...shuffle(Q.filter(x=>x.cat===c)).slice(0,need[i]))); picked=shuffle(picked);
- }else{while(picked.length<20){let batch=shuffle(p);for(const q of batch){picked.push(q);if(picked.length===20)break}}}
+ }else{try{WeakLog.result('wrong')}catch(e){}while(picked.length<20){let batch=shuffle(p);for(const q of batch){picked.push(q);if(picked.length===20)break}}}
  return picked.slice(0,20).map((q,i)=>({slot:i,q,cleared:false,first:true}))}
 function beginTurn(){
 StudyLog.startTurn({subject:'技術',app:'技術・旧版',turnLabel:`第${turn+1}ターン`});slots=makeSlots();queue=[...slots];results[turn]={firstCorrect:0,wrong:0,timeout:0,attempts:0};$('#turnResult').classList.add('hidden');$('#quiz').classList.remove('hidden');show()}
 function start(){nTurns=+$('#turnCount').value;mode=$('#cat').value;turn=0;results=[];$('#start').classList.add('hidden');beginTurn()}
-function show(){clearInterval(timerId);locked=false;current=queue.shift();let r=results[turn],cleared=slots.filter(s=>s.cleared).length;$('#turnBadge').textContent=`${turn+1} / ${nTurns} ターン`;$('#meta').textContent=`クリア ${cleared} / 20　｜　挑戦 ${r.attempts+1}回`;$('#prog').style.width=`${cleared/20*100}%`;$('#kicker').textContent=current.q.cat;$('#q').textContent=current.q.q;$('#feedback').className='feedback';$('#feedback').textContent='';$('#nextBtn').classList.remove('show');let opts=shuffle([current.q.a,...current.q.d]);$('#opts').innerHTML='';opts.forEach(t=>{let b=document.createElement('button');b.className='opt';b.textContent=t;b.onclick=()=>answer(t,b);$('#opts').appendChild(b)});startTimer()}
+function show(){
+try{const z=current?.q||current; if(z) WeakLog.start({subject:'技術',app:'技術・旧版',category:z.cat||'',question:z.q||'',answer:z.a||''})}catch(e){}clearInterval(timerId);locked=false;current=queue.shift();let r=results[turn],cleared=slots.filter(s=>s.cleared).length;$('#turnBadge').textContent=`${turn+1} / ${nTurns} ターン`;$('#meta').textContent=`クリア ${cleared} / 20　｜　挑戦 ${r.attempts+1}回`;$('#prog').style.width=`${cleared/20*100}%`;$('#kicker').textContent=current.q.cat;$('#q').textContent=current.q.q;$('#feedback').className='feedback';$('#feedback').textContent='';$('#nextBtn').classList.remove('show');let opts=shuffle([current.q.a,...current.q.d]);$('#opts').innerHTML='';opts.forEach(t=>{let b=document.createElement('button');b.className='opt';b.textContent=t;b.onclick=()=>answer(t,b);$('#opts').appendChild(b)});startTimer()}
 function startTimer(){timeLeft=20;$('#timer').className='timer';$('#timerBar').style.width='100%';timerId=setInterval(()=>{timeLeft-=.1;let pct=Math.max(0,timeLeft/20*100);$('#timerBar').style.width=pct+'%';$('#timer').className='timer'+(pct<=25?' critical':pct<=50?' low':'');if(timeLeft<=0){clearInterval(timerId);timeout()}},100)}
 function paint(answer,clicked){document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===answer)b.classList.add('correct');else if(b===clicked)b.classList.add('wrong');else b.classList.add('dim')})}
 function answer(choice,btn){if(locked)return;locked=true;clearInterval(timerId);let q=current.q,r=results[turn];r.attempts++;let ok=choice===q.a;if(ok){if(current.first)r.firstCorrect++;current.cleared=true;reward(q.id);paint(q.a,btn);$('#feedback').className='feedback show good';$('#feedback').innerHTML=`✅ 正解！ <b>${q.a}</b>`;updateMeta();setTimeout(advance,1000)}else{r.wrong++;miss(q.id);current.first=false;queue.push(current);paint(q.a,btn);$('#feedback').className='feedback show bad';$('#feedback').innerHTML=`❌ 正解は <b>${q.a}</b>。この問題はターン末尾でもう一度出ます。`;updateMeta();$('#nextBtn').classList.add('show')}}
-function timeout(){if(locked)return;locked=true;let q=current.q,r=results[turn];r.attempts++;r.timeout++;miss(q.id);current.first=false;queue.push(current);paint(q.a,null);$('#feedback').className='feedback show bad';$('#feedback').innerHTML=`⏰ 時間切れ。正解は <b>${q.a}</b>。この問題はターン末尾でもう一度出ます。`;updateMeta();$('#nextBtn').classList.add('show')}
+function timeout(){
+ try{WeakLog.result('timeout')}catch(e){}if(locked)return;locked=true;let q=current.q,r=results[turn];r.attempts++;r.timeout++;miss(q.id);current.first=false;queue.push(current);paint(q.a,null);$('#feedback').className='feedback show bad';$('#feedback').innerHTML=`⏰ 時間切れ。正解は <b>${q.a}</b>。この問題はターン末尾でもう一度出ます。`;updateMeta();$('#nextBtn').classList.add('show')}
 function updateMeta(){let r=results[turn],cleared=slots.filter(s=>s.cleared).length;$('#meta').textContent=`クリア ${cleared} / 20　｜　挑戦 ${r.attempts}回`;$('#prog').style.width=`${cleared/20*100}%`}
 function advance(){if(slots.every(s=>s.cleared)){finishTurn()}else show()}
 function finishTurn(){

@@ -136,6 +136,78 @@ canvas{width:100%;height:270px;border:3px solid #9fc5e8;border-radius:18px;backg
 })();
 </script>
 
+
+<script>
+/* ===== 共通苦手ログ v1 ===== */
+(function(){
+  if(window.WeakLog) return;
+  const KEY="weakLogV1";
+  let active=null;
+  const now=()=>Date.now();
+  function load(){
+    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
+    catch(e){return {}}
+  }
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  function cleanKey(s){return String(s??"").trim().slice(0,240)}
+  window.WeakLog={
+    start(meta={}){
+      active={...meta,startedAt:now()};
+    },
+    result(kind,meta={},elapsedSec=null){
+      const m={...(active||{}),...(meta||{})};
+      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
+      const a=cleanKey(m.answer||m.a||m.en||"");
+      if(!q && !m.key) return;
+      const subject=cleanKey(m.subject||"未分類");
+      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
+      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
+      const db=load();
+      const r=db[key]||{
+        subject,app,
+        category:cleanKey(m.category||m.cat||m.tag||""),
+        question:q,answer:a,
+        correct:0,wrong:0,timeout:0,
+        attempts:0,totalResponseSec:0,
+        firstSeenAt:now(),lastSeenAt:now()
+      };
+      if(kind==="correct") r.correct++;
+      else if(kind==="timeout") r.timeout++;
+      else r.wrong++;
+      r.attempts++;
+      let sec=elapsedSec;
+      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
+      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
+      r.lastSeenAt=now();
+      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
+      db[key]=r; save(db); active=null;
+    },
+    importWeak(meta,list){
+      const db=load();
+      for(const x of (list||[])){
+        if(!x||!(x.wrong>0||x.timeout>0)) continue;
+        const subject=cleanKey(meta.subject||x.subject||"未分類");
+        const app=cleanKey(meta.app||x.app||"");
+        const q=cleanKey(x.question||x.q||"");
+        const a=cleanKey(x.answer||x.a||"");
+        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
+        const cur=db[key]||{
+          subject,app,category:cleanKey(x.category||x.cat||""),
+          question:q,answer:a,correct:0,wrong:0,timeout:0,
+          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
+        };
+        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
+        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
+        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
+        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
+        cur.lastSeenAt=now(); db[key]=cur;
+      }
+      save(db);
+    }
+  };
+})();
+</script>
+
 </head>
 <body>
 <main class="wrap">
@@ -298,7 +370,7 @@ StudyLog.startTurn({subject:'英語',app:'英語・書き',turnLabel:`第${curre
 function showQ(){
  locked=false;hintCount=0;
  if(mastered.size===20) return finishTurn();
- cur=queue.shift();
+ cur=queue.shift();try{WeakLog.start({subject:"英語",app:"英語・書き",category:lessonLabel(cur),question:cur.jp,answer:cur.en})}catch(e){}
  if(!cur) return finishTurn();
  $("turnPill").textContent=`Turn ${turnIndex+1} / ${turnCount}`;
  $("progressPill").textContent=`習得 ${mastered.size} / 20`;
@@ -323,10 +395,10 @@ function submitAnswer(){
  const v=norm($("answerInput").value);
  const ok=aliases(cur).includes(v);
  locked=true;attempts++;totalAttempts++;
- if(ok){
+ if(ok){try{WeakLog.result('correct')}catch(e){}
    mastered.add(cur._id);
    showFeedback(true,"○ 正解！");
- }else{
+ }else{try{WeakLog.result('wrong')}catch(e){}
    mistakes++;totalMistakes++;queue.push(cur);
    showFeedback(false,`× 正解：${cur.en}　→ ターンの最後でもう一度`);
  }

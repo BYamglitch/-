@@ -129,6 +129,78 @@ input, select, textarea, button{
 })();
 </script>
 
+
+<script>
+/* ===== 共通苦手ログ v1 ===== */
+(function(){
+  if(window.WeakLog) return;
+  const KEY="weakLogV1";
+  let active=null;
+  const now=()=>Date.now();
+  function load(){
+    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
+    catch(e){return {}}
+  }
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  function cleanKey(s){return String(s??"").trim().slice(0,240)}
+  window.WeakLog={
+    start(meta={}){
+      active={...meta,startedAt:now()};
+    },
+    result(kind,meta={},elapsedSec=null){
+      const m={...(active||{}),...(meta||{})};
+      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
+      const a=cleanKey(m.answer||m.a||m.en||"");
+      if(!q && !m.key) return;
+      const subject=cleanKey(m.subject||"未分類");
+      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
+      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
+      const db=load();
+      const r=db[key]||{
+        subject,app,
+        category:cleanKey(m.category||m.cat||m.tag||""),
+        question:q,answer:a,
+        correct:0,wrong:0,timeout:0,
+        attempts:0,totalResponseSec:0,
+        firstSeenAt:now(),lastSeenAt:now()
+      };
+      if(kind==="correct") r.correct++;
+      else if(kind==="timeout") r.timeout++;
+      else r.wrong++;
+      r.attempts++;
+      let sec=elapsedSec;
+      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
+      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
+      r.lastSeenAt=now();
+      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
+      db[key]=r; save(db); active=null;
+    },
+    importWeak(meta,list){
+      const db=load();
+      for(const x of (list||[])){
+        if(!x||!(x.wrong>0||x.timeout>0)) continue;
+        const subject=cleanKey(meta.subject||x.subject||"未分類");
+        const app=cleanKey(meta.app||x.app||"");
+        const q=cleanKey(x.question||x.q||"");
+        const a=cleanKey(x.answer||x.a||"");
+        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
+        const cur=db[key]||{
+          subject,app,category:cleanKey(x.category||x.cat||""),
+          question:q,answer:a,correct:0,wrong:0,timeout:0,
+          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
+        };
+        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
+        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
+        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
+        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
+        cur.lastSeenAt=now(); db[key]=cur;
+      }
+      save(db);
+    }
+  };
+})();
+</script>
+
 </head><body><div class="wrap">
 <section id="setup" class="card"><h1>NEW TREASURE Lesson 4–6<br>日本語 → 英文組み立て</h1>
 <div class="sub">日本語に合うように、ばらばらの語句を順番にタップして英文を完成させます。<br><b>1問20秒・1ターン20問。</b> 間違えたら、その問題は全部ばらして最初からです。</div>
@@ -148,12 +220,12 @@ function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Ma
 function speak(t){if(!("speechSynthesis"in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.82;speechSynthesis.speak(u)}
 function start(){
 StudyLog.startTurn({subject:'英語',app:'英語・英文組み立て',turnLabel:'1ターン'});const pool=DATA.filter(x=>lesson==="all"||String(x.lesson)===lesson);deck=shuffle(pool).slice(0,20);idx=0;mistakes=0;timeouts=0;firstTry=0;startedAt=Date.now();$("setup").classList.add("hidden");$("result").classList.add("hidden");$("game").classList.remove("hidden");showQuestion()}
-function showQuestion(){clearInterval(timerId);current=deck[idx];selected=[];attempts=0;replayUsed=false;$("progress").textContent=`クリア ${Math.min(firstTry+(20-firstTry-mistakes-timeouts),20)} / 20`;$("lessonBadge").textContent=`Lesson ${current.lesson}`;$("jp").textContent=current.jp;$("msg").textContent="";$("msg").className="msg";$("audioBox").classList.add("hidden");$("replayBtn").disabled=false;renderAnswer();reshuffleBank();resetTimer()}
+function showQuestion(){clearInterval(timerId);current=deck[idx];try{WeakLog.start({subject:'英語',app:'英語・英文組み立て',category:'Lesson '+current.lesson,question:current.jp,answer:current.answer})}catch(e){}selected=[];attempts=0;replayUsed=false;$("progress").textContent=`クリア ${Math.min(firstTry+(20-firstTry-mistakes-timeouts),20)} / 20`;$("lessonBadge").textContent=`Lesson ${current.lesson}`;$("jp").textContent=current.jp;$("msg").textContent="";$("msg").className="msg";$("audioBox").classList.add("hidden");$("replayBtn").disabled=false;renderAnswer();reshuffleBank();resetTimer()}
 function renderAnswer(){const a=$("answerArea");a.innerHTML="";if(!selected.length){const s=document.createElement("span");s.className="placeholder";s.textContent="ここに英文を組み立てます";a.appendChild(s);return}selected.forEach(t=>{const s=document.createElement("span");s.className="chosen";s.textContent=t.text;a.appendChild(s)})}
 function reshuffleBank(){const b=$("bank");b.innerHTML="";shuffle(current.blocks.map((text,i)=>({text,id:i}))).forEach(tok=>{const btn=document.createElement("button");btn.type="button";btn.className="token";btn.textContent=tok.text;btn.addEventListener("click",()=>choose(tok,btn));b.appendChild(btn)})}
-function choose(tok,btn){if(btn.classList.contains("used"))return;const expected=current.blocks[selected.length];if(tok.text!==expected){mistakes++;attempts++;clearInterval(timerId);deck.push(current);$("msg").textContent="ちがいます。この問題はターンの末尾でもう一度！";$("msg").className="msg bad";setTimeout(()=>{idx++;showQuestion()},850);return}selected.push(tok);btn.classList.add("used");renderAnswer();if(selected.length===current.blocks.length)completeCorrect()}
-function completeCorrect(){clearInterval(timerId);if(attempts===0)firstTry++;$("msg").textContent="正解！";$("msg").className="msg good";$("audioBox").classList.remove("hidden");speak(current.answer);setTimeout(()=>{idx++;if(idx>=deck.length)finish();else showQuestion()},2200)}
-function resetTimer(){clearInterval(timerId);timeLeft=20;paint();timerId=setInterval(()=>{timeLeft--;paint();if(timeLeft<=0){clearInterval(timerId);timeouts++;attempts++;deck.push(current);$("msg").textContent="時間切れ！ この問題はターンの末尾でもう一度。";$("msg").className="msg bad";setTimeout(()=>{idx++;showQuestion()},850)}},1000)}
+function choose(tok,btn){if(btn.classList.contains("used"))return;const expected=current.blocks[selected.length];if(tok.text!==expected){try{WeakLog.result('wrong')}catch(e){}mistakes++;attempts++;clearInterval(timerId);deck.push(current);$("msg").textContent="ちがいます。この問題はターンの末尾でもう一度！";$("msg").className="msg bad";setTimeout(()=>{idx++;showQuestion()},850);return}selected.push(tok);btn.classList.add("used");renderAnswer();if(selected.length===current.blocks.length)completeCorrect()}
+function completeCorrect(){try{WeakLog.result('correct')}catch(e){}clearInterval(timerId);if(attempts===0)firstTry++;$("msg").textContent="正解！";$("msg").className="msg good";$("audioBox").classList.remove("hidden");speak(current.answer);setTimeout(()=>{idx++;if(idx>=deck.length)finish();else showQuestion()},2200)}
+function resetTimer(){clearInterval(timerId);timeLeft=20;paint();timerId=setInterval(()=>{timeLeft--;paint();if(timeLeft<=0){clearInterval(timerId);try{WeakLog.result('timeout')}catch(e){}timeouts++;attempts++;deck.push(current);$("msg").textContent="時間切れ！ この問題はターンの末尾でもう一度。";$("msg").className="msg bad";setTimeout(()=>{idx++;showQuestion()},850)}},1000)}
 function paint(){$("timer").textContent=timeLeft;$("timer").classList.toggle("warn",timeLeft<=5)}
 function finish(){
 StudyLog.finishTurn({subject:'英語',app:'英語・英文組み立て',turnLabel:'1ターン'});clearInterval(timerId);if("speechSynthesis"in window)speechSynthesis.cancel();$("game").classList.add("hidden");$("result").classList.remove("hidden");const sec=Math.round((Date.now()-startedAt)/1000);$("scoreLine").textContent="20問すべて正解！";$("stats").innerHTML=`最初からノーミスで完成：<b>${firstTry} / 20</b><br>タップミス：<b>${mistakes}回</b><br>時間切れ：<b>${timeouts}回</b><br>所要時間：<b>${Math.floor(sec/60)}分 ${sec%60}秒</b>`}

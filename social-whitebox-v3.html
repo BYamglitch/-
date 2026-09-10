@@ -111,6 +111,78 @@ h1{font-size:clamp(28px,5vw,40px);line-height:1.2;margin:0 0 10px} .lead{color:v
 })();
 </script>
 
+
+<script>
+/* ===== 共通苦手ログ v1 ===== */
+(function(){
+  if(window.WeakLog) return;
+  const KEY="weakLogV1";
+  let active=null;
+  const now=()=>Date.now();
+  function load(){
+    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
+    catch(e){return {}}
+  }
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  function cleanKey(s){return String(s??"").trim().slice(0,240)}
+  window.WeakLog={
+    start(meta={}){
+      active={...meta,startedAt:now()};
+    },
+    result(kind,meta={},elapsedSec=null){
+      const m={...(active||{}),...(meta||{})};
+      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
+      const a=cleanKey(m.answer||m.a||m.en||"");
+      if(!q && !m.key) return;
+      const subject=cleanKey(m.subject||"未分類");
+      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
+      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
+      const db=load();
+      const r=db[key]||{
+        subject,app,
+        category:cleanKey(m.category||m.cat||m.tag||""),
+        question:q,answer:a,
+        correct:0,wrong:0,timeout:0,
+        attempts:0,totalResponseSec:0,
+        firstSeenAt:now(),lastSeenAt:now()
+      };
+      if(kind==="correct") r.correct++;
+      else if(kind==="timeout") r.timeout++;
+      else r.wrong++;
+      r.attempts++;
+      let sec=elapsedSec;
+      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
+      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
+      r.lastSeenAt=now();
+      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
+      db[key]=r; save(db); active=null;
+    },
+    importWeak(meta,list){
+      const db=load();
+      for(const x of (list||[])){
+        if(!x||!(x.wrong>0||x.timeout>0)) continue;
+        const subject=cleanKey(meta.subject||x.subject||"未分類");
+        const app=cleanKey(meta.app||x.app||"");
+        const q=cleanKey(x.question||x.q||"");
+        const a=cleanKey(x.answer||x.a||"");
+        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
+        const cur=db[key]||{
+          subject,app,category:cleanKey(x.category||x.cat||""),
+          question:q,answer:a,correct:0,wrong:0,timeout:0,
+          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
+        };
+        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
+        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
+        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
+        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
+        cur.lastSeenAt=now(); db[key]=cur;
+      }
+      save(db);
+    }
+  };
+})();
+</script>
+
 </head>
 <body><div class="app">
 <section id="home" class="card">
@@ -200,10 +272,10 @@ function lockChoices(clicked){
 }
 function answer(o,b){
  if(locked)return;locked=true;clearInterval(timer);lockChoices(b);
- if(o===current.q.a){if(current.attempt===1)firstCorrect++;cleared.add(current.slot);$("#feedback").textContent="✅ 正解！";setTimeout(showQuestion,900)}
- else{wrong++;queue.push({q:current.q,slot:current.slot,attempt:current.attempt+1});$("#feedback").textContent=`❌ 正解は「${current.q.a}」。この問題は最後にもう一度出ます。`;$("#nextBtn").classList.remove("hidden")}
+ if(o===current.q.a){try{WeakLog.result('correct')}catch(e){}if(current.attempt===1)firstCorrect++;cleared.add(current.slot);$("#feedback").textContent="✅ 正解！";setTimeout(showQuestion,900)}
+ else{try{WeakLog.result('wrong')}catch(e){}wrong++;queue.push({q:current.q,slot:current.slot,attempt:current.attempt+1});$("#feedback").textContent=`❌ 正解は「${current.q.a}」。この問題は最後にもう一度出ます。`;$("#nextBtn").classList.remove("hidden")}
 }
-function doTimeout(){
+function doTimeout(){try{WeakLog.result('timeout')}catch(e){}
  if(locked)return;locked=true;clearInterval(timer);timeoutN++;lockChoices(null);queue.push({q:current.q,slot:current.slot,attempt:current.attempt+1});
  $("#feedback").textContent=`⏰ 時間切れ。正解は「${current.q.a}」。最後にもう一度出ます。`;$("#nextBtn").classList.remove("hidden");
 }

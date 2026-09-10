@@ -162,7 +162,7 @@ function renderNext(){
  $('#progressLabel').textContent=`クリア ${cleared} / 20`;
  $('#progressBar').style.width=(cleared/20*100)+'%';
  $('#feedback').className='feedback hidden'; $('#feedback').textContent=''; $('#nextBtn').classList.add('hidden'); $('#answer').disabled=false; $('#checkBtn').disabled=false; $('#answer').value=''; $('#voiceStatus').textContent='';
- const x=current.item;
+ const x=current.item;try{WeakLog.start({subject:'国語',app:'国語・漢字読み書き',category:mode,question:(mode==='reading'?x.term:(x.question||x.term)),answer:correctAnswers(x)[0]})}catch(e){}
  if(mode==='reading'){
    $('#qtype').textContent='読みを入力してください'; $('#question').textContent=x.term; $('#prompt').classList.add('hidden'); $('#rubyhint').classList.add('hidden');
  }else{
@@ -181,8 +181,8 @@ function check(){
  if(locked)return; const val=$('#answer').value; if(!val.trim())return;
  const answers=correctAnswers(current.item); const ok=answers.some(a=>norm(a)===norm(val)); const firstKey=current.slot;
  if(!firstSeen.has(firstKey)){firstSeen.add(firstKey); if(ok)firstCorrect++}
- if(ok){locked=true;cleared++;$('#feedback').className='feedback ok';$('#feedback').textContent='正解！';$('#answer').disabled=true;$('#checkBtn').disabled=true;$('#progressLabel').textContent=`クリア ${cleared} / 20`;$('#progressBar').style.width=(cleared/20*100)+'%';setTimeout(renderNext,1000)}
- else{locked=true;misses++;queue.push(current);$('#feedback').className='feedback ng';$('#feedback').textContent='不正解。正解：'+answers[0]+'　→ この問題はターンの末尾でもう一度出ます。';$('#answer').disabled=true;$('#checkBtn').disabled=true;$('#nextBtn').classList.remove('hidden')}
+ if(ok){try{WeakLog.result('correct')}catch(e){}locked=true;cleared++;$('#feedback').className='feedback ok';$('#feedback').textContent='正解！';$('#answer').disabled=true;$('#checkBtn').disabled=true;$('#progressLabel').textContent=`クリア ${cleared} / 20`;$('#progressBar').style.width=(cleared/20*100)+'%';setTimeout(renderNext,1000)}
+ else{try{WeakLog.result('wrong')}catch(e){}locked=true;misses++;queue.push(current);$('#feedback').className='feedback ng';$('#feedback').textContent='不正解。正解：'+answers[0]+'　→ この問題はターンの末尾でもう一度出ます。';$('#answer').disabled=true;$('#checkBtn').disabled=true;$('#nextBtn').classList.remove('hidden')}
 }
 $('#checkBtn').onclick=check; $('#answer').addEventListener('keydown',e=>{if(e.key==='Enter')check()}); $('#nextBtn').onclick=renderNext;
 function endTurn(){

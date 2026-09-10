@@ -184,7 +184,10 @@ h1{
 
 <section class="studyDash" id="studyDash">
   <h2>📊 今日の学習</h2>
-  <div class="dashTabs">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px">
+<button id="exportWeakLog" style="border:0;border-radius:12px;padding:11px 15px;font-weight:900;background:#7c3aed;color:white">📤 苦手ログを書き出す</button>
+<button id="clearWeakLog" style="border:0;border-radius:12px;padding:11px 15px;font-weight:900;background:#eef2f7;color:#334155">🗑 苦手ログをリセット</button>
+</div><div class="dashTabs">
     <button class="on" data-range="today">今日</button>
     <button data-range="yesterday">昨日</button>
     <button data-range="7days">過去7日</button>
@@ -225,6 +228,48 @@ h1{
  }
  document.querySelectorAll(".dashTabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".dashTabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");range=b.dataset.range;render()});
  addEventListener("pageshow",render);addEventListener("storage",render);render();
+})();
+</script>
+
+
+<script>
+(function(){
+ const KEY="weakLogV1";
+ const $=s=>document.querySelector(s);
+ function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}catch(e){return{}}}
+ function exportLog(){
+   const db=load();
+   const rows=Object.values(db).filter(r=>(r.wrong||0)+(r.timeout||0)>0).map(r=>{
+     const attempts=(r.attempts||0), correct=(r.correct||0), wrong=(r.wrong||0), timeout=(r.timeout||0);
+     const avg=attempts?Math.round((r.totalResponseSec||0)/attempts*10)/10:null;
+     const accuracy=attempts?Math.round(correct/attempts*1000)/10:null;
+     const priority=(wrong*2+timeout*2+(accuracy!=null&&accuracy<60?2:0)+(avg!=null&&avg>=10?1:0));
+     return {
+       subject:r.subject,app:r.app,category:r.category||"",
+       question:r.question,answer:r.answer,
+       correctCount:correct,wrongCount:wrong,timeoutCount:timeout,
+       attempts,accuracyPercent:accuracy,averageResponseSeconds:avg,
+       priorityScore:priority,lastSeenAt:r.lastSeenAt
+     };
+   }).sort((a,b)=>b.priorityScore-a.priorityScore||b.wrongCount-a.wrongCount);
+   const bySubject={};
+   for(const r of rows)(bySubject[r.subject]??=[]).push(r);
+   const payload={
+     schema:"weak-log-v1",
+     exportedAt:new Date().toISOString(),
+     note:"priorityScoreは誤答・時間切れ・低正答率・長い解答時間をもとにした復習優先度の目安です。",
+     subjects:Object.fromEntries(Object.entries(bySubject).map(([k,v])=>[k,v.slice(0,50)])),
+     all:rows
+   };
+   const d=new Date(),z=n=>String(n).padStart(2,"0");
+   const fn=`苦手ログ_${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}.json`;
+   const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+ }
+ $("#exportWeakLog")?.addEventListener("click",exportLog);
+ $("#clearWeakLog")?.addEventListener("click",()=>{
+   if(confirm("苦手ログをリセットしますか？ 学習時間ログは消えません。")){localStorage.removeItem(KEY);alert("苦手ログをリセットしました。")}
+ });
 })();
 </script>
 

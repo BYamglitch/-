@@ -128,6 +128,78 @@ header{min-height:62px;display:flex;align-items:center;justify-content:space-bet
 })();
 </script>
 
+
+<script>
+/* ===== 共通苦手ログ v1 ===== */
+(function(){
+  if(window.WeakLog) return;
+  const KEY="weakLogV1";
+  let active=null;
+  const now=()=>Date.now();
+  function load(){
+    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
+    catch(e){return {}}
+  }
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  function cleanKey(s){return String(s??"").trim().slice(0,240)}
+  window.WeakLog={
+    start(meta={}){
+      active={...meta,startedAt:now()};
+    },
+    result(kind,meta={},elapsedSec=null){
+      const m={...(active||{}),...(meta||{})};
+      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
+      const a=cleanKey(m.answer||m.a||m.en||"");
+      if(!q && !m.key) return;
+      const subject=cleanKey(m.subject||"未分類");
+      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
+      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
+      const db=load();
+      const r=db[key]||{
+        subject,app,
+        category:cleanKey(m.category||m.cat||m.tag||""),
+        question:q,answer:a,
+        correct:0,wrong:0,timeout:0,
+        attempts:0,totalResponseSec:0,
+        firstSeenAt:now(),lastSeenAt:now()
+      };
+      if(kind==="correct") r.correct++;
+      else if(kind==="timeout") r.timeout++;
+      else r.wrong++;
+      r.attempts++;
+      let sec=elapsedSec;
+      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
+      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
+      r.lastSeenAt=now();
+      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
+      db[key]=r; save(db); active=null;
+    },
+    importWeak(meta,list){
+      const db=load();
+      for(const x of (list||[])){
+        if(!x||!(x.wrong>0||x.timeout>0)) continue;
+        const subject=cleanKey(meta.subject||x.subject||"未分類");
+        const app=cleanKey(meta.app||x.app||"");
+        const q=cleanKey(x.question||x.q||"");
+        const a=cleanKey(x.answer||x.a||"");
+        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
+        const cur=db[key]||{
+          subject,app,category:cleanKey(x.category||x.cat||""),
+          question:q,answer:a,correct:0,wrong:0,timeout:0,
+          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
+        };
+        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
+        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
+        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
+        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
+        cur.lastSeenAt=now(); db[key]=cur;
+      }
+      save(db);
+    }
+  };
+})();
+</script>
+
 </head>
 <body>
 <div class="shell">
@@ -211,8 +283,8 @@ function getWeakMap(){try{return JSON.parse(localStorage.getItem("ntfall_weak")|
 function saveWeakMap(m){try{localStorage.setItem("ntfall_weak",JSON.stringify(m))}catch(e){}}
 function weakWords(){const m=getWeakMap();return BANK.filter(x=>(lesson==="all"||String(x.lesson)===lesson)&&m[x.en]>0)}
 function updateWeakButton(){const n=weakWords().length;$("weakCount").textContent=`（${n}語）`;$("weakBtn").disabled=n===0}
-function addWeak(en){const m=getWeakMap();m[en]=(m[en]||0)+1;saveWeakMap(m);updateWeakButton()}
-function easeWeak(en){const m=getWeakMap();if(m[en]){m[en]--;if(m[en]<=0)delete m[en];saveWeakMap(m);updateWeakButton()}}
+function addWeak(en){try{const z=BANK.find(x=>x.en===en);if(z)WeakLog.result('wrong',{subject:'英語',app:'英語・落ち単語',category:'Lesson '+z.lesson,question:z.ja,answer:z.en})}catch(e){}const m=getWeakMap();m[en]=(m[en]||0)+1;saveWeakMap(m);updateWeakButton()}
+function easeWeak(en){try{const z=BANK.find(x=>x.en===en);if(z)WeakLog.result('correct',{subject:'英語',app:'英語・落ち単語',category:'Lesson '+z.lesson,question:z.ja,answer:z.en})}catch(e){}const m=getWeakMap();if(m[en]){m[en]--;if(m[en]<=0)delete m[en];saveWeakMap(m);updateWeakButton()}}
 function rememberSessionMistake(item){if(sessionActive&&!reviewMode&&item)sessionMistakes[item.en]=item}
 function sessionMistakeWords(){return Object.values(sessionMistakes)}
 
@@ -240,7 +312,7 @@ function nextWord(){
     if(!retryQueue.length){finishTurn();return;}
     cur=retryQueue.shift();
   }else{
-    cur=pool[Math.floor(Math.random()*pool.length)];
+    cur=pool[Math.floor(Math.random()*pool.length)];try{WeakLog.start({subject:'英語',app:'英語・落ち単語',category:'Lesson '+cur.lesson,question:cur.ja,answer:cur.en})}catch(e){}
   }
   const unique=[...new Map(distractorPool.filter(x=>x.ja!==cur.ja).map(x=>[x.ja,x.ja])).values()];
   opts=shuffle([cur.ja,...shuffle(unique).slice(0,3)]);

@@ -78,6 +78,78 @@
 })();
 </script>
 
+
+<script>
+/* ===== 共通苦手ログ v1 ===== */
+(function(){
+  if(window.WeakLog) return;
+  const KEY="weakLogV1";
+  let active=null;
+  const now=()=>Date.now();
+  function load(){
+    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
+    catch(e){return {}}
+  }
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  function cleanKey(s){return String(s??"").trim().slice(0,240)}
+  window.WeakLog={
+    start(meta={}){
+      active={...meta,startedAt:now()};
+    },
+    result(kind,meta={},elapsedSec=null){
+      const m={...(active||{}),...(meta||{})};
+      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
+      const a=cleanKey(m.answer||m.a||m.en||"");
+      if(!q && !m.key) return;
+      const subject=cleanKey(m.subject||"未分類");
+      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
+      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
+      const db=load();
+      const r=db[key]||{
+        subject,app,
+        category:cleanKey(m.category||m.cat||m.tag||""),
+        question:q,answer:a,
+        correct:0,wrong:0,timeout:0,
+        attempts:0,totalResponseSec:0,
+        firstSeenAt:now(),lastSeenAt:now()
+      };
+      if(kind==="correct") r.correct++;
+      else if(kind==="timeout") r.timeout++;
+      else r.wrong++;
+      r.attempts++;
+      let sec=elapsedSec;
+      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
+      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
+      r.lastSeenAt=now();
+      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
+      db[key]=r; save(db); active=null;
+    },
+    importWeak(meta,list){
+      const db=load();
+      for(const x of (list||[])){
+        if(!x||!(x.wrong>0||x.timeout>0)) continue;
+        const subject=cleanKey(meta.subject||x.subject||"未分類");
+        const app=cleanKey(meta.app||x.app||"");
+        const q=cleanKey(x.question||x.q||"");
+        const a=cleanKey(x.answer||x.a||"");
+        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
+        const cur=db[key]||{
+          subject,app,category:cleanKey(x.category||x.cat||""),
+          question:q,answer:a,correct:0,wrong:0,timeout:0,
+          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
+        };
+        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
+        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
+        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
+        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
+        cur.lastSeenAt=now(); db[key]=cur;
+      }
+      save(db);
+    }
+  };
+})();
+</script>
+
 </head><body><div class="wrap">
 <section id="start" class="card"><h1>🍳 家庭科 期末試験対策<br>4択ドリル</h1><p class="sub">試験範囲完全版。これまでの授業資料＋本日確認した「前期まとめWS」WS②〜⑥の内容を統合。<b>1ターン20問</b>です。通常ターン終了後に、今回の誤答・時間切れを優先した<b>復習ターン20問</b>を自動追加します。正解は1秒後に自動で次へ進みます。</p>
 <div class="grid"><label><b>今回やる通常ターン数</b><select id="turnCount"><option value="1">1ターン（20問＋復習20問）</option><option value="2">2ターン（40問＋復習20問）</option><option value="3" selected>3ターン（60問＋復習20問）</option><option value="4">4ターン（80問＋復習20問）</option><option value="5">5ターン（100問＋復習20問）</option></select></label>
@@ -117,11 +189,13 @@ function makeReview(){let p=pool(),w=loadWeak(),picked=[],seen=new Set();[...ses
 function ensureR(){if(!turnResults[currentTurn])turnResults[currentTurn]={correct:0,wrong:0,timeout:0,type:plan[currentTurn].type,label:plan[currentTurn].label};return turnResults[currentTurn]}
 function startGame(){
 StudyLog.startTurn({subject:'家庭科',app:'家庭科・期末4択',turnLabel:'第1ターン'});normalTurns=+$("#turnCount").value;cat=$("#category").value;plan=makeNormal();currentTurn=0;qIndex=0;turnResults=[];sessionMiss=[];totalCorrect=0;$("#start").classList.add("hidden");$("#final").classList.add("hidden");$("#turnResult").classList.add("hidden");$("#quiz").classList.remove("hidden");showQ()}
-function showQ(){locked=false;clearInterval(timerId);left=LIMIT;let t=plan[currentTurn],q=t.qs[qIndex],r=ensureR();$("#turnTitle").innerHTML=t.type==="review"?'<span class="pill review">復習 TURN</span>':t.label;$("#catLabel").textContent=q.cat;$("#qmeta").textContent=`${qIndex+1} / 20　｜　このターン ${r.correct} 点`;$("#question").textContent=q.q;$("#bar").style.width=`${qIndex/20*100}%`;$("#feedback").className="feedback";$("#nextBtn").classList.remove("show");$("#options").innerHTML="";shuffle([q.a,...q.d]).forEach(o=>{let b=document.createElement("button");b.className="opt";b.textContent=o;b.onclick=()=>answer(o,b);$("#options").appendChild(b)});updateTimer();timerId=setInterval(()=>{left-=.1;if(left<=0){left=0;clearInterval(timerId);timeout()}updateTimer()},100)}
+function showQ(){
+ try{const z=plan[currentTurn]?.qs?.[qIndex]; if(z) WeakLog.start({subject:'家庭科',app:'家庭科・期末4択',category:z.cat||'',question:z.q||'',answer:z.a||''})}catch(e){}locked=false;clearInterval(timerId);left=LIMIT;let t=plan[currentTurn],q=t.qs[qIndex],r=ensureR();$("#turnTitle").innerHTML=t.type==="review"?'<span class="pill review">復習 TURN</span>':t.label;$("#catLabel").textContent=q.cat;$("#qmeta").textContent=`${qIndex+1} / 20　｜　このターン ${r.correct} 点`;$("#question").textContent=q.q;$("#bar").style.width=`${qIndex/20*100}%`;$("#feedback").className="feedback";$("#nextBtn").classList.remove("show");$("#options").innerHTML="";shuffle([q.a,...q.d]).forEach(o=>{let b=document.createElement("button");b.className="opt";b.textContent=o;b.onclick=()=>answer(o,b);$("#options").appendChild(b)});updateTimer();timerId=setInterval(()=>{left-=.1;if(left<=0){left=0;clearInterval(timerId);timeout()}updateTimer()},100)}
 function updateTimer(){$("#timer").textContent=left.toFixed(1);$("#timer").classList.toggle("danger",left<=3)}
 function lockOpts(a,clicked){document.querySelectorAll(".opt").forEach(b=>{b.disabled=true;if(b.textContent===a)b.classList.add("correct");else if(b===clicked)b.classList.add("wrong");else b.classList.add("dim")})}
 function answer(choice,btn){if(locked)return;locked=true;clearInterval(timerId);let q=plan[currentTurn].qs[qIndex],r=ensureR(),ok=choice===q.a;if(ok){r.correct++;totalCorrect++;reward(q.id)}else{r.wrong++;sessionMiss.push(q.id);addWeak(q.id)}lockOpts(q.a,btn);let f=$("#feedback");f.className="feedback show "+(ok?"good":"bad");f.innerHTML=ok?`✅ 正解！ <b>${q.a}</b>`:`❌ 正解は <b>${q.a}</b>`;$("#qmeta").textContent=`${qIndex+1} / 20　｜　このターン ${r.correct} 点`;if(ok)setTimeout(advance,1000);else $("#nextBtn").classList.add("show")}
-function timeout(){if(locked)return;locked=true;let q=plan[currentTurn].qs[qIndex],r=ensureR();r.timeout++;sessionMiss.push(q.id);addWeak(q.id);lockOpts(q.a,null);let f=$("#feedback");f.className="feedback show bad";f.innerHTML=`⏰ 時間切れ。正解は <b>${q.a}</b>`;$("#nextBtn").classList.add("show")}
+function timeout(){
+ try{WeakLog.result('timeout')}catch(e){}if(locked)return;locked=true;let q=plan[currentTurn].qs[qIndex],r=ensureR();r.timeout++;sessionMiss.push(q.id);addWeak(q.id);lockOpts(q.a,null);let f=$("#feedback");f.className="feedback show bad";f.innerHTML=`⏰ 時間切れ。正解は <b>${q.a}</b>`;$("#nextBtn").classList.add("show")}
 function advance(){qIndex++;if(qIndex>=20)finishTurn();else showQ()}$("#nextBtn").onclick=advance;
 function finishTurn(){
 StudyLog.finishTurn({subject:'家庭科',app:'家庭科・期末4択',turnLabel:(plan[currentTurn]?.label||`第${currentTurn+1}ターン`)});clearInterval(timerId);$("#quiz").classList.add("hidden");$("#turnResult").classList.remove("hidden");let r=ensureR(),rev=plan[currentTurn].type==="review";$("#turnResultTitle").textContent=rev?"復習ターン終了！":`${plan[currentTurn].label} 終了！`;$("#turnScore").textContent=`${r.correct} / 20`;$("#totalScore").textContent=`${totalCorrect} / ${turnResults.length*20}`;$("#missCount").textContent=`${r.wrong+r.timeout}問`;$("#turnMessage").textContent=rev?"今回の誤答・時間切れを中心に復習しました。":(currentTurn===normalTurns-1?"次は、今回の誤答・時間切れを優先した復習ターンです。":"次の通常ターンへ進みます。");$("#continueBtn").textContent=rev?"最終結果を見る":"次のターンへ"}

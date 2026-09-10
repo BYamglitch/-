@@ -79,6 +79,78 @@
 })();
 </script>
 
+
+<script>
+/* ===== 共通苦手ログ v1 ===== */
+(function(){
+  if(window.WeakLog) return;
+  const KEY="weakLogV1";
+  let active=null;
+  const now=()=>Date.now();
+  function load(){
+    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
+    catch(e){return {}}
+  }
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  function cleanKey(s){return String(s??"").trim().slice(0,240)}
+  window.WeakLog={
+    start(meta={}){
+      active={...meta,startedAt:now()};
+    },
+    result(kind,meta={},elapsedSec=null){
+      const m={...(active||{}),...(meta||{})};
+      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
+      const a=cleanKey(m.answer||m.a||m.en||"");
+      if(!q && !m.key) return;
+      const subject=cleanKey(m.subject||"未分類");
+      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
+      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
+      const db=load();
+      const r=db[key]||{
+        subject,app,
+        category:cleanKey(m.category||m.cat||m.tag||""),
+        question:q,answer:a,
+        correct:0,wrong:0,timeout:0,
+        attempts:0,totalResponseSec:0,
+        firstSeenAt:now(),lastSeenAt:now()
+      };
+      if(kind==="correct") r.correct++;
+      else if(kind==="timeout") r.timeout++;
+      else r.wrong++;
+      r.attempts++;
+      let sec=elapsedSec;
+      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
+      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
+      r.lastSeenAt=now();
+      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
+      db[key]=r; save(db); active=null;
+    },
+    importWeak(meta,list){
+      const db=load();
+      for(const x of (list||[])){
+        if(!x||!(x.wrong>0||x.timeout>0)) continue;
+        const subject=cleanKey(meta.subject||x.subject||"未分類");
+        const app=cleanKey(meta.app||x.app||"");
+        const q=cleanKey(x.question||x.q||"");
+        const a=cleanKey(x.answer||x.a||"");
+        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
+        const cur=db[key]||{
+          subject,app,category:cleanKey(x.category||x.cat||""),
+          question:q,answer:a,correct:0,wrong:0,timeout:0,
+          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
+        };
+        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
+        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
+        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
+        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
+        cur.lastSeenAt=now(); db[key]=cur;
+      }
+      save(db);
+    }
+  };
+})();
+</script>
+
 </head><body><main class="wrap">
 <section id="setup" class="card"><h1>📘 国語・漢字の書き<br>期末試験範囲版</h1>
 <p class="lead">出題する漢字は、指定PDFの<b>「恥」〜「威」</b>だけです。元教材画像は表示しません。</p>
@@ -108,12 +180,12 @@ function makeTurn(){let fresh=BANK.filter(x=>!used.has(x.kanji));if(fresh.length
 $('#startBtn').onclick=()=>{$('#setup').classList.add('hidden');startTurn()};
 function startTurn(){
 StudyLog.startTurn({subject:'国語',app:'国語・漢字の書き',turnLabel:`第${currentTurn}ターン`});queue=makeTurn();cleared=0;miss=0;$('#quiz').classList.remove('hidden');$('#turnEnd').classList.add('hidden');renderNext()}
-function renderNext(){if(!queue.length)return endTurn();current=queue.shift();const x=current.item;$('#turnPill').textContent=`${currentTurn} / ${turns}ターン`;$('#progressPill').textContent=`クリア ${cleared} / 20`;$('#pagePill').textContent=x.page;$('#bar').style.width=(cleared/20*100)+'%';$('#reading').textContent=x.reading;$('#hintBox').textContent=x.hint;$('#hintBox').classList.add('hidden');$('#answerBox').classList.add('hidden');$('#answerKanji').textContent=x.kanji;$('#answerMeta').textContent=`読み：${x.reading}`;$('#feedback').textContent='';$('#answerInput').value='';clearCanvas()}
+function renderNext(){if(!queue.length)return endTurn();current=queue.shift();const x=current.item;try{WeakLog.start({subject:'国語',app:'国語・漢字の書き',category:x.page||'',question:'読み：'+x.reading,answer:x.kanji})}catch(e){}$('#turnPill').textContent=`${currentTurn} / ${turns}ターン`;$('#progressPill').textContent=`クリア ${cleared} / 20`;$('#pagePill').textContent=x.page;$('#bar').style.width=(cleared/20*100)+'%';$('#reading').textContent=x.reading;$('#hintBox').textContent=x.hint;$('#hintBox').classList.add('hidden');$('#answerBox').classList.add('hidden');$('#answerKanji').textContent=x.kanji;$('#answerMeta').textContent=`読み：${x.reading}`;$('#feedback').textContent='';$('#answerInput').value='';clearCanvas()}
 $('#hintBtn').onclick=()=>$('#hintBox').classList.toggle('hidden');
 $('#audioBtn').onclick=()=>{const u=new SpeechSynthesisUtterance(current.item.reading);u.lang='ja-JP';u.rate=.8;speechSynthesis.cancel();speechSynthesis.speak(u)};
 function showAnswer(){$('#answerInput').blur();$('#answerBox').classList.remove('hidden')}$('#showAnswer1').onclick=showAnswer;$('#showAnswer2').onclick=showAnswer;
-$('#goodBtn').onclick=()=>{weak[current.item.kanji]=Math.max(0,(weak[current.item.kanji]||0)-1);localStorage.setItem(STORE,JSON.stringify(weak));cleared++;$('#feedback').textContent='✅ クリア';setTimeout(renderNext,500)};
-$('#badBtn').onclick=()=>{weak[current.item.kanji]=(weak[current.item.kanji]||0)+2;localStorage.setItem(STORE,JSON.stringify(weak));miss++;totalMiss++;queue.push(current);$('#feedback').textContent='↩ この漢字をターンの最後へ回します';setTimeout(renderNext,650)};
+$('#goodBtn').onclick=()=>{try{WeakLog.result('correct')}catch(e){}weak[current.item.kanji]=Math.max(0,(weak[current.item.kanji]||0)-1);localStorage.setItem(STORE,JSON.stringify(weak));cleared++;$('#feedback').textContent='✅ クリア';setTimeout(renderNext,500)};
+$('#badBtn').onclick=()=>{try{WeakLog.result('wrong')}catch(e){}weak[current.item.kanji]=(weak[current.item.kanji]||0)+2;localStorage.setItem(STORE,JSON.stringify(weak));miss++;totalMiss++;queue.push(current);$('#feedback').textContent='↩ この漢字をターンの最後へ回します';setTimeout(renderNext,650)};
 $('#deleteBtn').onclick=()=>{const a=Array.from($('#answerInput').value);a.pop();$('#answerInput').value=a.join('');$('#answerInput').focus()};$('#clearTextBtn').onclick=()=>{$('#answerInput').value='';$('#answerInput').focus()};
 function endTurn(){
 StudyLog.finishTurn({subject:'国語',app:'国語・漢字の書き',turnLabel:`第${currentTurn}ターン`});$('#quiz').classList.add('hidden');$('#turnEnd').classList.remove('hidden');$('#turnSummary').textContent=`20問すべてクリア。書けなかった延べ回数：${miss}回`;$('#nextTurnBtn').textContent=currentTurn>=turns?'結果を見る':'次のターンへ'}
