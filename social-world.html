@@ -272,7 +272,7 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
   <div style="font-size:42px">🌍</div>
   <h1>社会・地理<br>期末テスト4択ドリル</h1>
   <div class="lead">
-    <b>iPad用。</b> 1ターン30問・1問20秒。<br>
+    <b>iPad用。</b> 1ターン30問・時間制限なし。<br>
     間違えた問題・時間切れの問題は、<b>正解するまでそのターン内で再出題</b>します。
     「総合シャッフル」は世界地理15問＋日本地理15問を選び、30問の順番を完全に混ぜて出題します。
   </div>
@@ -283,7 +283,7 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
   <div class="mode-grid">
     <button class="mode" data-mode="world">🌏 世界地理だけ<small>第1〜8章から30問</small></button>
     <button class="mode" data-mode="japan">🗾 日本地理だけ<small>第9〜16章から30問</small></button>
-    <button class="mode" data-mode="weak">💀 苦手だけ<small>過去の誤答・時間切れを優先</small></button>
+    <button class="mode" data-mode="weak">💀 苦手だけ<small>過去の誤答を優先</small></button>
   </div>
 
   <div class="chapterbox">
@@ -294,8 +294,8 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
 
   <div class="note">
     元ドリルの短答問題を4択化した問題バンクを使用しています。
-    正解時は1秒後に自動で次へ進みます。誤答・時間切れの場合は正解を確認して「次の問題へ」を押してください。
-    制限時間は数字では表示せず、上部のバーだけで示します。
+    正解時は1秒後に自動で次へ進みます。誤答の場合は正解を確認して「次の問題へ」を押してください。
+    時間制限はありません。問題文と選択肢を自分のペースで読めます。
   </div>
 </section>
 
@@ -307,7 +307,7 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
   </div>
   <div class="progress"><div id="progressBar"></div></div>
 
-  <div class="timerLabel">制限時間</div>
+  <div class="timerLabel">時間制限なし</div>
   <div class="timer"><div id="timerBar"></div></div>
 
   <div id="section" class="section"></div>
@@ -327,7 +327,7 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
   <div class="stats">
     <div class="stat"><b id="firstCorrect">0</b>初回正解</div>
     <div class="stat"><b id="wrongCount">0</b>誤答回数</div>
-    <div class="stat"><b id="timeoutCount">0</b>時間切れ</div>
+    
   </div>
 
   <div id="encourage" class="lead"></div>
@@ -483,24 +483,12 @@ try{const z=current?.q||current; if(z) WeakLog.start({subject:'社会',app:'社�
     b.onclick=()=>answer(o,b);
     $("#choices").appendChild(b);
   });
-
-  timeLeftMs=LIMIT_MS;
-  updateTimer();
-  const started=performance.now();
-  timerId=setInterval(()=>{
-    timeLeftMs=Math.max(0,LIMIT_MS-(performance.now()-started));
-    updateTimer();
-    if(timeLeftMs<=0) timeout();
-  },100);
+  timeLeftMs=Infinity; updateTimer();
 }
 
 function updateTimer(){
-  const ratio=timeLeftMs/LIMIT_MS;
-  $("#timerBar").style.width=`${ratio*100}%`;
-  $("#timerBar").style.background=
-    ratio<0.25?"var(--bad)":
-    ratio<0.5?"var(--warn)":
-    "var(--accent)";
+  $("#timerBar").style.width="100%";
+  $("#timerBar").style.background="#94a3b8";
 }
 
 function lock(correct,clicked=null){

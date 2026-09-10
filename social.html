@@ -236,7 +236,7 @@ select{width:100%;min-height:48px;margin-top:8px;border:1px solid #bdc8d6;border
   <h1>社会・地理<br>期末テスト4択ドリル</h1>
   <div class="lead">
     <b>正式試験範囲版。</b> 教科書p.56〜105＋授業配布プリント・予備テストの内容に絞っています。<br>
-    1ターン30問・<b>1問20秒</b>。誤答・時間切れはターン末尾へ回り、<b>30問すべて正解するまで終了しません</b>。
+    1ターン30問・<b>時間制限なし</b>。誤答はターン末尾へ回り、<b>30問すべて正解するまで終了しません</b>。
   </div>
 
   <div class="mode-grid">
@@ -245,7 +245,7 @@ select{width:100%;min-height:48px;margin-top:8px;border:1px solid #bdc8d6;border
     <button class="mode" data-mode="europe">🇪🇺 ヨーロッパ州<small>自然・文化・EU・農工業</small></button>
     <button class="mode" data-mode="africa">🌍 アフリカ州<small>自然・歴史・資源・課題</small></button>
     <button class="mode" data-mode="na">🇺🇸 北アメリカ州<small>自然・民族・農工業・消費</small></button>
-    <button class="mode" data-mode="weak">💀 苦手だけ<small>誤答・時間切れを優先</small></button>
+    <button class="mode" data-mode="weak">💀 苦手だけ<small>誤答を優先</small></button>
   </div>
 
   <div class="chapterbox">
@@ -256,8 +256,8 @@ select{width:100%;min-height:48px;margin-top:8px;border:1px solid #bdc8d6;border
 
   <div class="note">
     正式範囲内の既存問題に、授業配布プリント・予備テストの重要語句を追加した問題バンクです。
-    正解時は1秒後に自動で次へ進みます。誤答・時間切れの場合は正解を確認して「次の問題へ」を押してください。
-    制限時間は数字では表示せず、上部のバーだけで示します。
+    正解時は1秒後に自動で次へ進みます。誤答の場合は正解を確認して「次の問題へ」を押してください。
+    時間制限はありません。問題文と選択肢を自分のペースで読めます。
   </div>
 </section>
 
@@ -269,7 +269,7 @@ select{width:100%;min-height:48px;margin-top:8px;border:1px solid #bdc8d6;border
   </div>
   <div class="progress"><div id="progressBar"></div></div>
 
-  <div class="timerLabel">制限時間</div>
+  <div class="timerLabel">時間制限なし</div>
   <div class="timer"><div id="timerBar"></div></div>
 
   <div id="section" class="section"></div>
@@ -289,7 +289,7 @@ select{width:100%;min-height:48px;margin-top:8px;border:1px solid #bdc8d6;border
   <div class="stats">
     <div class="stat"><b id="firstCorrect">0</b>初回正解</div>
     <div class="stat"><b id="wrongCount">0</b>誤答回数</div>
-    <div class="stat"><b id="timeoutCount">0</b>時間切れ</div>
+    
   </div>
 
   <div id="encourage" class="lead"></div>
@@ -445,24 +445,12 @@ try{const z=current?.q||current; if(z) WeakLog.start({subject:'社会',app:'社�
     b.onclick=()=>answer(o,b);
     $("#choices").appendChild(b);
   });
-
-  timeLeftMs=LIMIT_MS;
-  updateTimer();
-  const started=performance.now();
-  timerId=setInterval(()=>{
-    timeLeftMs=Math.max(0,LIMIT_MS-(performance.now()-started));
-    updateTimer();
-    if(timeLeftMs<=0) timeout();
-  },100);
+  timeLeftMs=Infinity; updateTimer();
 }
 
 function updateTimer(){
-  const ratio=timeLeftMs/LIMIT_MS;
-  $("#timerBar").style.width=`${ratio*100}%`;
-  $("#timerBar").style.background=
-    ratio<0.25?"var(--bad)":
-    ratio<0.5?"var(--warn)":
-    "var(--accent)";
+  $("#timerBar").style.width="100%";
+  $("#timerBar").style.background="#94a3b8";
 }
 
 function lock(correct,clicked=null){

@@ -252,7 +252,7 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
   <div style="font-size:42px">🔬</div>
   <h1>理科 期末テスト<br>4択ドリル</h1>
   <div class="lead">
-    <b>iPad用。</b> 1ターン20問・1問15秒。<br>
+    <b>iPad用。</b> 1ターン20問・時間制限なし。<br>
     間違えた問題・時間切れの問題は、<b>正解するまでそのターン内で再出題</b>します。
     「総合シャッフル」は化学10問＋生物10問を選び、20問の順番を完全に混ぜて出題します。
   </div>
@@ -263,7 +263,7 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
   <div class="mode-grid">
     <button class="mode" data-mode="chem">🧪 化学だけ<small>水溶液・濃度・溶解度・状態変化・蒸留</small></button>
     <button class="mode" data-mode="bio">🦎 生物だけ<small>教科書36～53ページ＋トカゲ・ヤモリ・イモリ資料</small></button>
-    <button class="mode" data-mode="weak">💀 苦手だけ<small>誤答・時間切れを優先して20問</small></button>
+    <button class="mode" data-mode="weak">💀 苦手だけ<small>誤答を優先して20問</small></button>
   </div>
   <div class="note">誤答履歴はこの端末のブラウザ内だけに保存されます。外部通信はしません。</div>
 </section>
@@ -276,8 +276,8 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
   <div class="progress"><div id="progressBar"></div></div>
 
   <div class="timerrow">
-    <div id="timerNum" class="timerNumber">10</div>
-    <div class="timer"><div id="timerBar"></div></div>
+    <div id="timerNum" class="timerNumber">∞</div>
+    <div class="timer"><div id="timerBar" style="width:100%;background:#94a3b8"></div></div>
   </div>
 
   <div id="section" class="section"></div>
@@ -296,7 +296,7 @@ box-shadow:0 4px 14px rgba(0,0,0,.12)">← メニュー</a>
   <div class="stats">
     <div class="stat"><b id="correctCount">0</b>初回正解</div>
     <div class="stat"><b id="wrongCount">0</b>誤答</div>
-    <div class="stat"><b id="timeoutCount">0</b>時間切れ</div>
+    
   </div>
   <div id="encourage" class="lead"></div>
   <div class="actions">
@@ -677,26 +677,13 @@ try{const z=currentItem?.q||currentItem; if(z) WeakLog.start({subject:'理科',a
     b.onclick=()=>answer(opt,b);
     $("#choices").appendChild(b);
   });
-
-  // 全問題15秒に統一
-  timeMax=15;
-  timeLeft=15;
-  updateTimer();
-
-  const started=performance.now();
-  timerId=setInterval(()=>{
-    const elapsed=(performance.now()-started)/1000;
-    timeLeft=Math.max(0,timeMax-elapsed);
-    updateTimer();
-    if(timeLeft<=0) timeout();
-  },100);
+  timeLeft=Infinity; updateTimer();
 }
 
 function updateTimer(){
-  $("#timerNum").textContent=Math.ceil(timeLeft);
-  $("#timerBar").style.width=`${(timeLeft/timeMax)*100}%`;
-  const p=timeLeft/timeMax;
-  $("#timerBar").style.background=p<.30?"var(--bad)":p<.55?"var(--warn)":"var(--accent)";
+  $("#timerNum").textContent="∞";
+  $("#timerBar").style.width="100%";
+  $("#timerBar").style.background="#94a3b8";
 }
 
 function lockChoices(correct,clicked=null,showNext=true){

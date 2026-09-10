@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>NEW TREASURE 日本語→英文 10秒チャレンジ</title>
+<title>NEW TREASURE 日本語→英文 時間制限なしチャレンジ</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Noto Sans JP","Yu Gothic",sans-serif;background:#071321;color:#fff}
@@ -234,14 +234,14 @@ input, select, textarea, button{
 <body>
 <div id="app">
 <header>
-<div><div class="title">日本語 → 英文 10秒チャレンジ</div><div class="sub">Lesson 4〜6 / 1ターン7問</div></div>
+<div><div class="title">日本語 → 英文 時間制限なしチャレンジ</div><div class="sub">Lesson 4〜6 / 1ターン7問</div></div>
 <button type="button" id="soundBtn" class="icon">🔊 音ON</button>
 </header>
 
 <section id="setup">
 <div class="card">
 <h1>7問チャレンジ</h1>
-<p>日本語を表示した直後に、正解英文を読み上げます。音と日本語を結びつけながら、10秒以内に正しい英文を3択から選びます。</p>
+<p>日本語を表示した直後に、正解英文を読み上げます。音と日本語を結びつけながら、時間制限なし以内に正しい英文を3択から選びます。</p>
 
 <div class="pickTitle">出題範囲</div>
 <div class="choiceRow" id="lessonButtons">
@@ -276,7 +276,7 @@ input, select, textarea, button{
 <div class="stat"><b id="num">1/7</b><span>問題</span></div>
 <div class="stat"><b id="score">0</b><span>正解</span></div>
 <div class="stat"><b id="avg">—</b><span>平均秒</span></div>
-<div class="stat"><b id="time">10.0</b><span>残り秒</span></div>
+<div class="stat"><b id="time">∞</b><span>時間制限なし</span></div>
 </div>
 <div class="bar"><div id="barInner"></div></div>
 <div class="qcard">
@@ -425,25 +425,14 @@ function showQuestion(){
   });
 
   qStart=performance.now();
-  deadline=qStart+10000;
-  $("time").textContent="10.0";
+  deadline=Infinity;
+  $("time").textContent="∞";
   $("barInner").style.transform="scaleX(1)";
   setTimeout(function(){ speak(q.en); },250);
   cancelAnimationFrame(rafId);
-  tick();
 }
 
-function tick(){
-  if(locked) return;
-  const remain=Math.max(0,(deadline-performance.now())/1000);
-  $("time").textContent=remain.toFixed(1);
-  $("barInner").style.transform="scaleX("+(remain/10)+")";
-  if(remain<=0){
-    answer(null);
-    return;
-  }
-  rafId=requestAnimationFrame(tick);
-}
+function tick(){}
 
 function answer(btn){
   if(locked) return;
@@ -451,7 +440,7 @@ function answer(btn){
   cancelAnimationFrame(rafId);
 
   const q=turn[index];
-  const elapsed=Math.min(10,(performance.now()-qStart)/1000);
+  const elapsed=(performance.now()-qStart)/1000;
   times.push(elapsed);
 
   const ok=!!btn && btn.dataset.value===q.en;
@@ -478,7 +467,7 @@ function answer(btn){
 
   setTimeout(function(){
     if(!ok){
-      // 誤答・時間切れは、現在ターンの末尾へ回す
+      // 誤答は、現在ターンの末尾へ回す
       turn.push(q);
     }
     index++;

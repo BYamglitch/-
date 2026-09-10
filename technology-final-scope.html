@@ -170,22 +170,22 @@ button{border:0;border-radius:14px;padding:14px 18px;font-weight:800;cursor:poin
 <body><main class="wrap">
 <section id="start" class="card">
 <h1>🛠 技術・前期期末試験対策<br>4択ドリル</h1>
-<p class="sub">試験範囲完全版。教科書＋授業資料を再監査し、<b>問題解決・工夫と材料・危険と安全・木材の加工と構造</b>に限定。追加配布資料「紙やすり（サンドペーパー）のコツ」も反映済みです。1ターンは<b>20問</b>。間違い・時間切れは同じターンの末尾へ回り、<b>20問すべて正解するまで終了しません</b>。</p>
+<p class="sub">試験範囲完全版。教科書＋授業資料を再監査し、<b>問題解決・工夫と材料・危険と安全・木材の加工と構造</b>に限定。追加配布資料「紙やすり（サンドペーパー）のコツ」も反映済みです。1ターンは<b>20問</b>。間違いは同じターンの末尾へ回り、<b>20問すべて正解するまで終了しません</b>。</p>
 <div class="scope"><span>① 問題解決</span><span>② 工夫と材料</span><span>③ 危険と安全</span><span>④ 木材の加工と構造</span></div>
 <div class="grid">
 <label><b>ターン数</b><select id="turnCount"><option value="2">2ターン</option><option value="3" selected>3ターン</option><option value="4">4ターン</option><option value="5">5ターン</option></select></label>
 <label><b>出題範囲</b><select id="cat"><option value="ALL">4分野MIX</option><option value="問題解決">問題解決</option><option value="工夫と材料">工夫と材料</option><option value="危険と安全">危険と安全</option><option value="木材の加工と構造">木材の加工と構造</option><option value="WEAK">苦手優先</option></select></label>
 </div>
 <button id="startBtn" class="primary">スタート</button>
-<p class="tiny">20秒／問。正解は1秒後に自動で次へ。不正解・時間切れは正解表示後に「次へ」で進み、同じ問題がそのターン末尾に再登場します。</p>
+<p class="tiny">時間制限なし。正解は1秒後に自動で次へ。不正解は正解表示後に「次へ」で進み、同じ問題がそのターン末尾に再登場します。</p>
 </section>
 <section id="quiz" class="card hidden">
 <div class="topline"><span id="turnBadge" class="badge"></span><span id="meta" class="badge"></span></div>
-<div class="progress"><div id="prog"></div></div><div id="timer" class="timer"><div id="timerBar"></div></div>
+<div class="progress"><div id="prog"></div></div><div id="timer" class="timer"><div id="timerBar" style="width:100%;background:#94a3b8"></div></div>
 <div id="kicker" class="kicker"></div><div id="q" class="q"></div><div id="opts" class="opts"></div>
 <div id="feedback" class="feedback"></div><button id="nextBtn" class="secondary next">次へ</button>
 </section>
-<section id="turnResult" class="card hidden"><h1 id="trTitle"></h1><div class="scoregrid"><div class="score">クリア<b>20 / 20</b></div><div class="score">初回正解<b id="firstScore"></b></div><div class="score">誤答回数<b id="wrongCount"></b></div><div class="score">時間切れ<b id="timeoutCount"></b></div><div class="score">総挑戦数<b id="attemptCount"></b></div></div><p id="trMsg" class="sub"></p><button id="continueBtn" class="primary"></button></section>
+<section id="turnResult" class="card hidden"><h1 id="trTitle"></h1><div class="scoregrid"><div class="score">クリア<b>20 / 20</b></div><div class="score">初回正解<b id="firstScore"></b></div><div class="score">誤答回数<b id="wrongCount"></b></div><div class="score">総挑戦数<b id="attemptCount"></b></div></div><p id="trMsg" class="sub"></p><button id="continueBtn" class="primary"></button></section>
 <section id="final" class="card hidden"><h1>全ターン終了！</h1><div id="finalGrid" class="scoregrid"></div><p class="sub">苦手記録はこの端末に保存されます。もう一度「苦手優先」を選ぶと、間違えやすい問題から出題します。</p><button class="primary" onclick="location.reload()">最初の画面へ</button></section>
 </main>
 <script>
@@ -360,7 +360,7 @@ StudyLog.startTurn({subject:'技術',app:'技術・正式範囲',turnLabel:`第$
 function start(){nTurns=+$('#turnCount').value;mode=$('#cat').value;turn=0;results=[];$('#start').classList.add('hidden');beginTurn()}
 function show(){
 try{const z=current?.q||current; if(z) WeakLog.start({subject:'技術',app:'技術・正式範囲',category:z.cat||'',question:z.q||'',answer:z.a||''})}catch(e){}clearInterval(timerId);locked=false;current=queue.shift();let r=results[turn],cleared=slots.filter(s=>s.cleared).length;$('#turnBadge').textContent=`${turn+1} / ${nTurns} ターン`;$('#meta').textContent=`クリア ${cleared} / 20　｜　挑戦 ${r.attempts+1}回`;$('#prog').style.width=`${cleared/20*100}%`;$('#kicker').textContent=current.q.cat;$('#q').textContent=current.q.q;$('#feedback').className='feedback';$('#feedback').textContent='';$('#nextBtn').classList.remove('show');let opts=shuffle([current.q.a,...current.q.d]);$('#opts').innerHTML='';opts.forEach(t=>{let b=document.createElement('button');b.className='opt';b.textContent=t;b.onclick=()=>answer(t,b);$('#opts').appendChild(b)});startTimer()}
-function startTimer(){timeLeft=20;$('#timer').className='timer';$('#timerBar').style.width='100%';timerId=setInterval(()=>{timeLeft-=.1;let pct=Math.max(0,timeLeft/20*100);$('#timerBar').style.width=pct+'%';$('#timer').className='timer'+(pct<=25?' critical':pct<=50?' low':'');if(timeLeft<=0){clearInterval(timerId);timeout()}},100)}
+function startTimer(){clearInterval(timerId);timeLeft=Infinity;$("#timerBar").style.width="100%";$("#timerBar").style.background="#94a3b8"}
 function paint(answer,clicked){document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===answer)b.classList.add('correct');else if(b===clicked)b.classList.add('wrong');else b.classList.add('dim')})}
 function answer(choice,btn){if(locked)return;locked=true;clearInterval(timerId);let q=current.q,r=results[turn];r.attempts++;let ok=choice===q.a;if(ok){if(current.first)r.firstCorrect++;current.cleared=true;reward(q.id);paint(q.a,btn);$('#feedback').className='feedback show good';$('#feedback').innerHTML=`✅ 正解！ <b>${q.a}</b>`;updateMeta();setTimeout(advance,1000)}else{r.wrong++;miss(q.id);current.first=false;queue.push(current);paint(q.a,btn);$('#feedback').className='feedback show bad';$('#feedback').innerHTML=`❌ 正解は <b>${q.a}</b>。この問題はターン末尾でもう一度出ます。`;updateMeta();$('#nextBtn').classList.add('show')}}
 function timeout(){

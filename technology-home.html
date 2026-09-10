@@ -35,18 +35,18 @@ h1{font-size:clamp(30px,6vw,44px);margin:0 0 8px}.sub{color:var(--sub);line-heig
 <div><b>ターン数</b></div>
 <div class="turnrow" id="turnBtns"><button class="sel" data-n="3">3ターン</button><button data-n="4">4ターン</button><button data-n="5">5ターン</button><button data-n="6">6ターン</button></div>
 <button id="startBtn" class="primary">開始</button>
-<div class="note">1ターン20問・1問20秒。誤答／時間切れは同じターンの最後へ回し、正解するまで反復します。学習時間ログ・苦手ログにも対応しています。</div>
+<div class="note">1ターン20問・時間制限なし。誤答は同じターンの最後へ回し、正解するまで反復します。学習時間ログ・苦手ログにも対応しています。</div>
 </section>
 
 <section id="quiz" class="card hidden">
-<div class="top"><span id="turnPill" class="pill"></span><span id="progressPill" class="pill"></span><span id="timePill" class="pill">20秒</span></div>
-<div class="progress"><div id="progressBar"></div></div><div class="timer"><div id="timerBar"></div></div>
+<div class="top"><span id="turnPill" class="pill"></span><span id="progressPill" class="pill"></span><span id="timePill" class="pill">時間制限なし</span></div>
+<div class="progress"><div id="progressBar"></div></div>
 <div id="meta" class="meta"></div><div id="question" class="question"></div><div id="choices" class="choices"></div><div id="feedback" class="feedback hidden"></div>
 </section>
 
 <section id="result" class="card hidden">
 <h1>ターン終了！</h1><div id="score" class="score"></div>
-<div class="stats"><div class="stat"><b id="firstN">0</b>初回正解</div><div class="stat"><b id="wrongN">0</b>誤答</div><div class="stat"><b id="timeoutN">0</b>時間切れ</div></div>
+<div class="stats"><div class="stat"><b id="firstN">0</b>初回正解</div><div class="stat"><b id="wrongN">0</b>誤答</div></div>
 <button id="nextBtn" class="primary">次のターンへ</button><button id="homeBtn" class="secondary">最初に戻る</button>
 </section>
 </main>
@@ -80,17 +80,17 @@ function show(){
  $('#turnPill').textContent=`第${turn+1} / ${turns}ターン`;$('#progressPill').textContent=`クリア ${done.size} / 20`;$('#progressBar').style.width=(done.size/20*100)+'%';
  $('#meta').textContent=`${q.subject} ｜ ${q.cat}`;$('#question').textContent=q.q;$('#feedback').className='feedback hidden';$('#feedback').textContent='';
  const box=$('#choices');box.innerHTML='';shuffle([q.a,...q.d]).forEach(v=>{const b=document.createElement('button');b.className='choice';b.textContent=v;b.onclick=()=>answer(v,b);box.appendChild(b)});
- startAt=performance.now();tick();
+ startAt=performance.now();
 }
-function tick(){if(locked)return;const sec=(performance.now()-startAt)/1000,left=Math.max(0,20-sec);$('#timePill').textContent=left.toFixed(1)+'秒';$('#timerBar').style.transform=`scaleX(${left/20})`;if(left<=0)return answer(null,null);raf=requestAnimationFrame(tick)}
+function tick(){}
 function answer(v,btn){
- if(locked)return;locked=true;cancelAnimationFrame(raf);const q=current.q,sec=Math.min(20,(performance.now()-startAt)/1000),ok=v===q.a;
+ if(locked)return;locked=true;cancelAnimationFrame(raf);const q=current.q,sec=(performance.now()-startAt)/1000,ok=v===q.a;
  document.querySelectorAll('.choice').forEach(b=>{b.disabled=true;if(b.textContent===q.a)b.classList.add('ok')});
  const f=$('#feedback');f.classList.remove('hidden');if(!firstSeen.has(current.slot)){firstSeen.add(current.slot);if(ok)firstCorrect++;}
  if(ok){logWeak(q,'correct',sec);done.add(current.slot);f.textContent='✅ 正解！';f.classList.add('good');setTimeout(show,800)}
  else{if(btn)btn.classList.add('ng');const kind=btn?'wrong':'timeout';logWeak(q,kind,sec);if(btn)wrong++;else timeouts++;queue.push(current);f.textContent=(btn?'❌ 不正解':'⏰ 時間切れ')+`　正解：${q.a}　→ ターンの最後でもう一度`;f.classList.add('bad');setTimeout(show,1450)}
 }
-function finish(){logStudy();$('#quiz').classList.add('hidden');$('#result').classList.remove('hidden');$('#score').textContent=`${firstCorrect} / 20`;$('#firstN').textContent=firstCorrect;$('#wrongN').textContent=wrong;$('#timeoutN').textContent=timeouts;$('#nextBtn').textContent=turn+1<turns?'次のターンへ':'終了'}
+function finish(){logStudy();$('#quiz').classList.add('hidden');$('#result').classList.remove('hidden');$('#score').textContent=`${firstCorrect} / 20`;$('#firstN').textContent=firstCorrect;$('#wrongN').textContent=wrong;$('#nextBtn').textContent=turn+1<turns?'次のターンへ':'終了'}
 document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('.mode').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
 document.querySelectorAll('#turnBtns button').forEach(b=>b.onclick=()=>{turns=+b.dataset.n;document.querySelectorAll('#turnBtns button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
 $('#startBtn').onclick=()=>{turn=0;begin()};$('#nextBtn').onclick=()=>{if(turn+1>=turns)location.reload();else{turn++;begin()}};$('#homeBtn').onclick=()=>location.reload();
