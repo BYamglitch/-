@@ -71,7 +71,11 @@ function logWeak(q,kind,sec){
 }
 function logStudy(){
  let rows=load(STUDYKEY,[]); if(!Array.isArray(rows))rows=[];
- rows.push({subject:'技術家庭',app:'技術家庭・統合',turnLabel:`第${turn+1}ターン`,startedAt:turnStarted,endedAt:Date.now(),activeSeconds:Math.max(1,Math.round((Date.now()-turnStarted)/1000))});
+ const ended=Date.now(), d=new Date(ended), z=n=>String(n).padStart(2,'0');
+ rows.push({subject:'技術家庭',app:'技術家庭・統合',turnLabel:`第${turn+1}ターン`,
+   date:`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`,
+   startedAt:turnStarted,endedAt:ended,
+   durationSec:Math.max(1,Math.round((ended-turnStarted)/1000))});
  save(STUDYKEY,rows.slice(-1000));
 }
 function begin(){turnStarted=Date.now();makeTurn();$('#setup').classList.add('hidden');$('#result').classList.add('hidden');$('#quiz').classList.remove('hidden');show()}

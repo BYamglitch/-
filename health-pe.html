@@ -96,7 +96,11 @@ function updateWeak(q,kind,elapsed){
 function logStudyStart(){sessionStart=Date.now()}
 function logStudyFinish(){
   const rows=(()=>{try{const x=JSON.parse(localStorage.getItem(STUDYKEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}})();
-  rows.push({subject:'保健体育',app:'保健体育・前期期末',turnLabel:`第${turnIndex+1}ターン`,startedAt:sessionStart,endedAt:Date.now(),activeSeconds:Math.round((Date.now()-sessionStart)/1000)});
+  const ended=Date.now(), d=new Date(ended), z=n=>String(n).padStart(2,'0');
+  rows.push({subject:'保健体育',app:'保健体育・前期期末',turnLabel:`第${turnIndex+1}ターン`,
+    date:`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`,
+    startedAt:sessionStart,endedAt:ended,
+    durationSec:Math.max(1,Math.round((ended-sessionStart)/1000))});
   localStorage.setItem(STUDYKEY,JSON.stringify(rows.slice(-1000)));
 }
 

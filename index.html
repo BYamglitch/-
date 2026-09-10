@@ -200,20 +200,34 @@ h1{
  const ds=d=>`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
  function all(){try{const x=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(x)?x:[]}catch(e){return[]}}
  function fmt(sec){sec=Math.round(sec||0);if(sec<60)return sec+"秒";const m=Math.floor(sec/60),s=sec%60;return s?`${m}分${s}秒`:`${m}分`}
+ function rowDate(r){
+   if(r.date) return r.date;
+   const ts=r.endedAt||r.startedAt||0;
+   return ts?ds(new Date(ts)):"";
+ }
+ function rowSec(r){
+   const v=(r.durationSec ?? r.activeSeconds ?? 0);
+   return Number.isFinite(Number(v))?Number(v):0;
+ }
  function filtered(){
    const n=new Date(),td=ds(n),y=new Date(n);y.setDate(y.getDate()-1);
-   if(range==="today") return all().filter(r=>r.date===td);
-   if(range==="yesterday") return all().filter(r=>r.date===ds(y));
+   if(range==="today") return all().filter(r=>rowDate(r)===td);
+   if(range==="yesterday") return all().filter(r=>rowDate(r)===ds(y));
    const cut=new Date(n);cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-6);
-   return all().filter(r=>(r.endedAt||0)>=cut.getTime());
+   return all().filter(r=>{
+     const ts=r.endedAt||r.startedAt||0;
+     if(ts) return ts>=cut.getTime();
+     const d=rowDate(r);
+     return d && d>=ds(cut);
+   });
  }
  function render(){
    const a=filtered();
    $("#sumTurns").textContent=a.length;
-   $("#sumTime").textContent=fmt(a.reduce((s,r)=>s+(r.durationSec||0),0));
+   $("#sumTime").textContent=fmt(a.reduce((s,r)=>s+rowSec(r),0));
    $("#sumApps").textContent=new Set(a.map(r=>r.app)).size;
    const by={};
-   a.forEach(r=>{const k=r.app||"未分類";if(!by[k])by[k]={subject:r.subject||"",turns:0,sec:0,last:0};by[k].turns++;by[k].sec+=r.durationSec||0;by[k].last=Math.max(by[k].last,r.endedAt||0)});
+   a.forEach(r=>{const k=r.app||"未分類";if(!by[k])by[k]={subject:r.subject||"",turns:0,sec:0,last:0};by[k].turns++;by[k].sec+=rowSec(r);by[k].last=Math.max(by[k].last,r.endedAt||r.startedAt||0)});
    const v=Object.entries(by).sort((a,b)=>b[1].last-a[1].last);
    $("#logList").innerHTML=v.length?v.map(([name,x])=>`<div class="logRow"><div><div class="logApp">${name}</div><div class="logSub">${x.subject}</div></div><div class="logNum">${x.turns}ターン</div><div class="logNum">${fmt(x.sec)}</div></div>`).join(""):`<div class="emptyLog">まだ学習記録がありません。</div>`;
  }
