@@ -207,8 +207,8 @@ header{min-height:62px;display:flex;align-items:center;justify-content:space-bet
 
 <section id="setupScreen" class="screen">
 <div class="setupWrap"><div class="card">
-<h1>60秒 落ち単語</h1>
-<p>落ちてくる英単語・熟語の意味を、画面下の4択から選びます。</p>
+<h1>20問 落ち単語</h1>
+<p>表示される英単語・熟語の意味を、画面下の4択から選びます。</p>
 
 <div class="label">出題範囲</div>
 <div id="lessonBtns" class="buttonRow">
@@ -240,11 +240,11 @@ header{min-height:62px;display:flex;align-items:center;justify-content:space-bet
 </section>
 
 <section id="gameScreen" class="screen hidden">
-<div id="hud"><div class="stat"><b id="score">0</b><span>正解</span></div><div class="stat"><b id="combo">0</b><span>連続</span></div><div class="stat"><b id="miss">0</b><span>ミス</span></div><div class="stat"><b id="timer">60.0</b><span>残り秒</span></div></div>
-<div id="timeWrap"><div id="timeBar"></div></div>
+<div id="hud"><div class="stat"><b id="score">0</b><span>正解</span></div><div class="stat"><b id="combo">0</b><span>連続</span></div><div class="stat"><b id="miss">0</b><span>ミス</span></div><div class="stat"><b id="timer">0 / 20</b><span>問題</span></div></div>
+<div id="timeWrap"><div id="timeBar" style="display:none"></div></div>
 <div id="gameArea"><div class="grid" style="top:25%"></div><div class="grid" style="top:50%"></div><div class="grid" style="top:75%"></div><div id="badge">Lesson 4–6</div><button id="speakBtn" type="button" class="speakBtn">🔊 発音</button><div id="word" class="hidden"></div><div id="flash"></div></div>
 <div id="choices"><button type="button" class="choice"></button><button type="button" class="choice"></button><button type="button" class="choice"></button><button type="button" class="choice"></button></div>
-<div class="gameFooter">英語が落ち切る前に日本語訳をタップ。間違えた語・落ち切った語は待ち行列に入り、60秒後のターン末尾で正解するまで再出題します。</div>
+<div class="gameFooter">英語が落ち切る前に日本語訳をタップ。間違えた語・落ち切った語は待ち行列に入り、20問後のターン末尾で正解するまで再出題します。</div>
 </section>
 
 <section id="resultScreen" class="screen hidden"><div class="resultWrap"><div class="card">
@@ -264,7 +264,7 @@ const choiceBtns=[...document.querySelectorAll(".choice")];
 
 let lesson="all",speedMode="easy",plannedTurns=3;
 let pool=[],distractorPool=[],cur=null,opts=[],bad=[];
-let running=false,endAt=0,raf=0,last=0,y=-70,base=60,fall=60;
+let running=false,endAt=0,raf=0,last=0,y=40,base=0,fall=0,initialCount=0;
 let score=0,miss=0,combo=0,maxCombo=0,soundOn=true,ctx=null,timeExpired=false,retryQueue=[];
 let reviewMode=false,sessionActive=false,normalTurnsTarget=2,currentNormalTurn=0,sessionReview=false;
 let sessionMistakes={},sessionTotalScore=0,sessionTotalMiss=0;
@@ -304,7 +304,7 @@ function turnLabel(){const lt=lesson==="all"?"Lesson 4–6":"Lesson "+lesson;if(
 function setupPool(){
   distractorPool=BANK.filter(x=>lesson==="all"||String(x.lesson)===lesson);
   if(reviewMode)pool=weakWords();else if(sessionReview)pool=sessionMistakeWords();else pool=distractorPool.slice();
-  bad=[];base=speedMode==="turtle"?48:speedMode==="easy"?60:85;$("badge").textContent=turnLabel();
+  bad=[];base=0;$("badge").textContent=turnLabel();
 }
 function nextWord(){
   if(!running)return;
@@ -317,7 +317,7 @@ function nextWord(){
   const unique=[...new Map(distractorPool.filter(x=>x.ja!==cur.ja).map(x=>[x.ja,x.ja])).values()];
   opts=shuffle([cur.ja,...shuffle(unique).slice(0,3)]);
   choiceBtns.forEach((b,i)=>{b.textContent=opts[i]||"";b.className="choice";b.disabled=false});
-  $("word").textContent=cur.en;$("word").className=cur.en.length>14?"phrase":"";y=-70;$("word").style.top=y+"px";fall=base*(1+Math.min(score,30)*.012);
+  $("word").textContent=cur.en;$("word").className=cur.en.length>14?"phrase":"";y=36;$("word").style.top=y+"px";fall=0;
 }
 function addMiss(fell=false){
   miss++;combo=0;
@@ -329,6 +329,7 @@ function addMiss(fell=false){
 }
 choiceBtns.forEach((b,i)=>b.addEventListener("click",()=>{
   if(!running)return;
+  if(!timeExpired){initialCount++;$("timer").textContent=Math.min(initialCount,20)+" / 20";if(initialCount>=20)timeExpired=true;}
   if(opts[i]===cur.ja){
     b.classList.add("ok");score++;combo++;maxCombo=Math.max(maxCombo,combo);
     $("score").textContent=score;$("combo").textContent=combo;okSound();
@@ -344,32 +345,16 @@ choiceBtns.forEach((b,i)=>b.addEventListener("click",()=>{
   }
 }));
 function frame(ts){
-  if(!running)return;if(!last)last=ts;const dt=(ts-last)/1000;last=ts;
-  const rem=Math.max(0,(endAt-performance.now())/1000);$("timer").textContent=rem.toFixed(1);$("timeBar").style.transform=`scaleX(${rem/60})`;
-  y+=fall*dt;$("word").style.top=y+"px";
-  if(y>$("gameArea").clientHeight-$("word").offsetHeight-5){
-    addMiss(true);
-    nextWord();
-  }
-  if(rem<=0 && !timeExpired){
-    if(retryQueue.length){
-      timeExpired=true;
-      $("timer").textContent="追試";
-      $("timeBar").style.transform="scaleX(0)";
-      nextWord();
-    }else{
-      finishTurn();
-      return;
-    }
-  }
+  if(!running)return;
+  $("word").style.top="36px";
   raf=requestAnimationFrame(frame);
 }
 function startTurn(){
 StudyLog.startTurn({subject:'英語',app:'英語・落ち単語',turnLabel:turnLabel()});
   unlockAudio();setupPool();
   if(!pool.length){reviewMode=false;sessionReview=false;sessionActive=false;updateWeakButton();alert("この範囲には、まだ復習する単語がありません。");showScreen("setupScreen");return}
-  score=miss=combo=maxCombo=0;timeExpired=false;retryQueue=[];["score","miss","combo"].forEach(id=>$(id).textContent="0");$("timer").textContent="60.0";$("timeBar").style.transform="scaleX(1)";
-  showScreen("gameScreen");running=true;endAt=performance.now()+60000;last=0;nextWord();raf=requestAnimationFrame(frame);
+  score=miss=combo=maxCombo=0;timeExpired=false;initialCount=0;retryQueue=[];["score","miss","combo"].forEach(id=>$(id).textContent="0");$("timer").textContent="0 / 20";$("timeBar").style.transform="scaleX(1)";
+  showScreen("gameScreen");running=true;endAt=Infinity;last=0;nextWord();raf=requestAnimationFrame(frame);
 }
 function finishTurn(){
 StudyLog.finishTurn({subject:'英語',app:'英語・落ち単語',turnLabel:turnLabel()});
