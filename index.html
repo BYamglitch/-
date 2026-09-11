@@ -90,21 +90,6 @@ h1{
   .hero{padding:20px}
   .card{min-height:108px}
 }
-
-.studyDash{margin:22px auto 0;max-width:1100px;background:#fff;border:1px solid #dfe5ec;border-radius:24px;padding:20px;box-shadow:0 8px 24px rgba(20,30,50,.06)}
-.studyDash h2{margin:0 0 12px;font-size:26px}
-.dashTabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.dashTabs button{border:0;border-radius:999px;padding:10px 14px;font-weight:900;background:#edf2f7;color:#263445}
-.dashTabs button.on{background:#334155;color:#fff}
-.summaryRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.sumBox{background:#f7f9fc;border:1px solid #dfe5ec;border-radius:16px;padding:14px;text-align:center}
-.sumBox b{display:block;font-size:28px;margin-top:3px}
-.logList{display:grid;gap:10px}
-.logRow{display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:10px;align-items:center;padding:13px 14px;border:1px solid #dfe5ec;border-radius:15px;background:#fbfcfe}
-.logApp{font-weight:900}.logSub{font-size:13px;color:#718096;margin-top:2px}.logNum{text-align:center;font-weight:900}
-.emptyLog{text-align:center;color:#718096;padding:22px}
-@media(max-width:720px){.logRow{grid-template-columns:1fr auto auto}.studyDash{padding:16px}.sumBox b{font-size:22px}}
-
 </style>
 </head>
 <body>
@@ -145,11 +130,20 @@ h1{
           <p>先生の設問そのまま4択＋口頭記述チェック</p>
         </div>
       </a>
-      <a class="card tech" href="technology-home.html">
-        <div class="icon">🛠️🍳</div>
+
+      <a class="card homeec" href="home-economics.html">
+        <div class="icon">🍳</div>
         <div>
-          <h2>技術家庭</h2>
-          <p>技術／家庭科／総合問題</p>
+          <h2>家庭科</h2>
+          <p>期末試験対策4択ドリル</p>
+        </div>
+      </a>
+
+      <a class="card tech" href="technology-final-scope.html">
+        <div class="icon">🛠️</div>
+        <div>
+          <h2>技術</h2>
+          <p>正式試験範囲4択ドリル</p>
         </div>
       </a>
 
@@ -172,111 +166,6 @@ h1{
 
     <div class="note">GitHub Pages用トップ画面 / iPad Safari・Chrome対応</div>
   </section>
-
-<section class="studyDash" id="studyDash">
-  <h2>📊 今日の学習</h2>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px">
-<button id="exportWeakLog" style="border:0;border-radius:12px;padding:11px 15px;font-weight:900;background:#7c3aed;color:white">📤 苦手ログを書き出す</button>
-<button id="clearWeakLog" style="border:0;border-radius:12px;padding:11px 15px;font-weight:900;background:#eef2f7;color:#334155">🗑 苦手ログをリセット</button>
-</div><div class="dashTabs">
-    <button class="on" data-range="today">今日</button>
-    <button data-range="yesterday">昨日</button>
-    <button data-range="7days">過去7日</button>
-  </div>
-  <div class="summaryRow">
-    <div class="sumBox">ターン数<b id="sumTurns">0</b></div>
-    <div class="sumBox">学習時間<b id="sumTime">0分</b></div>
-    <div class="sumBox">アプリ数<b id="sumApps">0</b></div>
-  </div>
-  <div id="logList" class="logList"></div>
-</section>
-
 </main>
-
-<script>
-(function(){
- const KEY="studyLogV1", $=s=>document.querySelector(s); let range="today";
- const z=n=>String(n).padStart(2,"0");
- const ds=d=>`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
- function all(){try{const x=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(x)?x:[]}catch(e){return[]}}
- function fmt(sec){sec=Math.round(sec||0);if(sec<60)return sec+"秒";const m=Math.floor(sec/60),s=sec%60;return s?`${m}分${s}秒`:`${m}分`}
- function rowDate(r){
-   if(r.date) return r.date;
-   const ts=r.endedAt||r.startedAt||0;
-   return ts?ds(new Date(ts)):"";
- }
- function rowSec(r){
-   const v=(r.durationSec ?? r.activeSeconds ?? 0);
-   return Number.isFinite(Number(v))?Number(v):0;
- }
- function filtered(){
-   const n=new Date(),td=ds(n),y=new Date(n);y.setDate(y.getDate()-1);
-   if(range==="today") return all().filter(r=>rowDate(r)===td);
-   if(range==="yesterday") return all().filter(r=>rowDate(r)===ds(y));
-   const cut=new Date(n);cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-6);
-   return all().filter(r=>{
-     const ts=r.endedAt||r.startedAt||0;
-     if(ts) return ts>=cut.getTime();
-     const d=rowDate(r);
-     return d && d>=ds(cut);
-   });
- }
- function render(){
-   const a=filtered();
-   $("#sumTurns").textContent=a.length;
-   $("#sumTime").textContent=fmt(a.reduce((s,r)=>s+rowSec(r),0));
-   $("#sumApps").textContent=new Set(a.map(r=>r.app)).size;
-   const by={};
-   a.forEach(r=>{const k=r.app||"未分類";if(!by[k])by[k]={subject:r.subject||"",turns:0,sec:0,last:0};by[k].turns++;by[k].sec+=rowSec(r);by[k].last=Math.max(by[k].last,r.endedAt||r.startedAt||0)});
-   const v=Object.entries(by).sort((a,b)=>b[1].last-a[1].last);
-   $("#logList").innerHTML=v.length?v.map(([name,x])=>`<div class="logRow"><div><div class="logApp">${name}</div><div class="logSub">${x.subject}</div></div><div class="logNum">${x.turns}ターン</div><div class="logNum">${fmt(x.sec)}</div></div>`).join(""):`<div class="emptyLog">まだ学習記録がありません。</div>`;
- }
- document.querySelectorAll(".dashTabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".dashTabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");range=b.dataset.range;render()});
- addEventListener("pageshow",render);addEventListener("storage",render);render();
-})();
-</script>
-
-
-<script>
-(function(){
- const KEY="weakLogV1";
- const $=s=>document.querySelector(s);
- function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}catch(e){return{}}}
- function exportLog(){
-   const db=load();
-   const rows=Object.values(db).filter(r=>(r.wrong||0)+(r.timeout||0)>0).map(r=>{
-     const attempts=(r.attempts||0), correct=(r.correct||0), wrong=(r.wrong||0), timeout=(r.timeout||0);
-     const avg=attempts?Math.round((r.totalResponseSec||0)/attempts*10)/10:null;
-     const accuracy=attempts?Math.round(correct/attempts*1000)/10:null;
-     const priority=(wrong*2+timeout*2+(accuracy!=null&&accuracy<60?2:0)+(avg!=null&&avg>=10?1:0));
-     return {
-       subject:r.subject,app:r.app,category:r.category||"",
-       question:r.question,answer:r.answer,
-       correctCount:correct,wrongCount:wrong,timeoutCount:timeout,
-       attempts,accuracyPercent:accuracy,averageResponseSeconds:avg,
-       priorityScore:priority,lastSeenAt:r.lastSeenAt
-     };
-   }).sort((a,b)=>b.priorityScore-a.priorityScore||b.wrongCount-a.wrongCount);
-   const bySubject={};
-   for(const r of rows)(bySubject[r.subject]??=[]).push(r);
-   const payload={
-     schema:"weak-log-v1",
-     exportedAt:new Date().toISOString(),
-     note:"priorityScoreは誤答・時間切れ・低正答率・長い解答時間をもとにした復習優先度の目安です。",
-     subjects:Object.fromEntries(Object.entries(bySubject).map(([k,v])=>[k,v.slice(0,50)])),
-     all:rows
-   };
-   const d=new Date(),z=n=>String(n).padStart(2,"0");
-   const fn=`苦手ログ_${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}.json`;
-   const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
-   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
- }
- $("#exportWeakLog")?.addEventListener("click",exportLog);
- $("#clearWeakLog")?.addEventListener("click",()=>{
-   if(confirm("苦手ログをリセットしますか？ 学習時間ログは消えません。")){localStorage.removeItem(KEY);alert("苦手ログをリセットしました。")}
- });
-})();
-</script>
-
 </body>
 </html>
