@@ -375,7 +375,9 @@ $("startBtn").onclick=()=>{
  $("setup").classList.add("hidden");startTurn();
 };
 function startTurn(){
-StudyLog.startTurn({subject:'英語',app:'英語・書き',turnLabel:`第${turnIndex+1}ターン`});
+try{
+  StudyLog.startTurn({subject:'英語',app:'英語・書き',turnLabel:`第${turnIndex+1}ターン`});
+}catch(e){ console.warn("StudyLog.startTurn error:",e); }
  queue=shuffle(allTurnSets[turnIndex]).map((q,i)=>({...q,_id:turnIndex+"-"+i}));
  mastered=new Set();attempts=0;mistakes=0;
  $("turnResult").classList.add("hidden");$("quiz").classList.remove("hidden");
@@ -446,11 +448,22 @@ function speak(){
 $("audioBtn").onclick=speak;
 
 function finishTurn(){
-StudyLog.finishTurn({subject:'英語',app:'英語・書き',turnLabel:`第${currentTurn}ターン`});
- $("quiz").classList.add("hidden");$("turnResult").classList.remove("hidden");
+ // 学習ログ側でエラーが出ても、画面遷移は必ず続行する
+ try{
+   StudyLog.finishTurn({
+     subject:'英語',
+     app:'英語・書き',
+     turnLabel:`第${turnIndex+1}ターン`
+   });
+ }catch(e){ console.warn("StudyLog.finishTurn error:",e); }
+
+ $("quiz").classList.add("hidden");
+ $("turnResult").classList.remove("hidden");
  $("turnTitle").textContent=`Turn ${turnIndex+1}：100%習得！`;
- $("attemptsN").textContent=attempts;$("mistakesN").textContent=mistakes;
- if(turnIndex===turnCount-1)$("nextTurnBtn").textContent="結果を見る";else $("nextTurnBtn").textContent="次のターンへ";
+ $("attemptsN").textContent=attempts;
+ $("mistakesN").textContent=mistakes;
+ $("nextTurnBtn").textContent=
+   turnIndex===turnCount-1 ? "結果を見る" : "次のターンへ";
 }
 $("nextTurnBtn").onclick=()=>{
  turnIndex++;
