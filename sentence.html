@@ -1,683 +1,115 @@
 <!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>NEW TREASURE 日本語→英文 時間制限なしチャレンジ</title>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NEW TREASURE 日本語→英文 10秒チャレンジ</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Noto Sans JP","Yu Gothic",sans-serif;background:#071321;color:#fff}
-body{min-height:100dvh}
-button{font:inherit;touch-action:manipulation;cursor:pointer}
-#app{max-width:760px;margin:0 auto;padding:12px;min-height:100dvh;background:linear-gradient(#071321,#0b1c31)}
-.hidden{display:none!important}
-header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
-.title{font-size:19px;font-weight:900} .sub{font-size:11px;color:#a9c3d6}
-.icon{border:1px solid #28506e;background:#10263b;color:#fff;border-radius:12px;padding:10px 12px}
-.card{background:#10263b;border:1px solid #28506e;border-radius:20px;padding:18px;margin-top:10px}
-.card h1{font-size:27px;margin:0 0 8px} .card p{color:#b7cada;line-height:1.6}
-.pickTitle{font-size:13px;color:#a9c3d6;font-weight:800;margin:15px 0 7px}
-.choiceRow{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.pick{border:1px solid #28506e;background:#0b1f34;color:#fff;border-radius:13px;padding:12px 8px;font-weight:800}
-.pick.selected{background:#16466a;border-color:#64d8ff;box-shadow:0 0 0 2px rgba(100,216,255,.15)}
-.primary{width:100%;border:0;border-radius:15px;padding:15px;margin-top:16px;background:linear-gradient(90deg,#4fc9ff,#7ae8ff);color:#052033;font-size:18px;font-weight:900}
-.secondary{width:100%;border:1px solid #28506e;border-radius:14px;padding:12px;margin-top:8px;background:#0d2135;color:#fff;font-weight:900}
-.tip{background:#081827;border-left:4px solid #63d8ff;padding:10px;border-radius:8px;font-size:13px;line-height:1.55;margin-top:12px}
-.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
-.stat{background:#10263b;border:1px solid #28506e;border-radius:12px;text-align:center;padding:7px 2px}
-.stat b{font-size:21px;display:block} .stat span{font-size:10px;color:#a9c3d6}
-.bar{height:7px;background:#163047;border-radius:99px;overflow:hidden}
-#barInner{height:100%;background:linear-gradient(90deg,#63d8ff,#ffd66b);width:100%;transform-origin:left center}
-.qcard{background:#10263b;border:1px solid #28506e;border-radius:20px;padding:18px;margin-top:10px;text-align:center}
-.badge{display:inline-block;background:#081827;border:1px solid #28506e;border-radius:999px;padding:5px 10px;color:#a9c3d6;font-size:12px}
-.jp{font-size:clamp(22px,6vw,31px);font-weight:900;line-height:1.45;margin-top:14px}
-.listen{margin-top:14px;border:1px solid #39789d;background:#0b3450;color:#fff;border-radius:14px;padding:11px 14px;font-weight:900}
-.answers{display:grid;gap:9px;margin-top:10px}
-.answer{border:1px solid #28506e;background:#112b44;color:#fff;border-radius:16px;padding:14px 12px;min-height:62px;font-weight:850;font-size:clamp(16px,4.4vw,20px);line-height:1.3;text-align:left}
-.answer.ok{background:#12482b;border-color:#5ee48b} .answer.ng{background:#4c1820;border-color:#ff7070}
-.feedback{text-align:center;min-height:31px;padding:7px 2px;font-weight:900}
-.feedback.ok{color:#5ee48b} .feedback.ng{color:#ff7070}
-.results{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.rb{background:#081827;border:1px solid #28506e;border-radius:12px;padding:12px;text-align:center}
-.rb b{font-size:27px;display:block}
-.review{margin-top:10px;background:#081827;border-radius:12px;padding:8px 12px}
-.ri{padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
+:root{--bg:#071321;--card:#10263b;--line:#28506e;--txt:#f7fbff;--mut:#a9c3d6;--cyan:#63d8ff;--ok:#5ee48b;--ng:#ff7070;--gold:#ffd66b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Noto Sans JP","Yu Gothic",sans-serif}
+button,select{font:inherit}#app{max-width:760px;min-height:100dvh;margin:auto;padding:12px;background:linear-gradient(#071321,#0b1c31)}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px}.title{font-size:19px;font-weight:900}.sub{font-size:11px;color:var(--mut)}
+.icon{border:1px solid var(--line);background:var(--card);color:white;border-radius:12px;padding:9px 11px}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;text-align:center;padding:7px}.stat b{font-size:22px;display:block}.stat span{font-size:10px;color:var(--mut)}
+.bar{height:7px;background:#163047;border-radius:99px;overflow:hidden}.bar>div{height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));width:100%;transform-origin:left}
+.qcard{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;text-align:center;min-height:180px;display:flex;flex-direction:column;justify-content:center}
+.badge{display:inline-block;margin:auto auto 8px;background:#0a1a2a;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:var(--mut);font-size:12px}
+.jp{font-size:clamp(22px,6vw,31px);font-weight:900;line-height:1.45}.listen{margin-top:13px;border:1px solid #39789d;background:#0b3450;color:white;border-radius:14px;padding:10px 14px;font-weight:900}
+.choices{display:grid;gap:9px;margin-top:10px}.choice{border:1px solid var(--line);background:#112b44;color:white;border-radius:16px;padding:14px 12px;min-height:63px;font-weight:850;font-size:clamp(16px,4.4vw,20px);line-height:1.3;text-align:left}
+.choice.ok{background:#12482b;border-color:var(--ok)}.choice.ng{background:#4c1820;border-color:var(--ng)}.choice:disabled{opacity:.95}
+.feedback{text-align:center;min-height:29px;padding-top:6px;font-weight:900}.feedback.ok{color:var(--ok)}.feedback.ng{color:var(--ng)}
+.overlay{position:fixed;inset:0;background:rgba(4,12,22,.97);z-index:20;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}.hidden{display:none!important}
+.panel{width:min(560px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px}.panel h1{margin:0 0 8px;font-size:28px}.panel p{color:var(--mut);line-height:1.6}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}label{font-size:12px;color:var(--mut);font-weight:800}select{width:100%;margin-top:5px;background:#081827;color:white;border:1px solid var(--line);border-radius:11px;padding:11px}
+.primary,.secondary{width:100%;border-radius:14px;padding:13px;font-weight:900}.primary{border:0;background:linear-gradient(90deg,#4fc9ff,#7ae8ff);color:#052033}.secondary{margin-top:8px;border:1px solid var(--line);background:#0d2135;color:white}
+.tip{background:#081827;border-left:4px solid var(--cyan);padding:10px;border-radius:8px;font-size:13px;line-height:1.55}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rb{background:#081827;border:1px solid var(--line);border-radius:12px;text-align:center;padding:12px}.rb b{font-size:28px;display:block}
+.review{max-height:180px;overflow:auto;background:#081827;border-radius:12px;padding:8px 12px;margin:10px 0}.ri{padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px}
+@media(max-height:700px){.qcard{min-height:145px;padding:12px}.choice{min-height:53px;padding:10px}.hud{margin:6px 0}}
 </style>
-
-<style id="ipad-browser-compat">
-html{
-  -webkit-text-size-adjust:100%;
-  text-size-adjust:100%;
-  overscroll-behavior:none;
-  min-height:100%;
-}
-body{
-  min-height:100%;
-  min-height:100dvh;
-  padding-left:env(safe-area-inset-left);
-  padding-right:env(safe-area-inset-right);
-  -webkit-touch-callout:none;
-}
-button, select, [role="button"]{
-  touch-action:manipulation !important;
-  -webkit-tap-highlight-color:transparent;
-}
-button{
-  -webkit-appearance:none;
-  appearance:none;
-}
-input, select, textarea, button{
-  font-size:16px;
-}
-@supports (height: 100dvh){
-  #app{height:100dvh;}
-}
-@supports not (height: 100dvh){
-  #app{height:var(--ipad-app-height,100vh);}
-}
-@media (pointer:coarse){
-  button{min-height:44px;}
-}
-@media (orientation:landscape) and (max-height:600px){
-  .card{max-height:calc(var(--ipad-app-height,100vh) - 24px);overflow:auto;}
-}
-</style>
-
-
-<script>
-/* ===== 共通学習ログ v2 ===== */
+<script id="english-learning-log-v1">
 (function(){
-  if(window.StudyLog) return;
-  const KEY="studyLogV1";
-  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
-
-  function now(){ return Date.now(); }
-  function localDate(ts){
-    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  if(window.WeakLog && window.WeakLog.version==="ELL1") return;
+  const KEY="weakLogV1"; let active=null; const now=()=>Date.now();
+  const clean=s=>String(s??"").normalize("NFKC").trim().replace(/\s+/g," ").slice(0,500);
+  const safeId=s=>clean(s).toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶ一-龠ー]+/g,"_").replace(/^_+|_+$/g,"").slice(0,220);
+  function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}catch(e){return {}}}
+  function save(x){try{localStorage.setItem(KEY,JSON.stringify(x));window.dispatchEvent(new Event("weaklogchange"))}catch(e){}}
+  function write(kind,m,elapsedSec=null){
+    m=m||{}; const q=clean(m.question||m.q||m.jp||m.prompt||""), a=clean(m.answer||m.a||m.en||"");
+    if(!q&&!a&&!m.itemId&&!m.key)return;
+    const subject=clean(m.subject||"英語"), app=clean(m.app||document.title||location.pathname.split("/").pop()), itemId=clean(m.itemId||"");
+    const key=clean(m.key||(itemId?`ITEM|${itemId}`:`${subject}|${app}|${q}|${a}`)), db=load(), t=now();
+    const r=db[key]||{itemId:itemId||"",subject,app,apps:[],category:"",source:"",unit:"",question:q,answer:a,correct:0,wrong:0,timeout:0,attempts:0,firstTryCorrect:0,firstTryWrong:0,streak:0,lastResult:"",firstSeenAt:t,lastSeenAt:t};
+    r.itemId=r.itemId||itemId; r.subject=subject; r.app=app; r.apps=Array.from(new Set([...(Array.isArray(r.apps)?r.apps:[]),app]));
+    r.category=clean(m.category||m.cat||m.tag||r.category||""); r.source=clean(m.source||r.source||""); r.unit=clean(m.unit||m.lesson||r.unit||"");
+    if(q)r.question=q;if(a)r.answer=a;
+    if(kind==="correct"){r.correct=(r.correct||0)+1;r.streak=(r.streak||0)+1}else if(kind==="timeout"){r.timeout=(r.timeout||0)+1;r.streak=0}else{r.wrong=(r.wrong||0)+1;r.streak=0}
+    r.attempts=(r.attempts||0)+1;
+    if(m.firstAttempt===true){if(kind==="correct")r.firstTryCorrect=(r.firstTryCorrect||0)+1;else r.firstTryWrong=(r.firstTryWrong||0)+1}
+    r.lastResult=kind;r.lastSeenAt=t;if(Number.isFinite(elapsedSec))r.totalResponseSec=(r.totalResponseSec||0)+Math.max(0,Math.min(600,elapsedSec));
+    db[key]=r;save(db);active=null;
   }
-  function addActive(){
-    if(running && !document.hidden && last){
-      activeSec += Math.max(0,(now()-last)/1000);
-    }
-    last=now();
-  }
-  function load(){
-    try{
-      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
-      return Array.isArray(x)?x:[];
-    }catch(e){ return []; }
-  }
-  function save(rows){
-    if(rows.length>1000) rows=rows.slice(-1000);
-    localStorage.setItem(KEY,JSON.stringify(rows));
-  }
-
-  window.StudyLog={
-    startTurn(m={}){
-      if(running) return;
-      meta=m||{};
-      running=true;
-      activeSec=0;
-      last=now();
-      turnStartedAt=last;
-    },
-    finishTurn(m={}){
-      if(!running) return;
-      addActive();
-      running=false;
-      const ended=now();
-      const x=Object.assign({},meta,m||{});
-      const rows=load();
-      rows.push({
-        id: ended+"-"+Math.random().toString(36).slice(2,8),
-        date: localDate(ended),
-        subject: x.subject||"未分類",
-        app: x.app||document.title||location.pathname.split("/").pop(),
-        turnLabel: x.turnLabel||"1ターン",
-        durationSec: Math.max(1,Math.round(activeSec)),
-        startedAt: turnStartedAt||ended,
-        endedAt: ended
-      });
-      save(rows);
-      activeSec=0; last=0; turnStartedAt=null; meta={};
-      window.dispatchEvent(new Event("studylogchange"));
-    },
-    cancelTurn(){
-      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
-    }
-  };
-
-  document.addEventListener("visibilitychange",()=>{
-    if(document.hidden){
-      if(running) addActive();
-    }else if(running){
-      last=now();
-    }
-  });
+  window.WeakLog={version:"ELL1",key:KEY,safeId,start(meta={}){active={...meta,startedAt:now()}},result(kind,meta={},elapsedSec=null){const m={...(active||{}),...(meta||{})};let sec=elapsedSec;if(sec==null&&active?.startedAt)sec=(now()-active.startedAt)/1000;write(kind,m,sec)},record(meta={},kind="wrong"){write(kind,meta,null)},all(){return load()},clear(){localStorage.removeItem(KEY);window.dispatchEvent(new Event("weaklogchange"))}};
 })();
 </script>
 
-
-<script>
-/* ===== 共通苦手ログ v1 ===== */
-(function(){
-  if(window.WeakLog) return;
-  const KEY="weakLogV1";
-  let active=null;
-  const now=()=>Date.now();
-  function load(){
-    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
-    catch(e){return {}}
-  }
-  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
-  function cleanKey(s){return String(s??"").trim().slice(0,240)}
-  window.WeakLog={
-    start(meta={}){
-      active={...meta,startedAt:now()};
-    },
-    result(kind,meta={},elapsedSec=null){
-      const m={...(active||{}),...(meta||{})};
-      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
-      const a=cleanKey(m.answer||m.a||m.en||"");
-      if(!q && !m.key) return;
-      const subject=cleanKey(m.subject||"未分類");
-      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
-      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
-      const db=load();
-      const r=db[key]||{
-        subject,app,
-        category:cleanKey(m.category||m.cat||m.tag||""),
-        question:q,answer:a,
-        correct:0,wrong:0,timeout:0,
-        attempts:0,totalResponseSec:0,
-        firstSeenAt:now(),lastSeenAt:now()
-      };
-      if(kind==="correct") r.correct++;
-      else if(kind==="timeout") r.timeout++;
-      else r.wrong++;
-      r.attempts++;
-      let sec=elapsedSec;
-      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
-      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
-      r.lastSeenAt=now();
-      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
-      db[key]=r; save(db); active=null;
-    },
-    importWeak(meta,list){
-      const db=load();
-      for(const x of (list||[])){
-        if(!x||!(x.wrong>0||x.timeout>0)) continue;
-        const subject=cleanKey(meta.subject||x.subject||"未分類");
-        const app=cleanKey(meta.app||x.app||"");
-        const q=cleanKey(x.question||x.q||"");
-        const a=cleanKey(x.answer||x.a||"");
-        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
-        const cur=db[key]||{
-          subject,app,category:cleanKey(x.category||x.cat||""),
-          question:q,answer:a,correct:0,wrong:0,timeout:0,
-          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
-        };
-        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
-        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
-        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
-        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
-        cur.lastSeenAt=now(); db[key]=cur;
-      }
-      save(db);
-    }
-  };
-})();
-</script>
-
-</head>
-<body>
+</head><body>
 <div id="app">
-<header>
-<div><div class="title">日本語 → 英文 時間制限なしチャレンジ</div><div class="sub">Lesson 4〜6 / 1ターン7問</div></div>
-<button type="button" id="soundBtn" class="icon">🔊 音ON</button>
-</header>
-
-<section id="setup">
-<div class="card">
-<h1>7問チャレンジ</h1>
-<p>日本語を表示した直後に、正解英文を読み上げます。音と日本語を結びつけながら、時間制限なし以内に正しい英文を3択から選びます。</p>
-
-<div class="pickTitle">出題範囲</div>
-<div class="choiceRow" id="lessonButtons">
-<button type="button" class="pick selected" data-lesson="all">Lesson 4〜6</button>
-<button type="button" class="pick" data-lesson="4">Lesson 4</button>
-<button type="button" class="pick" data-lesson="5">Lesson 5</button>
-<button type="button" class="pick" data-lesson="6">Lesson 6</button>
-</div>
-
-<div class="pickTitle">読み上げ速度</div>
-<div class="choiceRow" id="rateButtons">
-<button type="button" class="pick" data-rate="0.50">🐢 亀モード（0.5倍）</button>
-<button type="button" class="pick" data-rate="0.82">ゆっくり</button>
-<button type="button" class="pick selected" data-rate="0.95">ややゆっくり</button>
-</div>
-
-<div class="pickTitle">1回にやるターン数</div>
-<div class="choiceRow" id="turnButtons">
-<button type="button" class="pick" data-turns="2">2ターン</button>
-<button type="button" class="pick selected" data-turns="3">3ターン</button>
-<button type="button" class="pick" data-turns="4">4ターン</button>
-<button type="button" class="pick" data-turns="5">5ターン</button>
-</div>
-
-<div class="tip">日本語 → 英文音声 → 3択。回答中は「🔊 英文をもう一度聞く」で何度でも聞き直せます。選んだターン数のうち最後の1ターンは復習用です。まず「選んだターン数－1回」を通常出題し、その間に間違えた英文があれば、最後にその英文だけを復習します。間違いがなければ復習ターンは行わず終了します。</div>
-<button type="button" id="startBtn" class="primary">スタート</button>
-</div>
-</section>
-
-<section id="gameScreen" class="hidden">
-<div class="hud">
-<div class="stat"><b id="num">1/7</b><span>問題</span></div>
-<div class="stat"><b id="score">0</b><span>正解</span></div>
-<div class="stat"><b id="avg">—</b><span>平均秒</span></div>
-<div class="stat"><b id="time">∞</b><span>時間制限なし</span></div>
-</div>
-<div class="bar"><div id="barInner"></div></div>
-<div class="qcard">
-<div id="badge" class="badge">Lesson</div>
-<div id="jp" class="jp"></div>
-<button type="button" id="listenBtn" class="listen">🔊 英文をもう一度聞く</button>
-</div>
-<div id="answers" class="answers">
-<button type="button" class="answer"></button>
-<button type="button" class="answer"></button>
-<button type="button" class="answer"></button>
-</div>
+<header><div><div class="title">日本語 → 英文 10秒チャレンジ</div><div class="sub">NEW TREASURE Lesson 4–6 / 1ターン7問</div></div><button id="sound" class="icon">🔊 音ON</button></header>
+<div class="hud"><div class="stat"><b id="num">1/7</b><span>問題</span></div><div class="stat"><b id="score">0</b><span>正解</span></div><div class="stat"><b id="avg">—</b><span>平均秒</span></div><div class="stat"><b id="time">10.0</b><span>残り秒</span></div></div>
+<div class="bar"><div id="bar"></div></div>
+<div class="qcard"><div id="badge" class="badge">Lesson</div><div id="jp" class="jp"></div><button id="listen" class="listen">🔊 英文をもう一度聞く</button></div>
+<div id="choices" class="choices"><button class="choice"></button><button class="choice"></button><button class="choice"></button></div>
 <div id="feedback" class="feedback"></div>
-</section>
-
-<section id="resultScreen" class="hidden">
-<div class="card">
-<h1 id="resultTitle">ターン終了！</h1>
-<div id="sessionScoreBox" class="rb" style="margin-bottom:12px">
-<b id="sessionScore">0 / 0</b>今回の点数（復習ターンは除外）
-</div>
-<div class="results">
-<div class="rb"><b id="resultScore">0/7</b>正解</div>
-<div class="rb"><b id="resultAvg">—</b>平均回答</div>
-<div class="rb"><b id="resultReplay">0</b>聞き直し</div>
-<div class="rb"><b id="resultMiss">0</b>要復習</div>
-</div>
-<div id="review" class="review"></div>
-<button type="button" id="againBtn" class="primary">次のターンへ</button>
-<button type="button" id="homeBtn" class="secondary">範囲を選び直す</button>
-</div>
-</section>
 </div>
 
+<div id="start" class="overlay"><div class="panel">
+<h1>10秒・英文リンクゲーム</h1>
+<p>日本語を見た直後に、正解英文を音声で読み上げます。音と日本語を結びつけながら、10秒以内に正しい英文を3択から選びます。</p>
+<div class="controls"><label>出題範囲<select id="lesson"><option value="all">Lesson 4〜6</option><option value="4">Lesson 4</option><option value="5">Lesson 5</option><option value="6">Lesson 6</option></select></label>
+<label>読み上げ速度<select id="rate"><option value=".82">ゆっくり</option><option value=".95" selected>ややゆっくり</option><option value="1.05">通常</option></select></label></div>
+<div class="tip">日本語表示 → 正解英文を自動読み上げ → 3択。🔊ボタンで何度でも聞き直せます。誤答・時間切れの問題は次のターンで優先されます。</div>
+<button id="go" class="primary" style="margin-top:14px">7問スタート</button></div></div>
+
+<div id="result" class="overlay hidden"><div class="panel"><h1>ターン終了！</h1>
+<div class="results"><div class="rb"><b id="rs">0/7</b>正解</div><div class="rb"><b id="ra">—</b>平均回答</div><div class="rb"><b id="rb">0</b>最高得点</div><div class="rb"><b id="rf">0</b>聞き直し</div></div>
+<div id="review" class="review"></div><button id="again" class="primary">もう7問</button><button id="home" class="secondary">範囲を選び直す</button></div></div>
 <script>
-(function(){
-"use strict";
-const BANK = [{"l": 4, "jp": "マリアは放課後、よくテニスをします。", "en": "Maria often plays tennis after school.", "tag": "三単現・頻度", "wrong": ["Maria often play tennis after school.", "Maria plays often tennis after school."]}, {"l": 4, "jp": "ケンは毎日7時に起きます。", "en": "Ken gets up at seven every day.", "tag": "三単現", "wrong": ["Ken get up at seven every day.", "Ken gets at up seven every day."]}, {"l": 4, "jp": "彼女はたいてい車で学校へ行きます。", "en": "She usually goes to school by car.", "tag": "三単現・頻度", "wrong": ["She usually go to school by car.", "She goes usually to school by car."]}, {"l": 4, "jp": "あなたはいつ朝食を食べますか。", "en": "When do you eat breakfast?", "tag": "疑問詞", "wrong": ["When you eat breakfast?", "When does you eat breakfast?"]}, {"l": 4, "jp": "彼はどこに住んでいますか。", "en": "Where does he live?", "tag": "疑問詞・三単現", "wrong": ["Where does he lives?", "Where do he live?"]}, {"l": 4, "jp": "私は夕食の後にお風呂に入ります。", "en": "I take a bath after dinner.", "tag": "熟語", "wrong": ["I take bath after dinner.", "I take a bath before dinner."]}, {"l": 4, "jp": "パンダはたくさんの竹を食べます。", "en": "Pandas eat a lot of bamboo.", "tag": "語彙・語順", "wrong": ["Pandas eats a lot of bamboo.", "Pandas eat lot of a bamboo."]}, {"l": 4, "jp": "私は毎週そのビデオを見ます。", "en": "I watch the video every week.", "tag": "頻度", "wrong": ["I watches the video every week.", "I watch every week the video."]}, {"l": 4, "jp": "彼女は音楽をよく聞きます。", "en": "She often listens to music.", "tag": "三単現・熟語", "wrong": ["She often listen to music.", "She listens often music."]}, {"l": 4, "jp": "そのゾウはゆっくり歩きます。", "en": "The elephant walks slowly.", "tag": "三単現・副詞", "wrong": ["The elephant walk slowly.", "The elephant slowly walk."]}, {"l": 4, "jp": "私は夜、宿題をします。", "en": "I do my homework at night.", "tag": "前置詞", "wrong": ["I do my homework on night.", "I do at night my homework."]}, {"l": 4, "jp": "彼らは一緒に学校へ行きます。", "en": "They go to school together.", "tag": "語順", "wrong": ["They goes to school together.", "They together go school to."]}, {"l": 5, "jp": "これはだれのラケットですか。", "en": "Whose racket is this?", "tag": "Whose", "wrong": ["Who racket is this?", "Whose is racket this?"]}, {"l": 5, "jp": "このラケットは私のものです。", "en": "This racket is mine.", "tag": "所有代名詞", "wrong": ["This racket is my.", "This is mine racket."]}, {"l": 5, "jp": "あの帽子は彼女のものです。", "en": "That hat is hers.", "tag": "所有代名詞", "wrong": ["That hat is her.", "That is hers hat."]}, {"l": 5, "jp": "これらの靴は彼らのものです。", "en": "These shoes are theirs.", "tag": "所有代名詞", "wrong": ["These shoes is theirs.", "These shoes are their."]}, {"l": 5, "jp": "どちらのTシャツがあなたのものですか。", "en": "Which T-shirt is yours?", "tag": "Which・所有代名詞", "wrong": ["Which T-shirt is your?", "Whose T-shirt is yours?"]}, {"l": 5, "jp": "このシャツはいくらですか。", "en": "How much is this shirt?", "tag": "How much", "wrong": ["How many is this shirt?", "How much this shirt is?"]}, {"l": 5, "jp": "この川はどのくらい深いですか。", "en": "How deep is this river?", "tag": "How + 形容詞", "wrong": ["How long is this river?", "How deep this river is?"]}, {"l": 5, "jp": "あなたの身長はどのくらいですか。", "en": "How tall are you?", "tag": "How + 形容詞", "wrong": ["How high are you?", "How tall you are?"]}, {"l": 5, "jp": "私はこのTシャツが欲しいです。", "en": "I'd like this T-shirt.", "tag": "買い物表現", "wrong": ["I like would this T-shirt.", "I'd this T-shirt like."]}, {"l": 5, "jp": "何かお探しですか。", "en": "May I help you?", "tag": "買い物表現", "wrong": ["May you help I?", "Do I may help you?"]}, {"l": 5, "jp": "このズボンはセール中です。", "en": "These pants are on sale.", "tag": "語彙・be動詞", "wrong": ["These pants is on sale.", "These pants are in sale."]}, {"l": 5, "jp": "それはお買い得ですね。", "en": "That's a good deal.", "tag": "会話表現", "wrong": ["That's good a deal.", "That a good deal is."]}, {"l": 6, "jp": "買い物に行きましょう。", "en": "Let's go shopping.", "tag": "Let's・go + ing", "wrong": ["Let's go to shopping.", "Let's going shopping."]}, {"l": 6, "jp": "このタオルを使ってもいいですか。", "en": "Can I use this towel?", "tag": "can", "wrong": ["Can I uses this towel?", "Do I can use this towel?"]}, {"l": 6, "jp": "まっすぐ進んでください。", "en": "Go straight.", "tag": "命令文・道案内", "wrong": ["Go to straight.", "Straight go."]}, {"l": 6, "jp": "その角を右に曲がってください。", "en": "Turn right at the corner.", "tag": "命令文・道案内", "wrong": ["Turn at right the corner.", "Turn right on the corner."]}, {"l": 6, "jp": "郵便局はあなたの左側にあります。", "en": "The post office is on your left.", "tag": "前置詞・道案内", "wrong": ["The post office is in your left.", "The post office on your left is."]}, {"l": 6, "jp": "お座りください。", "en": "Have a seat.", "tag": "会話表現", "wrong": ["Have seat a.", "Take a sit."]}, {"l": 6, "jp": "ご注文はお決まりですか。", "en": "Are you ready to order?", "tag": "be ready to", "wrong": ["Do you ready to order?", "Are you ready order to?"]}, {"l": 6, "jp": "パスタはいかがですか。", "en": "Would you like pasta?", "tag": "Would you like", "wrong": ["Would you pasta like?", "Do you would like pasta?"]}, {"l": 6, "jp": "私は泳ぐことができます。", "en": "I can swim.", "tag": "can", "wrong": ["I can to swim.", "I can swims."]}, {"l": 6, "jp": "彼は泳ぐことができません。", "en": "He cannot swim.", "tag": "can", "wrong": ["He cannot swims.", "He does not can swim."]}, {"l": 6, "jp": "会合に遅れないでください。", "en": "Don't be late for the meeting.", "tag": "命令文・熟語", "wrong": ["Don't late for the meeting.", "Don't be late to the meeting."]}, {"l": 6, "jp": "ごみを拾いましょう。", "en": "Let's pick up litter.", "tag": "Let's・熟語", "wrong": ["Let's pick litter up to.", "Let's picking up litter."]}, {"l": 6, "jp": "私は年配の人々と話します。", "en": "I talk to elderly people.", "tag": "熟語", "wrong": ["I talk elderly people.", "I talks to elderly people."]}, {"l": 6, "jp": "図書館は銀行の近くにあります。", "en": "The library is near the bank.", "tag": "前置詞", "wrong": ["The library near the bank is.", "The library is at near the bank."]}, {"l": 6, "jp": "通りに沿って歩いてください。", "en": "Walk along the street.", "tag": "命令文・前置詞", "wrong": ["Walk the street along.", "Walk along to the street."]}, {"l": 6, "jp": "私はあとでパンを持ってきます。", "en": "I will bring bread later.", "tag": "語彙・語順", "wrong": ["I will later bread bring.", "I will brings bread later."]}];
-const $ = id => document.getElementById(id);
-const answers = Array.from(document.querySelectorAll(".answer"));
-
-let selectedLesson = "all";
-let selectedRate = 0.95;
-let selectedTurns = 3;
-let soundOn = true;
-let turn = [];
-let index = 0;
-let score = 0;
-let times = [];
-let wrong = [];
-let replays = 0;
-let qStart = 0;
-let deadline = 0;
-let rafId = 0;
-let locked = false;
-
-let sessionActive = false;
-let normalTurnsTarget = 2;
-let currentNormalTurn = 0;
-let finalReviewTurn = false;
-let sessionWrong = [];
-let sessionTotalCorrect = 0;
-let sessionTotalQuestions = 0;
-
-function shuffle(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    const t=a[i]; a[i]=a[j]; a[j]=t;
-  }
-  return a;
-}
-
-function speak(text){
-  if(!soundOn) return;
-  if(!("speechSynthesis" in window)) return;
+const BANK=[{"l": 4, "jp": "マリアは放課後、よくテニスをします。", "en": "Maria often plays tennis after school.", "tag": "三単現・頻度", "wrong": ["Maria often play tennis after school.", "Maria plays often tennis after school."]}, {"l": 4, "jp": "ケンは毎日7時に起きます。", "en": "Ken gets up at seven every day.", "tag": "三単現", "wrong": ["Ken get up at seven every day.", "Ken gets at up seven every day."]}, {"l": 4, "jp": "彼女はたいてい車で学校へ行きます。", "en": "She usually goes to school by car.", "tag": "三単現・頻度", "wrong": ["She usually go to school by car.", "She goes usually to school by car."]}, {"l": 4, "jp": "あなたはいつ朝食を食べますか。", "en": "When do you eat breakfast?", "tag": "疑問詞", "wrong": ["When you eat breakfast?", "When does you eat breakfast?"]}, {"l": 4, "jp": "彼はどこに住んでいますか。", "en": "Where does he live?", "tag": "疑問詞・三単現", "wrong": ["Where does he lives?", "Where do he live?"]}, {"l": 4, "jp": "私は夕食の後にお風呂に入ります。", "en": "I take a bath after dinner.", "tag": "熟語", "wrong": ["I take bath after dinner.", "I take a bath before dinner."]}, {"l": 4, "jp": "パンダはたくさんの竹を食べます。", "en": "Pandas eat a lot of bamboo.", "tag": "語彙・語順", "wrong": ["Pandas eats a lot of bamboo.", "Pandas eat lot of a bamboo."]}, {"l": 4, "jp": "私は毎週そのビデオを見ます。", "en": "I watch the video every week.", "tag": "頻度", "wrong": ["I watches the video every week.", "I watch every week the video."]}, {"l": 4, "jp": "彼女は音楽をよく聞きます。", "en": "She often listens to music.", "tag": "三単現・熟語", "wrong": ["She often listen to music.", "She listens often music."]}, {"l": 4, "jp": "そのゾウはゆっくり歩きます。", "en": "The elephant walks slowly.", "tag": "三単現・副詞", "wrong": ["The elephant walk slowly.", "The elephant slowly walk."]}, {"l": 4, "jp": "私は夜、宿題をします。", "en": "I do my homework at night.", "tag": "前置詞", "wrong": ["I do my homework on night.", "I do at night my homework."]}, {"l": 4, "jp": "彼らは一緒に学校へ行きます。", "en": "They go to school together.", "tag": "語順", "wrong": ["They goes to school together.", "They together go school to."]}, {"l": 5, "jp": "これはだれのラケットですか。", "en": "Whose racket is this?", "tag": "Whose", "wrong": ["Who racket is this?", "Whose is racket this?"]}, {"l": 5, "jp": "このラケットは私のものです。", "en": "This racket is mine.", "tag": "所有代名詞", "wrong": ["This racket is my.", "This is mine racket."]}, {"l": 5, "jp": "あの帽子は彼女のものです。", "en": "That hat is hers.", "tag": "所有代名詞", "wrong": ["That hat is her.", "That is hers hat."]}, {"l": 5, "jp": "これらの靴は彼らのものです。", "en": "These shoes are theirs.", "tag": "所有代名詞", "wrong": ["These shoes is theirs.", "These shoes are their."]}, {"l": 5, "jp": "どちらのTシャツがあなたのものですか。", "en": "Which T-shirt is yours?", "tag": "Which・所有代名詞", "wrong": ["Which T-shirt is your?", "Whose T-shirt is yours?"]}, {"l": 5, "jp": "このシャツはいくらですか。", "en": "How much is this shirt?", "tag": "How much", "wrong": ["How many is this shirt?", "How much this shirt is?"]}, {"l": 5, "jp": "この川はどのくらい深いですか。", "en": "How deep is this river?", "tag": "How + 形容詞", "wrong": ["How long is this river?", "How deep this river is?"]}, {"l": 5, "jp": "あなたの身長はどのくらいですか。", "en": "How tall are you?", "tag": "How + 形容詞", "wrong": ["How high are you?", "How tall you are?"]}, {"l": 5, "jp": "私はこのTシャツが欲しいです。", "en": "I'd like this T-shirt.", "tag": "買い物表現", "wrong": ["I like would this T-shirt.", "I'd this T-shirt like."]}, {"l": 5, "jp": "何かお探しですか。", "en": "May I help you?", "tag": "買い物表現", "wrong": ["May you help I?", "Do I may help you?"]}, {"l": 5, "jp": "このズボンはセール中です。", "en": "These pants are on sale.", "tag": "語彙・be動詞", "wrong": ["These pants is on sale.", "These pants are in sale."]}, {"l": 5, "jp": "それはお買い得ですね。", "en": "That's a good deal.", "tag": "会話表現", "wrong": ["That's good a deal.", "That a good deal is."]}, {"l": 6, "jp": "買い物に行きましょう。", "en": "Let's go shopping.", "tag": "Let's・go + ing", "wrong": ["Let's go to shopping.", "Let's going shopping."]}, {"l": 6, "jp": "このタオルを使ってもいいですか。", "en": "Can I use this towel?", "tag": "can", "wrong": ["Can I uses this towel?", "Do I can use this towel?"]}, {"l": 6, "jp": "まっすぐ進んでください。", "en": "Go straight.", "tag": "命令文・道案内", "wrong": ["Go to straight.", "Straight go."]}, {"l": 6, "jp": "その角を右に曲がってください。", "en": "Turn right at the corner.", "tag": "命令文・道案内", "wrong": ["Turn at right the corner.", "Turn right on the corner."]}, {"l": 6, "jp": "郵便局はあなたの左側にあります。", "en": "The post office is on your left.", "tag": "前置詞・道案内", "wrong": ["The post office is in your left.", "The post office on your left is."]}, {"l": 6, "jp": "お座りください。", "en": "Have a seat.", "tag": "会話表現", "wrong": ["Have seat a.", "Take a sit."]}, {"l": 6, "jp": "ご注文はお決まりですか。", "en": "Are you ready to order?", "tag": "be ready to", "wrong": ["Do you ready to order?", "Are you ready order to?"]}, {"l": 6, "jp": "パスタはいかがですか。", "en": "Would you like pasta?", "tag": "Would you like", "wrong": ["Would you pasta like?", "Do you would like pasta?"]}, {"l": 6, "jp": "私は泳ぐことができます。", "en": "I can swim.", "tag": "can", "wrong": ["I can to swim.", "I can swims."]}, {"l": 6, "jp": "彼は泳ぐことができません。", "en": "He cannot swim.", "tag": "can", "wrong": ["He cannot swims.", "He does not can swim."]}, {"l": 6, "jp": "会合に遅れないでください。", "en": "Don't be late for the meeting.", "tag": "命令文・熟語", "wrong": ["Don't late for the meeting.", "Don't be late to the meeting."]}, {"l": 6, "jp": "ごみを拾いましょう。", "en": "Let's pick up litter.", "tag": "Let's・熟語", "wrong": ["Let's pick litter up to.", "Let's picking up litter."]}, {"l": 6, "jp": "私は年配の人々と話します。", "en": "I talk to elderly people.", "tag": "熟語", "wrong": ["I talk elderly people.", "I talks to elderly people."]}, {"l": 6, "jp": "図書館は銀行の近くにあります。", "en": "The library is near the bank.", "tag": "前置詞", "wrong": ["The library near the bank is.", "The library is at near the bank."]}, {"l": 6, "jp": "通りに沿って歩いてください。", "en": "Walk along the street.", "tag": "命令文・前置詞", "wrong": ["Walk the street along.", "Walk along to the street."]}, {"l": 6, "jp": "私はあとでパンを持ってきます。", "en": "I will bring bread later.", "tag": "語彙・語順", "wrong": ["I will later bread bring.", "I will brings bread later."]}];
+let turn=[],idx=0,score=0,times=[],wrong=[],replays=0,soundOn=true,qStart=0,deadline=0,raf=0,locked=false;
+function safeGet(key, fallback=''){
   try{
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US";
-    u.rate = selectedRate;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
+    const v=window.localStorage.getItem(key);
+    return v===null?fallback:v;
+  }catch(e){ return fallback; }
+}
+function safeSet(key, value){
+  try{ window.localStorage.setItem(key, value); }catch(e){}
 }
 
-function selectButtons(containerId, dataName, value, setter){
-  const all = Array.from($(containerId).querySelectorAll(".pick"));
-  all.forEach(btn=>{
-    btn.addEventListener("click", function(){
-      all.forEach(x=>x.classList.remove("selected"));
-      btn.classList.add("selected");
-      setter(btn.dataset[dataName]);
-    });
-  });
-}
-
-selectButtons("lessonButtons","lesson",selectedLesson,v=>selectedLesson=v);
-selectButtons("rateButtons","rate",selectedRate,v=>selectedRate=Number(v));
-selectButtons("turnButtons","turns",selectedTurns,v=>selectedTurns=Number(v));
-
-function buildTurn(){
-  if(finalReviewTurn){
-    const pool = sessionWrong.slice();
-    if(!pool.length) return [];
-    const out = [];
-    while(out.length < 7){
-      const round = shuffle(pool);
-      for(const q of round){
-        if(out.length >= 7) break;
-        out.push(q);
-      }
-    }
-    return out;
-  }
-  const pool = BANK.filter(q => selectedLesson==="all" || String(q.l)===selectedLesson);
-  return shuffle(pool).slice(0,7);
-}
-
-function rememberSessionWrong(q){
-  if(!sessionActive || finalReviewTurn || !q) return;
-  if(!sessionWrong.some(x=>x.en===q.en)) sessionWrong.push(q);
-}
-
-function showQuestion(){
-  locked=false;
-  const q = turn[index]; try{WeakLog.start({subject:'英語',app:'英語・日本語→英文',category:q.tag||'',question:q.jp,answer:q.en})}catch(e){}
-  $("num").textContent="クリア "+score+"/7";
-  $("score").textContent=String(score);
-  if(finalReviewTurn){
-    $("badge").textContent="最終復習ターン ・ Lesson "+q.l+" ・ "+q.tag;
-  }else if(sessionActive){
-    $("badge").textContent="第"+currentNormalTurn+"/"+normalTurnsTarget+"ターン ・ Lesson "+q.l+" ・ "+q.tag;
-  }else{
-    $("badge").textContent="Lesson "+q.l+" ・ "+q.tag;
-  }
-  $("jp").textContent=q.jp;
-  $("feedback").textContent="";
-  $("feedback").className="feedback";
-
-  const opts=shuffle([q.en].concat(q.wrong));
-  answers.forEach((btn,i)=>{
-    btn.textContent=(i+1)+". "+opts[i];
-    btn.dataset.value=opts[i];
-    btn.disabled=false;
-    btn.className="answer";
-  });
-
-  qStart=performance.now();
-  deadline=Infinity;
-  $("time").textContent="∞";
-  $("barInner").style.transform="scaleX(1)";
-  setTimeout(function(){ speak(q.en); },250);
-  cancelAnimationFrame(rafId);
-}
-
-function tick(){}
-
-function answer(btn){
-  if(locked) return;
-  locked=true;
-  cancelAnimationFrame(rafId);
-
-  const q=turn[index];
-  const elapsed=(performance.now()-qStart)/1000;
-  times.push(elapsed);
-
-  const ok=!!btn && btn.dataset.value===q.en;
-  answers.forEach(x=>{
-    x.disabled=true;
-    if(x.dataset.value===q.en) x.classList.add("ok");
-  });
-
-  if(ok){
-    try{WeakLog.result('correct',{},elapsed)}catch(e){}
-    score++;
-    $("feedback").textContent="○ 正解！";
-    $("feedback").className="feedback ok";
-  }else{
-    try{WeakLog.result(btn?'wrong':'timeout',{},elapsed)}catch(e){}
-    if(btn) btn.classList.add("ng");
-    wrong.push(q);
-    rememberSessionWrong(q);
-    $("feedback").textContent=btn ? "× 正解を確認しよう" : "⌛ 時間切れ — 正解を確認しよう";
-    $("feedback").className="feedback ng";
-    speak(q.en);
-  }
-  $("score").textContent=String(score);
-
-  setTimeout(function(){
-    if(!ok){
-      // 誤答は、現在ターンの末尾へ回す
-      turn.push(q);
-    }
-    index++;
-    if(index<turn.length) showQuestion();
-    else finish();
-  },1200);
-}
-
-answers.forEach(btn=>btn.addEventListener("click",function(){answer(btn);}));
-
-$("listenBtn").addEventListener("click",function(){
-  if(turn[index]){
-    replays++;
-    speak(turn[index].en);
-  }
-});
-
-function startGame(){
-StudyLog.startTurn({subject:'英語',app:'英語・日本語→英文',turnLabel:'7問チャレンジ'});
-  turn=buildTurn();
-  if(turn.length<7){
-    alert("出題データが不足しています。");
-    return;
-  }
-  index=0; score=0; times=[]; wrong=[]; replays=0;
-  $("setup").classList.add("hidden");
-  $("resultScreen").classList.add("hidden");
-  $("gameScreen").classList.remove("hidden");
-  showQuestion();
-}
-
-function finish(){
-StudyLog.finishTurn({subject:'英語',app:'英語・日本語→英文',turnLabel:'7問チャレンジ'});
-  $("gameScreen").classList.add("hidden");
-  $("resultScreen").classList.remove("hidden");
-
-  if(sessionActive && !finalReviewTurn){
-    sessionTotalCorrect += score;
-    sessionTotalQuestions += 7;
-  }
-  $("sessionScore").textContent=sessionTotalCorrect+" / "+sessionTotalQuestions;
-  $("sessionScoreBox").style.display=(sessionActive || finalReviewTurn) ? "block" : "none";
-
-  const avg=times.length ? times.reduce((a,b)=>a+b,0)/times.length : 0;
-  $("resultScore").textContent=score+"/7";
-  $("resultAvg").textContent=avg.toFixed(1)+"秒";
-  $("resultReplay").textContent=String(replays);
-  $("resultMiss").textContent=String(wrong.length);
-  $("avg").textContent=avg.toFixed(1);
-
-  const rev=$("review");
-  rev.innerHTML="";
-  if(!wrong.length){
-    rev.innerHTML="<b>このターンは全問正解！</b>";
-  }else{
-    const h=document.createElement("b");
-    h.textContent="このターンの要復習";
-    rev.appendChild(h);
-    const uniq=[];
-    wrong.forEach(q=>{if(!uniq.some(x=>x.en===q.en))uniq.push(q);});
-    uniq.forEach(q=>{
-      const d=document.createElement("div");
-      d.className="ri";
-      d.textContent=q.jp+" → "+q.en;
-      rev.appendChild(d);
-    });
-  }
-
-  const title=$("resultTitle");
-  const btn=$("againBtn");
-
-  if(finalReviewTurn){
-    title.textContent="最終復習ターン終了！";
-    btn.textContent="最初の画面へ";
-    btn.dataset.action="done";
-    sessionActive=false;
-    return;
-  }
-
-  if(sessionActive && currentNormalTurn < normalTurnsTarget){
-    title.textContent="第"+currentNormalTurn+"ターン終了！";
-    btn.textContent="次のターンへ（"+(currentNormalTurn+1)+"/"+normalTurnsTarget+"）";
-    btn.dataset.action="nextNormal";
-    return;
-  }
-
-  if(sessionActive){
-    if(sessionWrong.length){
-      title.textContent="通常ターン終了！";
-      btn.textContent="最後の復習ターンへ（"+sessionWrong.length+"文）";
-      btn.dataset.action="finalReview";
-    }else{
-      title.textContent="全ターン終了！ 間違いなし！";
-      btn.textContent="最初の画面へ";
-      btn.dataset.action="done";
-      sessionActive=false;
-    }
-    return;
-  }
-
-  title.textContent="ターン終了！";
-  btn.textContent="もう7問";
-  btn.dataset.action="again";
-}
-$("startBtn").addEventListener("click",function(){
-  sessionActive=true;
-  finalReviewTurn=false;
-  sessionWrong=[];
-  sessionTotalCorrect=0;
-  sessionTotalQuestions=0;
-  $("sessionScoreBox").style.display="block";
-  normalTurnsTarget=Math.max(1,selectedTurns-1);
-  currentNormalTurn=1;
-  startGame();
-});
-
-$("againBtn").addEventListener("click",function(){
-  const action=$("againBtn").dataset.action;
-  if(action==="nextNormal"){
-    currentNormalTurn++;
-    finalReviewTurn=false;
-    startGame();
-  }else if(action==="finalReview"){
-    finalReviewTurn=true;
-    startGame();
-  }else if(action==="done"){
-    sessionActive=false;
-    finalReviewTurn=false;
-    sessionWrong=[];
-    sessionTotalCorrect=0;
-    sessionTotalQuestions=0;
-    $("resultScreen").classList.add("hidden");
-    $("gameScreen").classList.add("hidden");
-    $("setup").classList.remove("hidden");
-  }else{
-    sessionActive=false;
-    finalReviewTurn=false;
-    startGame();
-  }
-});
-
-$("homeBtn").addEventListener("click",function(){
-  sessionActive=false;
-  finalReviewTurn=false;
-  sessionWrong=[];
-  sessionTotalCorrect=0;
-  sessionTotalQuestions=0;
-  $("resultScreen").classList.add("hidden");
-  $("gameScreen").classList.add("hidden");
-  $("setup").classList.remove("hidden");
-});
-$("soundBtn").addEventListener("click",function(){
-  soundOn=!soundOn;
-  $("soundBtn").textContent=soundOn ? "🔊 音ON" : "🔇 音OFF";
-  if(!soundOn && "speechSynthesis" in window) window.speechSynthesis.cancel();
-});
-})();
-</script>
-
-<script id="ipad-browser-compat-js">
-(function(){
-  "use strict";
-  var unlocked=false;
-
-  function setHeight(){
-    var h=(window.visualViewport && window.visualViewport.height) || window.innerHeight;
-    document.documentElement.style.setProperty("--ipad-app-height", Math.round(h)+"px");
-  }
-  setHeight();
-  window.addEventListener("resize", setHeight, {passive:true});
-  if(window.visualViewport){
-    window.visualViewport.addEventListener("resize", setHeight, {passive:true});
-  }
-
-  function unlockSpeech(){
-    if(unlocked || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
-    try{
-      var u=new SpeechSynthesisUtterance(".");
-      u.lang="en-US";
-      u.rate=1;
-      u.volume=0.01;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-      unlocked=true;
-    }catch(e){}
-  }
-
-  document.addEventListener("pointerdown", unlockSpeech, {once:true, passive:true});
-  document.addEventListener("touchstart", unlockSpeech, {once:true, passive:true});
-  document.addEventListener("click", function(e){
-    var t=e.target.closest && e.target.closest("button");
-    if(t) unlockSpeech();
-  }, {passive:true});
-
-  document.addEventListener("visibilitychange", function(){
-    if(document.hidden && "speechSynthesis" in window){
-      try{ window.speechSynthesis.cancel(); }catch(e){}
-    }
-  });
-
-  // iPad Safari/Chrome: prevent accidental double-tap zoom on game buttons.
-  var lastTouchEnd=0;
-  document.addEventListener("touchend", function(e){
-    if(!(e.target.closest && e.target.closest("button"))) return;
-    var now=Date.now();
-    if(now-lastTouchEnd<=280) e.preventDefault();
-    lastTouchEnd=now;
-  }, {passive:false});
-})();
-</script>
-
-</body>
-</html>
+const $=id=>document.getElementById(id), btns=[...document.querySelectorAll('.choice')];
+function shuffle(a){let b=[...a];for(let i=b.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function speak(t){if(!soundOn||!('speechSynthesis'in window))return; speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=Number($('rate').value);speechSynthesis.speak(u)}
+function filtered(){let l=$('lesson').value;return BANK.filter(q=>l==='all'||String(q.l)===l)}
+function buildTurn(){let p=filtered(), saved=JSON.parse(safeGet('nt_sentence_wrong','[]'));let priority=p.filter(q=>saved.includes(q.en));let picked=shuffle(priority).slice(0,3);for(let q of shuffle(p)){if(picked.length>=7)break;if(!picked.some(x=>x.en===q.en))picked.push(q)}return shuffle(picked)}
+function startTurn(){turn=buildTurn();idx=score=replays=0;times=[];wrong=[];$('start').classList.add('hidden');$('result').classList.add('hidden');showQ()}
+function showQ(){locked=false;let q=turn[idx];$('num').textContent=(idx+1)+'/7';$('score').textContent=score;$('badge').textContent='Lesson '+q.l+' ・ '+q.tag;$('jp').textContent=q.jp;$('feedback').textContent='';$('feedback').className='feedback';
+let opts=shuffle([q.en,...q.wrong]);btns.forEach((b,i)=>{b.textContent=(i+1)+'. '+opts[i];b.dataset.en=opts[i];b.disabled=false;b.className='choice'});
+qStart=performance.now();deadline=qStart+10000;$('time').textContent='10.0';$('bar').style.transform='scaleX(1)';setTimeout(()=>speak(q.en),180);cancelAnimationFrame(raf);tick()}
+function tick(){if(locked)return;let r=Math.max(0,(deadline-performance.now())/1000);$('time').textContent=r.toFixed(1);$('bar').style.transform=`scaleX(${r/10})`;if(r<=0){return answer(null)}raf=requestAnimationFrame(tick)}
+function answer(b){if(locked)return;locked=true;cancelAnimationFrame(raf);let q=turn[idx],elapsed=Math.min(10,(performance.now()-qStart)/1000);times.push(elapsed);let ok=b&&b.dataset.en===q.en;try{WeakLog.record({subject:"英語",app:"日本語→英文",itemId:"SENT_"+WeakLog.safeId(q.en),category:q.tag||("Lesson "+q.l),unit:"L"+q.l,source:"NEW TREASURE",question:q.jp,answer:q.en,firstAttempt:true},ok?"correct":(b?"wrong":"timeout"))}catch(e){}
+btns.forEach(x=>{x.disabled=true;if(x.dataset.en===q.en)x.classList.add('ok')});if(ok){score++;$('feedback').textContent='○ 正解！';$('feedback').className='feedback ok'}else{if(b)b.classList.add('ng');wrong.push(q.en);$('feedback').textContent=b?'× 正解を確認しよう':'⌛ 時間切れ — 正解を確認しよう';$('feedback').className='feedback ng';speak(q.en)}
+$('score').textContent=score;setTimeout(()=>{idx++;idx<7?showQ():finish()},1100)}
+btns.forEach(b=>b.onclick=()=>answer(b));
+$('listen').onclick=()=>{if(turn[idx]){replays++;speak(turn[idx].en)}};
+function finish(){let old=JSON.parse(safeGet('nt_sentence_wrong','[]'));let nw=[...new Set([...old,...wrong])];for(let q of turn){if(!wrong.includes(q.en))nw=nw.filter(x=>x!==q.en)}safeSet('nt_sentence_wrong',JSON.stringify(nw));
+let key='nt_sentence_best_'+$('lesson').value,best=Math.max(score,Number(safeGet(key,'0')));safeSet(key,String(best));let av=times.reduce((a,b)=>a+b,0)/times.length;
+$('rs').textContent=score+'/7';$('ra').textContent=av.toFixed(1)+'秒';$('rb').textContent=best+'/7';$('rf').textContent=replays;$('avg').textContent=av.toFixed(1);
+let rev=$('review');rev.innerHTML=wrong.length?'<b>今回の要復習</b>':'<b>全問正解！</b>';[...new Set(wrong)].forEach(en=>{let q=turn.find(x=>x.en===en),d=document.createElement('div');d.className='ri';d.textContent=q.jp+' → '+q.en;rev.appendChild(d)});$('result').classList.remove('hidden')}
+$('go').onclick=()=>{try{startTurn()}catch(e){
+  console.error(e);
+  const tip=document.querySelector('#start .tip');
+  tip.textContent='起動時にエラーが発生しました。ページを再読み込みして、もう一度スタートしてください。';
+  tip.style.borderLeftColor='#ff7070';
+}};$('again').onclick=startTurn;$('home').onclick=()=>{$('result').classList.add('hidden');$('start').classList.remove('hidden')};
+$('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent=soundOn?'🔊 音ON':'🔇 音OFF';if(!soundOn&&'speechSynthesis'in window)speechSynthesis.cancel()};
+</script></body></html>

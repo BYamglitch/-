@@ -94,149 +94,30 @@ input, select, textarea, button{
 </style>
 
 
-<script>
-/* ===== 共通学習ログ v2 ===== */
+<script id="english-learning-log-v1">
 (function(){
-  if(window.StudyLog) return;
-  const KEY="studyLogV1";
-  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
-
-  function now(){ return Date.now(); }
-  function localDate(ts){
-    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  if(window.WeakLog && window.WeakLog.version==="ELL1") return;
+  const KEY="weakLogV1"; let active=null; const now=()=>Date.now();
+  const clean=s=>String(s??"").normalize("NFKC").trim().replace(/\s+/g," ").slice(0,500);
+  const safeId=s=>clean(s).toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶ一-龠ー]+/g,"_").replace(/^_+|_+$/g,"").slice(0,220);
+  function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}catch(e){return {}}}
+  function save(x){try{localStorage.setItem(KEY,JSON.stringify(x));window.dispatchEvent(new Event("weaklogchange"))}catch(e){}}
+  function write(kind,m,elapsedSec=null){
+    m=m||{}; const q=clean(m.question||m.q||m.jp||m.prompt||""), a=clean(m.answer||m.a||m.en||"");
+    if(!q&&!a&&!m.itemId&&!m.key)return;
+    const subject=clean(m.subject||"英語"), app=clean(m.app||document.title||location.pathname.split("/").pop()), itemId=clean(m.itemId||"");
+    const key=clean(m.key||(itemId?`ITEM|${itemId}`:`${subject}|${app}|${q}|${a}`)), db=load(), t=now();
+    const r=db[key]||{itemId:itemId||"",subject,app,apps:[],category:"",source:"",unit:"",question:q,answer:a,correct:0,wrong:0,timeout:0,attempts:0,firstTryCorrect:0,firstTryWrong:0,streak:0,lastResult:"",firstSeenAt:t,lastSeenAt:t};
+    r.itemId=r.itemId||itemId; r.subject=subject; r.app=app; r.apps=Array.from(new Set([...(Array.isArray(r.apps)?r.apps:[]),app]));
+    r.category=clean(m.category||m.cat||m.tag||r.category||""); r.source=clean(m.source||r.source||""); r.unit=clean(m.unit||m.lesson||r.unit||"");
+    if(q)r.question=q;if(a)r.answer=a;
+    if(kind==="correct"){r.correct=(r.correct||0)+1;r.streak=(r.streak||0)+1}else if(kind==="timeout"){r.timeout=(r.timeout||0)+1;r.streak=0}else{r.wrong=(r.wrong||0)+1;r.streak=0}
+    r.attempts=(r.attempts||0)+1;
+    if(m.firstAttempt===true){if(kind==="correct")r.firstTryCorrect=(r.firstTryCorrect||0)+1;else r.firstTryWrong=(r.firstTryWrong||0)+1}
+    r.lastResult=kind;r.lastSeenAt=t;if(Number.isFinite(elapsedSec))r.totalResponseSec=(r.totalResponseSec||0)+Math.max(0,Math.min(600,elapsedSec));
+    db[key]=r;save(db);active=null;
   }
-  function addActive(){
-    if(running && !document.hidden && last){
-      activeSec += Math.max(0,(now()-last)/1000);
-    }
-    last=now();
-  }
-  function load(){
-    try{
-      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
-      return Array.isArray(x)?x:[];
-    }catch(e){ return []; }
-  }
-  function save(rows){
-    if(rows.length>1000) rows=rows.slice(-1000);
-    localStorage.setItem(KEY,JSON.stringify(rows));
-  }
-
-  window.StudyLog={
-    startTurn(m={}){
-      if(running) return;
-      meta=m||{};
-      running=true;
-      activeSec=0;
-      last=now();
-      turnStartedAt=last;
-    },
-    finishTurn(m={}){
-      if(!running) return;
-      addActive();
-      running=false;
-      const ended=now();
-      const x=Object.assign({},meta,m||{});
-      const rows=load();
-      rows.push({
-        id: ended+"-"+Math.random().toString(36).slice(2,8),
-        date: localDate(ended),
-        subject: x.subject||"未分類",
-        app: x.app||document.title||location.pathname.split("/").pop(),
-        turnLabel: x.turnLabel||"1ターン",
-        durationSec: Math.max(1,Math.round(activeSec)),
-        startedAt: turnStartedAt||ended,
-        endedAt: ended
-      });
-      save(rows);
-      activeSec=0; last=0; turnStartedAt=null; meta={};
-      window.dispatchEvent(new Event("studylogchange"));
-    },
-    cancelTurn(){
-      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
-    }
-  };
-
-  document.addEventListener("visibilitychange",()=>{
-    if(document.hidden){
-      if(running) addActive();
-    }else if(running){
-      last=now();
-    }
-  });
-})();
-</script>
-
-
-<script>
-/* ===== 共通苦手ログ v1 ===== */
-(function(){
-  if(window.WeakLog) return;
-  const KEY="weakLogV1";
-  let active=null;
-  const now=()=>Date.now();
-  function load(){
-    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
-    catch(e){return {}}
-  }
-  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
-  function cleanKey(s){return String(s??"").trim().slice(0,240)}
-  window.WeakLog={
-    start(meta={}){
-      active={...meta,startedAt:now()};
-    },
-    result(kind,meta={},elapsedSec=null){
-      const m={...(active||{}),...(meta||{})};
-      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
-      const a=cleanKey(m.answer||m.a||m.en||"");
-      if(!q && !m.key) return;
-      const subject=cleanKey(m.subject||"未分類");
-      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
-      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
-      const db=load();
-      const r=db[key]||{
-        subject,app,
-        category:cleanKey(m.category||m.cat||m.tag||""),
-        question:q,answer:a,
-        correct:0,wrong:0,timeout:0,
-        attempts:0,totalResponseSec:0,
-        firstSeenAt:now(),lastSeenAt:now()
-      };
-      if(kind==="correct") r.correct++;
-      else if(kind==="timeout") r.timeout++;
-      else r.wrong++;
-      r.attempts++;
-      let sec=elapsedSec;
-      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
-      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
-      r.lastSeenAt=now();
-      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
-      db[key]=r; save(db); active=null;
-    },
-    importWeak(meta,list){
-      const db=load();
-      for(const x of (list||[])){
-        if(!x||!(x.wrong>0||x.timeout>0)) continue;
-        const subject=cleanKey(meta.subject||x.subject||"未分類");
-        const app=cleanKey(meta.app||x.app||"");
-        const q=cleanKey(x.question||x.q||"");
-        const a=cleanKey(x.answer||x.a||"");
-        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
-        const cur=db[key]||{
-          subject,app,category:cleanKey(x.category||x.cat||""),
-          question:q,answer:a,correct:0,wrong:0,timeout:0,
-          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
-        };
-        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
-        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
-        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
-        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
-        cur.lastSeenAt=now(); db[key]=cur;
-      }
-      save(db);
-    }
-  };
+  window.WeakLog={version:"ELL1",key:KEY,safeId,start(meta={}){active={...meta,startedAt:now()}},result(kind,meta={},elapsedSec=null){const m={...(active||{}),...(meta||{})};let sec=elapsedSec;if(sec==null&&active?.startedAt)sec=(now()-active.startedAt)/1000;write(kind,m,sec)},record(meta={},kind="wrong"){write(kind,meta,null)},all(){return load()},clear(){localStorage.removeItem(KEY);window.dispatchEvent(new Event("weaklogchange"))}};
 })();
 </script>
 
@@ -267,7 +148,7 @@ input, select, textarea, button{
       <button type="button" class="pick" data-turns="5">5ターン</button>
     </div>
     <div class="tip">選んだターン数のうち、最後の1ターンは復習用です。まず「選んだターン数－1回」を通常出題し、その間に間違えた単語があれば、最後にその単語だけを15問で復習します。間違いがなければ復習ターンは行わず終了します。</div>
-    <div class="tip">文字を1つずつタップして上の解答欄を完成させます。間違えた場合は、その単語をターンの末尾へ回してあとでもう一度出題します。「← 1文字戻す」と「最初から」を使えます。正解すると英単語を読み上げます。</div>
+    <div class="tip">文字を1つずつタップして上の解答欄を完成させます。「← 1文字戻す」と「最初から」を使えます。正解すると英単語を読み上げます。</div>
     <button type="button" id="startBtn" class="primary">スタート</button>
   </div>
 </section>
@@ -320,8 +201,8 @@ const BANK=[{"jp": "いつも", "en": "always", "lesson": "L4"}, {"jp": "たい�
 const $=id=>document.getElementById(id);
 
 let selectedRange="all";
-let turn=[],idx=0,score=0,missOps=0,perfect=0,wrongWords=[],wordLocked=false;
-let current=null, tapped=[], soundOn=true, retryWrongOnly=false;
+let turn=[],idx=0,score=0,missOps=0,perfect=0,wrongWords=[];
+let current=null, tapped=[], soundOn=true, retryWrongOnly=false,currentHadError=false;
 let selectedTurns=3, normalTurnsTarget=2, currentNormalTurn=0;
 let sessionActive=false, finalReviewTurn=false, sessionWrongWords=[];
 let sessionTotalCorrect=0, sessionTotalQuestions=0;
@@ -449,23 +330,21 @@ function renderScatter(){
 }
 
 function tapLetter(btn){
-  if(wordLocked || btn.classList.contains("used")) return;
+  if(btn.classList.contains("used")) return;
   const expected=makeLetters(current.en)[tapped.length];
   const ch=btn.dataset.ch;
   tapped.push({ch:ch, id:btn.dataset.id, el:btn});
   btn.classList.add("used");
   renderAnswer();
 
-  if(ch!==expected){try{WeakLog.result('wrong')}catch(e){}
+  if(ch!==expected){
+    if(!currentHadError){try{WeakLog.record({subject:"英語",app:"スペリング",itemId:"WORD_"+WeakLog.safeId(current.en),category:current.lesson.replace("L","Lesson "),unit:current.lesson,source:"NEW TREASURE",question:current.jp,answer:current.en,firstAttempt:true},"wrong")}catch(e){} currentHadError=true;}
     missOps++;
-    wordLocked=true;
     $("miss").textContent=String(missOps);
-    $("feedback").textContent="× その文字ではありません。この単語はターンの末尾でもう一度！";
+    $("feedback").textContent="× その文字ではありません。1文字戻してみよう。";
     $("feedback").className="feedback ng";
     if(!wrongWords.some(x=>x.en===current.en)) wrongWords.push(current);
     rememberSessionWrong(current);
-    turn.push(current);
-    setTimeout(nextQuestion,750);
     return;
   } else {
     $("feedback").textContent="";
@@ -475,7 +354,8 @@ function tapLetter(btn){
   const target=makeLetters(current.en).join("");
   const built=tapped.map(x=>x.ch).join("");
   if(tapped.length===target.length){
-    if(built===target){try{WeakLog.result('correct')}catch(e){}
+    if(built===target){
+      try{WeakLog.record({subject:"英語",app:"スペリング",itemId:"WORD_"+WeakLog.safeId(current.en),category:current.lesson.replace("L","Lesson "),unit:current.lesson,source:"NEW TREASURE",question:current.jp,answer:current.en,firstAttempt:!currentHadError},"correct")}catch(e){}
       score++;
       const hadError=wrongWords.some(x=>x.en===current.en);
       if(!hadError) perfect++;
@@ -512,9 +392,8 @@ function resetWord(){
 
 function showQuestion(){
   current=turn[idx];
-  tapped=[];
-  wordLocked=false;
-  $("num").textContent="クリア "+score+"/15";
+  tapped=[];currentHadError=false;
+  $("num").textContent=(idx+1)+"/15";
   $("score").textContent=String(score);
   $("miss").textContent=String(missOps);
   if(finalReviewTurn){
@@ -533,12 +412,11 @@ function showQuestion(){
 
 function nextQuestion(){
   idx++;
-  if(idx>=turn.length) finish();
+  if(idx>=15) finish();
   else showQuestion();
 }
 
 function startGame(){
-StudyLog.startTurn({subject:'英語',app:'英語・スペリング',turnLabel:'15問チャレンジ'});
   turn=buildTurn();
   if(!turn.length){ alert("出題できる単語がありません。"); return; }
   idx=0;score=0;missOps=0;perfect=0;
@@ -550,7 +428,6 @@ StudyLog.startTurn({subject:'英語',app:'英語・スペリング',turnLabel:'1
 }
 
 function finish(){
-StudyLog.finishTurn({subject:'英語',app:'英語・スペリング',turnLabel:'15問チャレンジ'});
   $("gameScreen").classList.add("hidden");
   $("resultScreen").classList.remove("hidden");
 

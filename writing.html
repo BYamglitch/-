@@ -137,74 +137,30 @@ canvas{width:100%;height:270px;border:3px solid #9fc5e8;border-radius:18px;backg
 </script>
 
 
-<script>
-/* ===== 共通苦手ログ v1 ===== */
+<script id="english-learning-log-v1">
 (function(){
-  if(window.WeakLog) return;
-  const KEY="weakLogV1";
-  let active=null;
-  const now=()=>Date.now();
-  function load(){
-    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
-    catch(e){return {}}
+  if(window.WeakLog && window.WeakLog.version==="ELL1") return;
+  const KEY="weakLogV1"; let active=null; const now=()=>Date.now();
+  const clean=s=>String(s??"").normalize("NFKC").trim().replace(/\s+/g," ").slice(0,500);
+  const safeId=s=>clean(s).toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶ一-龠ー]+/g,"_").replace(/^_+|_+$/g,"").slice(0,220);
+  function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}catch(e){return {}}}
+  function save(x){try{localStorage.setItem(KEY,JSON.stringify(x));window.dispatchEvent(new Event("weaklogchange"))}catch(e){}}
+  function write(kind,m,elapsedSec=null){
+    m=m||{}; const q=clean(m.question||m.q||m.jp||m.prompt||""), a=clean(m.answer||m.a||m.en||"");
+    if(!q&&!a&&!m.itemId&&!m.key)return;
+    const subject=clean(m.subject||"英語"), app=clean(m.app||document.title||location.pathname.split("/").pop()), itemId=clean(m.itemId||"");
+    const key=clean(m.key||(itemId?`ITEM|${itemId}`:`${subject}|${app}|${q}|${a}`)), db=load(), t=now();
+    const r=db[key]||{itemId:itemId||"",subject,app,apps:[],category:"",source:"",unit:"",question:q,answer:a,correct:0,wrong:0,timeout:0,attempts:0,firstTryCorrect:0,firstTryWrong:0,streak:0,lastResult:"",firstSeenAt:t,lastSeenAt:t};
+    r.itemId=r.itemId||itemId; r.subject=subject; r.app=app; r.apps=Array.from(new Set([...(Array.isArray(r.apps)?r.apps:[]),app]));
+    r.category=clean(m.category||m.cat||m.tag||r.category||""); r.source=clean(m.source||r.source||""); r.unit=clean(m.unit||m.lesson||r.unit||"");
+    if(q)r.question=q;if(a)r.answer=a;
+    if(kind==="correct"){r.correct=(r.correct||0)+1;r.streak=(r.streak||0)+1}else if(kind==="timeout"){r.timeout=(r.timeout||0)+1;r.streak=0}else{r.wrong=(r.wrong||0)+1;r.streak=0}
+    r.attempts=(r.attempts||0)+1;
+    if(m.firstAttempt===true){if(kind==="correct")r.firstTryCorrect=(r.firstTryCorrect||0)+1;else r.firstTryWrong=(r.firstTryWrong||0)+1}
+    r.lastResult=kind;r.lastSeenAt=t;if(Number.isFinite(elapsedSec))r.totalResponseSec=(r.totalResponseSec||0)+Math.max(0,Math.min(600,elapsedSec));
+    db[key]=r;save(db);active=null;
   }
-  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
-  function cleanKey(s){return String(s??"").trim().slice(0,240)}
-  window.WeakLog={
-    start(meta={}){
-      active={...meta,startedAt:now()};
-    },
-    result(kind,meta={},elapsedSec=null){
-      const m={...(active||{}),...(meta||{})};
-      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
-      const a=cleanKey(m.answer||m.a||m.en||"");
-      if(!q && !m.key) return;
-      const subject=cleanKey(m.subject||"未分類");
-      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
-      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
-      const db=load();
-      const r=db[key]||{
-        subject,app,
-        category:cleanKey(m.category||m.cat||m.tag||""),
-        question:q,answer:a,
-        correct:0,wrong:0,timeout:0,
-        attempts:0,totalResponseSec:0,
-        firstSeenAt:now(),lastSeenAt:now()
-      };
-      if(kind==="correct") r.correct++;
-      else if(kind==="timeout") r.timeout++;
-      else r.wrong++;
-      r.attempts++;
-      let sec=elapsedSec;
-      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
-      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
-      r.lastSeenAt=now();
-      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
-      db[key]=r; save(db); active=null;
-    },
-    importWeak(meta,list){
-      const db=load();
-      for(const x of (list||[])){
-        if(!x||!(x.wrong>0||x.timeout>0)) continue;
-        const subject=cleanKey(meta.subject||x.subject||"未分類");
-        const app=cleanKey(meta.app||x.app||"");
-        const q=cleanKey(x.question||x.q||"");
-        const a=cleanKey(x.answer||x.a||"");
-        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
-        const cur=db[key]||{
-          subject,app,category:cleanKey(x.category||x.cat||""),
-          question:q,answer:a,correct:0,wrong:0,timeout:0,
-          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
-        };
-        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
-        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
-        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
-        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
-        cur.lastSeenAt=now(); db[key]=cur;
-      }
-      save(db);
-    }
-  };
+  window.WeakLog={version:"ELL1",key:KEY,safeId,start(meta={}){active={...meta,startedAt:now()}},result(kind,meta={},elapsedSec=null){const m={...(active||{}),...(meta||{})};let sec=elapsedSec;if(sec==null&&active?.startedAt)sec=(now()-active.startedAt)/1000;write(kind,m,sec)},record(meta={},kind="wrong"){write(kind,meta,null)},all(){return load()},clear(){localStorage.removeItem(KEY);window.dispatchEvent(new Event("weaklogchange"))}};
 })();
 </script>
 
@@ -386,7 +342,7 @@ try{
 function showQ(){
  locked=false;hintCount=0;
  if(mastered.size===20) return finishTurn();
- cur=queue.shift();try{WeakLog.start({subject:"英語",app:"英語・書き",category:lessonLabel(cur),question:cur.jp,answer:cur.en})}catch(e){}
+ cur=queue.shift();if(cur&&!Object.prototype.hasOwnProperty.call(cur,"_hadWrong"))cur._hadWrong=false;try{WeakLog.start({subject:"英語",app:"英語・書き",itemId:"WORD_"+WeakLog.safeId(cur.en),category:lessonLabel(cur),unit:lessonLabel(cur),source:(String(lessonLabel(cur)).includes("Lv")?"旺文社 中学英単語1800":"NEW TREASURE"),question:cur.jp,answer:cur.en})}catch(e){}
  if(!cur) return finishTurn();
  $("turnPill").textContent=`Turn ${turnIndex+1} / ${turnCount}`;
  $("progressPill").textContent=`習得 ${mastered.size} / 20`;
@@ -411,10 +367,10 @@ function submitAnswer(){
  const v=norm($("answerInput").value);
  const ok=aliases(cur).includes(v);
  locked=true;attempts++;totalAttempts++;
- if(ok){try{WeakLog.result('correct')}catch(e){}
+ if(ok){try{WeakLog.result('correct',{firstAttempt:!cur._hadWrong})}catch(e){}
    mastered.add(cur._id);
    showFeedback(true,"○ 正解！");
- }else{try{WeakLog.result('wrong')}catch(e){}
+ }else{try{WeakLog.result('wrong',{firstAttempt:!cur._hadWrong})}catch(e){} cur._hadWrong=true;
    mistakes++;totalMistakes++;queue.push(cur);
    showFeedback(false,`× 正解：${cur.en}　→ ターンの最後でもう一度`);
  }
@@ -535,8 +491,8 @@ $("undoBtn").onclick=()=>{strokes.pop();redraw()};
 $("revealBtn").onclick=()=>{if(locked)return;locked=true;$("feedback").textContent="正解："+cur.en;$("feedback").className="feedback show bad";$("gradeBtns").classList.remove("hidden")};
 document.querySelectorAll("#gradeBtns [data-grade]").forEach(b=>b.onclick=()=>{
  attempts++;totalAttempts++;
- if(b.dataset.grade==="good"){mastered.add(cur._id);showFeedback(true,"○ 書けた！");setTimeout(showQ,700)}
- else{mistakes++;totalMistakes++;queue.push(cur);showFeedback(false,"× ターンの最後でもう一度");setTimeout(showQ,1000)}
+ if(b.dataset.grade==="good"){try{WeakLog.result("correct",{firstAttempt:!cur._hadWrong})}catch(e){} mastered.add(cur._id);showFeedback(true,"○ 書けた！");setTimeout(showQ,700)}
+ else{try{WeakLog.result("wrong",{firstAttempt:!cur._hadWrong})}catch(e){} cur._hadWrong=true;mistakes++;totalMistakes++;queue.push(cur);showFeedback(false,"× ターンの最後でもう一度");setTimeout(showQ,1000)}
 });
 addEventListener("resize",()=>{if(mode==="canvas")fitCanvas()});
 setTimeout(fitCanvas,100);
