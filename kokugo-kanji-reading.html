@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>国語漢字｜読み→熟語4択</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1f2937;--sub:#6b7280;--line:#d9deea;--ok:#e8f7ed;--ng:#fff0f0;--accent:#334155}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:820px;margin:auto;padding:18px 14px 40px}
+h1{font-size:24px;margin:4px 0 6px}
+.desc{color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 6px 20px rgba(15,23,42,.05)}
+.menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+button{font:inherit}
+.bigbtn{border:1px solid var(--line);background:white;border-radius:15px;padding:16px 12px;font-weight:700;font-size:17px;min-height:62px}
+.bigbtn:active{transform:scale(.99)}
+.turns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.turns button{border:1px solid var(--line);background:white;border-radius:12px;padding:10px 14px;font-weight:700}
+.turns button.sel{background:#eef2ff;border-color:#94a3b8}
+.hidden{display:none!important}
+.topbar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px;font-size:14px;color:var(--sub)}
+.progress{height:10px;background:#e9edf5;border-radius:99px;overflow:hidden;margin-bottom:18px}
+.progress>div{height:100%;background:#64748b;width:0%}
+.qnum{font-weight:800}
+.sentence{font-size:22px;line-height:1.75;margin:8px 0 4px}
+.reading{font-size:17px;color:#475569;margin:0 0 16px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{border:2px solid var(--line);background:white;border-radius:16px;padding:18px 10px;font-weight:800;font-size:22px;min-height:74px}
+.choice.correct{background:var(--ok);border-color:#86c69a}
+.choice.wrong{background:var(--ng);border-color:#e6a1a1}
+.choice:disabled{pointer-events:none;opacity:.82}
+.feedback{min-height:34px;margin-top:14px;font-weight:800;font-size:17px}
+.small{font-size:13px;color:var(--sub)}
+.result-num{font-size:34px;font-weight:900;margin:6px 0}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.stat{border:1px solid var(--line);border-radius:14px;padding:13px;text-align:center}
+.stat b{display:block;font-size:23px;margin-top:4px}
+.footerbtn{width:100%;border:0;border-radius:14px;padding:15px;background:#334155;color:white;font-size:17px;font-weight:800;margin-top:12px}
+.warn{background:#fffbea;border:1px solid #eadca0;border-radius:12px;padding:10px 12px;margin-top:12px;font-size:13px;line-height:1.5}
+@media(max-width:560px){.choices{grid-template-columns:1fr}.sentence{font-size:19px}.choice{font-size:20px;min-height:62px}}
+</style>
+
+<style id="kokugo-menu-link-style">
+.kokugo-menu-link{
+ position:fixed; top:max(10px,env(safe-area-inset-top)); left:10px; z-index:9999;
+ display:inline-block; padding:9px 12px; border-radius:12px;
+ background:rgba(255,255,255,.96); color:#334155; border:1px solid #cbd5e1;
+ box-shadow:0 3px 12px rgba(15,23,42,.12); text-decoration:none;
+ font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;
+ font-size:14px; font-weight:700;
+}
+</style>
+
+</head>
+<body>
+<a class="kokugo-menu-link" href="kokugo.html">← 国語メニュー</a>
+<div class="wrap">
+<section id="menu">
+  <h1>国語漢字｜読み → 熟語4択</h1>
+  <p class="desc">まずアプリで「読みと漢字の形」を結びつけ、そのあと紙ドリルで書く練習をするための前段階です。時間制限はありません。</p>
+  <div class="card">
+    <div class="menu-grid">
+      <button class="bigbtn" data-mode="all">📚 全範囲シャッフル<br><span class="small">161問から20問</span></button>
+      <button class="bigbtn" data-mode="weak">🔁 間違えた問題だけ<br><span class="small">端末内の苦手ログ</span></button>
+    </div>
+    <div style="margin-top:16px;font-weight:800">何ターンやる？</div>
+    <div class="turns" id="turnBtns">
+      <button data-turns="1">1</button><button data-turns="2">2</button><button data-turns="3" class="sel">3</button>
+      <button data-turns="4">4</button><button data-turns="5">5</button><button data-turns="6">6</button>
+    </div>
+    <div class="warn">各ターン20問。最初に間違えた問題はそのターンの最後にもう一度出し、正解するまで繰り返します。点数は「初回正解」のみで計算します。</div>
+  </div>
+</section>
+
+<section id="quiz" class="hidden">
+  <div class="topbar"><span id="turnLabel"></span><span id="scoreLabel"></span></div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="card">
+    <div class="qnum" id="qnum"></div>
+    <div class="sentence" id="sentence"></div>
+    <div class="reading" id="reading"></div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+</section>
+
+<section id="result" class="hidden">
+  <h1>ターン結果</h1>
+  <div class="card">
+    <div class="small" id="resultTurn"></div>
+    <div class="result-num" id="resultScore"></div>
+    <div class="result-grid">
+      <div class="stat">初回正解<b id="statCorrect"></b></div>
+      <div class="stat">初回ミス<b id="statWrong"></b></div>
+      <div class="stat">総タップ<b id="statAttempts"></b></div>
+    </div>
+    <div id="nextInfo" class="small"></div>
+    <button id="nextBtn" class="footerbtn">次へ</button>
+  </div>
+</section>
+</div>
+<script>
+const BANK=[{"id": 1, "sentence": "古くなった資料を「【はい】き」する。", "reading": "はいき", "answer": "廃棄", "distractors": ["把握", "履歴", "放棄"]}, {"id": 2, "sentence": "文章を読みやすくするために「【く】とうてん」を正しく使う。", "reading": "くとうてん", "answer": "句読点", "distractors": ["焦点", "訓練", "牛丼"]}, {"id": 3, "sentence": "体を病気から守る「めん【えき】」の仕組みを学ぶ。", "reading": "めんえき", "answer": "免疫", "distractors": ["免税", "免許", "防疫"]}, {"id": 4, "sentence": "敵を左右から「【きょうげき】」する。", "reading": "きょうげき", "answer": "挟撃", "distractors": ["恐慌", "驚愕", "恐怖"]}, {"id": 5, "sentence": "車を運転するために「【めん】きょ」を取る。", "reading": "めんきょ", "answer": "免許", "distractors": ["免疫", "免税", "面会"]}, {"id": 6, "sentence": "朝、先生に「【あいさつ】」をする。", "reading": "あいさつ", "answer": "挨拶", "distractors": ["会釈", "愛想", "掲載"]}, {"id": 7, "sentence": "祖父は一度決めたことをなかなか変えない「【がん】こ」な人だ。", "reading": "がんこ", "answer": "頑固", "distractors": ["子猫", "猛虎", "漢字"]}, {"id": 8, "sentence": "家に入る前に「【げん】かん」で靴を脱ぐ。", "reading": "げんかん", "answer": "玄関", "distractors": ["交換", "先端", "堪忍"]}, {"id": 9, "sentence": "大会でよい成績を収め、全校集会で「ひょう【しょう】」された。", "reading": "ひょうしょう", "answer": "表彰", "distractors": ["表情", "標章", "表象"]}, {"id": 10, "sentence": "友達と意見を「こう【かん】」する。", "reading": "こうかん", "answer": "交換", "distractors": ["郊外", "同伴", "押印"]}, {"id": 11, "sentence": "夜は二階の「【しん】しつ」で休む。", "reading": "しんしつ", "answer": "寝室", "distractors": ["信仰", "薪炭", "沈没"]}, {"id": 12, "sentence": "寒い日は温かい「【なべりょうり】」を食べる。", "reading": "なべりょうり", "answer": "鍋料理", "distractors": ["狩猟", "影響", "懸賞"]}, {"id": 13, "sentence": "毎日、十分な「すい【みん】」をとることが大切だ。", "reading": "すいみん", "answer": "睡眠", "distractors": ["水面", "催眠", "睡魔"]}, {"id": 14, "sentence": "人をからかうのは「よう【ち】」な行動だ。", "reading": "ようち", "answer": "幼稚", "distractors": ["敷地", "腰痛", "嘔吐"]}, {"id": 15, "sentence": "町の「【こうがい】」に大きな公園がある。", "reading": "こうがい", "answer": "郊外", "distractors": ["近頃", "交換", "断崖"]}, {"id": 16, "sentence": "壁に「【きれつ】」が入る。", "reading": "きれつ", "answer": "亀裂", "distractors": ["系列", "決裂", "亀甲"]}, {"id": 17, "sentence": "休日に好きな「【まん】が」を読む。", "reading": "まんが", "answer": "漫画", "distractors": ["漫談", "升目", "満開"]}, {"id": 18, "sentence": "暗い道を一人で歩き、「【きょう】ふ」を感じた。", "reading": "きょうふ", "answer": "恐怖", "distractors": ["給与", "恐慌", "挟撃"]}, {"id": 19, "sentence": "この問題については「【ぼくじしん】」もよく考える。", "reading": "ぼくじしん", "answer": "僕自身", "distractors": ["畜産", "覆面", "訓練"]}, {"id": 20, "sentence": "作文が新聞に「けい【さい】」された。", "reading": "けいさい", "answer": "掲載", "distractors": ["検索", "姓名", "廃水"]}, {"id": 21, "sentence": "許可を得て学校の「【しきち】」に入る。", "reading": "しきち", "answer": "敷地", "distractors": ["幼稚", "信仰", "寝室"]}, {"id": 22, "sentence": "転んで「【ひざ】こぞう」をすりむいた。", "reading": "ひざこぞう", "answer": "膝小僧", "distractors": ["疲労", "信仰", "肝臓"]}, {"id": 23, "sentence": "事実だけを「【られつ】」しても、理由は伝わらない。", "reading": "られつ", "answer": "羅列", "distractors": ["亀裂", "威圧", "履歴"]}, {"id": 24, "sentence": "重い荷物を持ち続けて「【よう】つう」になった。", "reading": "ようつう", "answer": "腰痛", "distractors": ["幼稚", "普通", "抑制"]}, {"id": 25, "sentence": "「【とく】めい」の手紙が届く。", "reading": "とくめい", "answer": "匿名", "distractors": ["特命", "透明", "姓名"]}, {"id": 26, "sentence": "みんなの前で転んで「【はじ】」をかいた。", "reading": "はじ", "answer": "恥", "distractors": ["藤色", "廃棄", "把握"]}, {"id": 27, "sentence": "途中で責任を「ほう【き】」しない。", "reading": "ほうき", "answer": "放棄", "distractors": ["矛先", "履歴", "廃棄"]}, {"id": 28, "sentence": "大切な書類なので、確認してから「【おう】いん」する。", "reading": "おういん", "answer": "押印", "distractors": ["交換", "同伴", "嘔吐"]}, {"id": 29, "sentence": "山頂からの「【ちょう】ぼう」を楽しむ。", "reading": "ちょうぼう", "answer": "眺望", "distractors": ["恐慌", "駐屯", "竜宮"]}, {"id": 30, "sentence": "質問されても答えず、「ちん【もく】」を続けた。", "reading": "ちんもく", "answer": "沈黙", "distractors": ["沈没", "検索", "韓国"]}, {"id": 31, "sentence": "寒いので「て【ぶくろ】」をはめる。", "reading": "てぶくろ", "answer": "手袋", "distractors": ["提案", "鉄網", "地獄"]}, {"id": 32, "sentence": "山の「【りょう】せん」が空にくっきり見える。", "reading": "りょうせん", "answer": "稜線", "distractors": ["稜角", "陵墓", "曲線"]}, {"id": 33, "sentence": "危険な場所の周囲を「【てつもう】」で囲う。", "reading": "てつもう", "answer": "鉄網", "distractors": ["普通", "手袋", "提案"]}, {"id": 34, "sentence": "警察が容疑者を「【たい】ほ」した。", "reading": "たいほ", "answer": "逮捕", "distractors": ["多忙", "稲穂", "廃棄"]}, {"id": 35, "sentence": "姉が「【かれし】」を家族に紹介する。", "reading": "かれし", "answer": "彼氏", "distractors": ["漢字", "稼働", "花瓶"]}, {"id": 36, "sentence": "むだな出費を「【よく】せい」する。", "reading": "よくせい", "answer": "抑制", "distractors": ["匿名", "腰痛", "免税"]}, {"id": 37, "sentence": "難しい予選を「【とつ】ぱ」した。", "reading": "とつぱ", "answer": "突破", "distractors": ["渡航", "踏破", "頓挫"]}, {"id": 38, "sentence": "必要な情報をネットで「けん【さく】」する。", "reading": "けんさく", "answer": "検索", "distractors": ["研削", "詮索", "掲載"]}, {"id": 39, "sentence": "台風が町に深い「【つめあと】」を残した。", "reading": "つめあと", "answer": "爪痕", "distractors": ["姫君", "提案", "近頃"]}, {"id": 40, "sentence": "体調を崩して「おう【と】」した。", "reading": "おうと", "answer": "嘔吐", "distractors": ["奥義", "尾根", "押印"]}, {"id": 41, "sentence": "壁に「【きれつ】」が入る。", "reading": "きれつ", "answer": "亀裂", "distractors": ["系列", "決裂", "亀甲"]}, {"id": 42, "sentence": "読み終えた本を「【ほんだな】」に戻す。", "reading": "ほんだな", "answer": "本棚", "distractors": ["甚大", "矛先", "放棄"]}, {"id": 43, "sentence": "海に面した「【だんがい】」を見上げる。", "reading": "だんがい", "answer": "断崖", "distractors": ["免税", "参詣", "歓迎"]}, {"id": 44, "sentence": "景気が急激に悪化して「【きょうこう】」が起きた。", "reading": "きょうこう", "answer": "恐慌", "distractors": ["挟撃", "驚愕", "眺望"]}, {"id": 45, "sentence": "この地域では「【ちくさん】」が盛んだ。", "reading": "ちくさん", "answer": "畜産", "distractors": ["覆面", "沈没", "沈黙"]}, {"id": 46, "sentence": "友達と「【あくしゅ】」する。", "reading": "あくしゅ", "answer": "握手", "distractors": ["悪手", "握力", "拍手"]}, {"id": 47, "sentence": "正月に神社へ「【さんけい】」する。", "reading": "さんけい", "answer": "参詣", "distractors": ["免税", "断崖", "歓迎"]}, {"id": 48, "sentence": "驚いて「【ぜっきょう】」した。", "reading": "ぜっきょう", "answer": "絶叫", "distractors": ["卓球", "影響", "結晶"]}, {"id": 49, "sentence": "山で「【しゅりょう】」をするには決まりを守る。", "reading": "しゅりょう", "answer": "狩猟", "distractors": ["信仰", "影響", "懸賞"]}, {"id": 50, "sentence": "仕事を終えて「【ほうしゅう】」を受け取る。", "reading": "ほうしゅう", "answer": "報酬", "distractors": ["放送", "報道", "補償"]}, {"id": 51, "sentence": "昔話に腕のよい「【かりゅうど】」が登場する。", "reading": "かりゅうど", "answer": "狩人", "distractors": ["肝臓", "牛丼", "竜宮"]}, {"id": 52, "sentence": "秋になると田んぼの「【いなほ】」が黄金色になる。", "reading": "いなほ", "answer": "稲穂", "distractors": ["偉人", "威圧", "逮捕"]}, {"id": 53, "sentence": "光の向きを考えて絵に「【いんえい】」をつける。", "reading": "いんえい", "answer": "陰影", "distractors": ["隠蔽", "免税", "参詣"]}, {"id": 54, "sentence": "今日は特別な予定のない「【ふつう】」の一日だった。", "reading": "ふつう", "answer": "普通", "distractors": ["多忙", "気泡", "渡航"]}, {"id": 55, "sentence": "「【ふじ】」色の着物を着る。", "reading": "ふじ", "answer": "藤色", "distractors": ["藤棚", "桃色", "藍色"]}, {"id": 56, "sentence": "倉庫には「鉄の【とびら】」がある。", "reading": "鉄のとびら", "answer": "鉄の扉", "distractors": ["煙突", "謎解き", "嘔吐"]}, {"id": 57, "sentence": "寒い日に温かい「【くずゆ】」を飲む。", "reading": "くずゆ", "answer": "葛湯", "distractors": ["屈折", "暗闇", "訓練"]}, {"id": 58, "sentence": "新しい仲間を「【かんげい】」する。", "reading": "かんげい", "answer": "歓迎", "distractors": ["還元", "感激", "歓声"]}, {"id": 59, "sentence": "放課後、友達と「【たっきゅう】」をする。", "reading": "たっきゅう", "answer": "卓球", "distractors": ["絶叫", "報酬", "影響"]}, {"id": 60, "sentence": "教室に「【だれか】」残っている人がいる。", "reading": "だれか", "answer": "誰か", "distractors": ["廊下", "亀裂", "履歴"]}, {"id": 61, "sentence": "庭で摘んだ花を「【かびん】」に生ける。", "reading": "かびん", "answer": "花瓶", "distractors": ["彼氏", "漢字", "稼働"]}, {"id": 62, "sentence": "昔話の主人公が海の底の「【りゅうぐう】」へ行く。", "reading": "りゅうぐう", "answer": "竜宮", "distractors": ["銃口", "稜線", "恐慌"]}, {"id": 63, "sentence": "家の入口に「【きちゅう】」を知らせる札がある。", "reading": "きちゅう", "answer": "忌中", "distractors": ["途中", "給与", "気泡"]}, {"id": 64, "sentence": "二人は来年「【けっこん】」する。", "reading": "けっこん", "answer": "結婚", "distractors": ["血痕", "結構", "結晶"]}, {"id": 65, "sentence": "放課後に教室を「【せいそう】」する。", "reading": "せいそう", "answer": "清掃", "distractors": ["吹奏", "姓名", "先端"]}, {"id": 66, "sentence": "料理を火から下ろす「【ころ】あい」を見極める。", "reading": "ころあい", "answer": "近頃", "distractors": ["郊外", "慈愛", "交換"]}, {"id": 67, "sentence": "授業中は「【ろうか】」を走らない。", "reading": "ろうか", "answer": "廊下", "distractors": ["誰か", "嘔吐", "小唄"]}, {"id": 68, "sentence": "物語に美しい「【ひめぎみ】」が登場する。", "reading": "ひめぎみ", "answer": "姫君", "distractors": ["匹敵", "暗闇", "疲労"]}, {"id": 69, "sentence": "台風の「【えいきょう】」で電車が遅れた。", "reading": "えいきょう", "answer": "影響", "distractors": ["絶叫", "卓球", "懸賞"]}, {"id": 70, "sentence": "文章の意味を「【かいしゃく】」する。", "reading": "かいしゃく", "answer": "解釈", "distractors": ["韓国", "巾着", "稲作"]}, {"id": 71, "sentence": "勇ましい「もうこ」が山を駆ける。", "reading": "もうこ", "answer": "猛虎", "distractors": ["蒙古", "猛攻", "猛威"]}, {"id": 72, "sentence": "工場から出る「【はいすい】」を処理してから流す。", "reading": "はいすい", "answer": "廃水", "distractors": ["姓名", "掲載", "廃棄"]}, {"id": 73, "sentence": "歴史の授業で昔の「【しょみん】」の暮らしを調べる。", "reading": "しょみん", "answer": "庶民", "distractors": ["斜面", "薪炭", "書斎"]}, {"id": 74, "sentence": "感染症の広がりを防ぐため「【ぼうえき】」対策を行う。", "reading": "ぼうえき", "answer": "防疫", "distractors": ["免疫", "放棄", "匹敵"]}, {"id": 75, "sentence": "休日に家族で「【なぞとき】」を楽しむ。", "reading": "なぞとき", "answer": "謎解き", "distractors": ["苗床", "免疫", "匹敵"]}, {"id": 76, "sentence": "空港の「【めんぜい】」店で買い物をする。", "reading": "めんぜい", "answer": "免税", "distractors": ["免疫", "免許", "参詣"]}, {"id": 77, "sentence": "休日に好きな「【まん】が」を読む。", "reading": "まんが", "answer": "漫画", "distractors": ["漫談", "升目", "満開"]}, {"id": 78, "sentence": "この机はとても「【がんじょう】」に作られている。", "reading": "がんじょう", "answer": "頑丈", "distractors": ["懸賞", "影響", "狩猟"]}, {"id": 79, "sentence": "小学生は保護者「【どうはん】」で参加する。", "reading": "どうはん", "answer": "同伴", "distractors": ["交換", "押印", "踏破"]}, {"id": 80, "sentence": "大会でよい成績を収め、全校集会で「ひょう【しょう】」された。", "reading": "ひょうしょう", "answer": "表彰", "distractors": ["表情", "標章", "表象"]}, {"id": 81, "sentence": "春に向けて「なえどこ」を育てる。", "reading": "なえどこ", "answer": "苗床", "distractors": ["苗木", "寝床", "苗代"]}, {"id": 82, "sentence": "いたずらが続き、もう「【かんにん】」できない。", "reading": "かんにん", "answer": "堪忍", "distractors": ["歓迎", "肝臓", "韓国"]}, {"id": 83, "sentence": "山の「【おね】」に沿って歩く。", "reading": "おね", "answer": "尾根", "distractors": ["嘔吐", "奥義", "囲碁"]}, {"id": 84, "sentence": "知らせを聞いて「【きょうがく】」した。", "reading": "きょうがく", "answer": "驚愕", "distractors": ["恐慌", "挟撃", "沼沢"]}, {"id": 85, "sentence": "危険なので「【じゅうこう】」を人に向けてはいけない。", "reading": "じゅうこう", "answer": "銃口", "distractors": ["恐慌", "竜宮", "腎臓"]}, {"id": 86, "sentence": "事実を「【いんぺい】」してはいけない。", "reading": "いんぺい", "answer": "隠蔽", "distractors": ["陰影", "免税", "参詣"]}, {"id": 87, "sentence": "博物館で「【たてがた】」の飾りを見る。", "reading": "たてがた", "answer": "盾形", "distractors": ["多忙", "逮捕", "断崖"]}, {"id": 88, "sentence": "駅へ向かう「【とちゅう】」で雨が降り出した。", "reading": "とちゅう", "answer": "途中", "distractors": ["忌中", "渡航", "匿名"]}, {"id": 89, "sentence": "批判の「【ほこさき】」が会社に向けられた。", "reading": "ほこさき", "answer": "矛先", "distractors": ["放棄", "本棚", "免疫"]}, {"id": 90, "sentence": "雑誌の「【けんしょう】」に応募する。", "reading": "けんしょう", "answer": "懸賞", "distractors": ["結晶", "頑丈", "報酬"]}, {"id": 91, "sentence": "来月、海外へ「【とこう】」する。", "reading": "とこう", "answer": "渡航", "distractors": ["突破", "踏破", "頓挫"]}, {"id": 92, "sentence": "停電で部屋が「【くらやみ】」になった。", "reading": "くらやみ", "answer": "暗闇", "distractors": ["屈折", "訓練", "姫君"]}, {"id": 93, "sentence": "思い切った「【だいたん】」な作戦を立てる。", "reading": "だいたん", "answer": "大胆", "distractors": ["先端", "平凡", "提案"]}, {"id": 94, "sentence": "部隊がこの地域に「【ちゅうとん】」する。", "reading": "ちゅうとん", "answer": "駐屯", "distractors": ["牛丼", "眺望", "畜産"]}, {"id": 95, "sentence": "この水は「【とうめい】」で底まで見える。", "reading": "とうめい", "answer": "透明", "distractors": ["冬眠", "証明", "照明"]}, {"id": 96, "sentence": "方眼紙の「【ますめ】」に合わせて線を引く。", "reading": "ますめ", "answer": "升目", "distractors": ["漫画", "又聞き", "満開"]}, {"id": 97, "sentence": "雪の「【けっしょう】」を虫眼鏡で観察する。", "reading": "けっしょう", "answer": "結晶", "distractors": ["懸賞", "絶叫", "一緒"]}, {"id": 98, "sentence": "旅行で「【かんこく】」を訪れた。", "reading": "かんこく", "answer": "韓国", "distractors": ["勧告", "監獄", "帰国"]}, {"id": 99, "sentence": "昔話には恐ろしい「【じごく】」が描かれている。", "reading": "じごく", "answer": "地獄", "distractors": ["慈愛", "希薄", "把握"]}, {"id": 100, "sentence": "資金不足で計画が「【とんざ】」した。", "reading": "とんざ", "answer": "頓挫", "distractors": ["渡航", "突破", "踏破"]}, {"id": 101, "sentence": "「【ふくめん】」をかぶって正体を隠す。", "reading": "ふくめん", "answer": "覆面", "distractors": ["沸点", "斜面", "畜産"]}, {"id": 102, "sentence": "地震に備えて避難「【くんれん】」を行う。", "reading": "くんれん", "answer": "訓練", "distractors": ["先端", "堪忍", "玄関"]}, {"id": 103, "sentence": "公園の桜が「【まんかい】」になった。", "reading": "まんかい", "answer": "満開", "distractors": ["免税", "参詣", "断崖"]}, {"id": 104, "sentence": "母は「【じあい】」に満ちた表情で子どもを見守る。", "reading": "じあい", "answer": "慈愛", "distractors": ["地獄", "甚大", "愉快"]}, {"id": 105, "sentence": "冬の森には葉のない「【こぼく】」が立っている。", "reading": "こぼく", "answer": "枯木", "distractors": ["子猫", "小唄", "地獄"]}, {"id": 106, "sentence": "理科で「【じんぞう】」の働きを学ぶ。", "reading": "じんぞう", "answer": "腎臓", "distractors": ["肝臓", "甚大", "信仰"]}, {"id": 107, "sentence": "運動のあと、体に「【ひろう】」がたまった。", "reading": "ひろう", "answer": "疲労", "distractors": ["多忙", "普通", "気泡"]}, {"id": 108, "sentence": "今月の「【きゅうよ】」が銀行口座に振り込まれた。", "reading": "きゅうよ", "answer": "給与", "distractors": ["忌中", "恐怖", "気泡"]}, {"id": 109, "sentence": "大波で船が「【ちんぼつ】」した。", "reading": "ちんぼつ", "answer": "沈没", "distractors": ["沈黙", "寝室", "煙突"]}, {"id": 110, "sentence": "その話は「【またぎき】」なので、事実かどうか確かではない。", "reading": "またぎき", "answer": "又聞き", "distractors": ["満開", "免疫", "匹敵"]}, {"id": 111, "sentence": "水中の物体には上向きの「【ふりょく】」が働く。", "reading": "ふりょく", "answer": "浮力", "distractors": ["沸点", "覆面", "検索"]}, {"id": 112, "sentence": "調査が進み、事件の「【ぜんぼう】」が見えてきた。", "reading": "ぜんぼう", "answer": "全貌", "distractors": ["信仰", "肝臓", "腎臓"]}, {"id": 113, "sentence": "長い山道を「【とうは】」した。", "reading": "とうは", "answer": "踏破", "distractors": ["渡航", "突破", "頓挫"]}, {"id": 114, "sentence": "地震によって「【じんだい】」な被害が出た。", "reading": "じんだい", "answer": "甚大", "distractors": ["腎臓", "慈愛", "免税"]}, {"id": 115, "sentence": "棒の「【せんたん】」が鋭くとがっている。", "reading": "せんたん", "answer": "先端", "distractors": ["薪炭", "堪忍", "大胆"]}, {"id": 116, "sentence": "沖縄には「【あねったい】」の気候が見られる。", "reading": "あねったい", "answer": "亜熱帯", "distractors": ["挨拶", "握手", "沼沢"]}, {"id": 117, "sentence": "彼にはプロに「【ひってき】」する実力がある。", "reading": "ひってき", "answer": "匹敵", "distractors": ["沸点", "姫君", "免疫"]}, {"id": 118, "sentence": "道ばたで小さな「【こねこ】」を見つけた。", "reading": "こねこ", "answer": "子猫", "distractors": ["小唄", "枯木", "猛虎"]}, {"id": 119, "sentence": "友達と「【いっしょ】」に駅まで帰る。", "reading": "いっしょ", "answer": "一緒", "distractors": ["結晶", "稲作", "陰影"]}, {"id": 120, "sentence": "昼食に温かい「【ぎゅうどん】」を食べる。", "reading": "ぎゅうどん", "answer": "牛丼", "distractors": ["駐屯", "句読点", "焦点"]}, {"id": 121, "sentence": "理科で「【かんぞう】」の働きを学ぶ。", "reading": "かんぞう", "answer": "肝臓", "distractors": ["腎臓", "堪忍", "歓迎"]}, {"id": 122, "sentence": "舞台で伝統的な「【ぶよう】」を見る。", "reading": "ぶよう", "answer": "舞踊", "distractors": ["多忙", "普通", "気泡"]}, {"id": 123, "sentence": "大声で相手を「【いあつ】」しない。", "reading": "いあつ", "answer": "威圧", "distractors": ["偉人", "稲穂", "亀裂"]}, {"id": 124, "sentence": "新しい案を「【ていあん】」する。", "reading": "ていあん", "answer": "提案", "distractors": ["大胆", "平凡", "睡眠"]}, {"id": 125, "sentence": "実験で光の「【くっせつ】」を確かめる。", "reading": "くっせつ", "answer": "屈折", "distractors": ["暗闇", "訓練", "寝室"]}, {"id": 126, "sentence": "話し合いの「【しょうてん】」を一つにしぼる。", "reading": "しょうてん", "answer": "焦点", "distractors": ["沼沢", "庶民", "句読点"]}, {"id": 127, "sentence": "長い修行の末、師匠から「【おくぎ】」を教わる。", "reading": "おくぎ", "answer": "奥義", "distractors": ["嘔吐", "尾根", "押印"]}, {"id": 128, "sentence": "父は静かな「【しょさい】」で本を読む。", "reading": "しょさい", "answer": "書斎", "distractors": ["庶民", "掲載", "信仰"]}, {"id": 129, "sentence": "父は仕事で「【たぼう】」な毎日を送っている。", "reading": "たぼう", "answer": "多忙", "distractors": ["逮捕", "普通", "気泡"]}, {"id": 130, "sentence": "特別な出来事のない「【へいぼん】」な一日を過ごす。", "reading": "へいぼん", "answer": "平凡", "distractors": ["大胆", "提案", "睡眠"]}, {"id": 131, "sentence": "入院して「【びょうしょう】」で安静にする。", "reading": "びょうしょう", "answer": "病床", "distractors": ["表彰", "報酬", "恐慌"]}, {"id": 132, "sentence": "昔の人は死後も「【れいこん】」が残ると考えた。", "reading": "れいこん", "answer": "霊魂", "distractors": ["大胆", "平凡", "提案"]}, {"id": 133, "sentence": "会場の「【みなさま】」にお知らせする。", "reading": "みなさま", "answer": "皆様", "distractors": ["稲作", "身丈", "挨拶"]}, {"id": 134, "sentence": "用紙に自分の「【せいめい】」を書く。", "reading": "せいめい", "answer": "姓名", "distractors": ["清掃", "匿名", "廃水"]}, {"id": 135, "sentence": "大会への「【もうしこみ】」を期限までに済ませる。", "reading": "もうしこみ", "answer": "申込", "distractors": ["猛虎", "報酬", "恐慌"]}, {"id": 136, "sentence": "今年の料金は昨年と同じく「【すえおき】」になった。", "reading": "すえおき", "answer": "据え置き", "distractors": ["吹奏", "睡眠", "免疫"]}, {"id": 137, "sentence": "これまで利用した「【りれき】」を確認する。", "reading": "りれき", "answer": "履歴", "distractors": ["廃棄", "放棄", "亀裂"]}, {"id": 138, "sentence": "この地域では水田を使った「【いなさく】」が盛んだ。", "reading": "いなさく", "answer": "稲作", "distractors": ["検索", "稲穂", "皆様"]}, {"id": 139, "sentence": "制服に合わせて黒い「【かわぐつ】」を履く。", "reading": "かわぐつ", "answer": "革靴", "distractors": ["堪忍", "歓迎", "肝臓"]}, {"id": 140, "sentence": "水の中に小さな「【きほう】」ができた。", "reading": "きほう", "answer": "気泡", "distractors": ["亀裂", "希薄", "忌中"]}, {"id": 141, "sentence": "道路を一時「【へいさ】」する。", "reading": "へいさ", "answer": "閉鎖", "distractors": ["平凡", "廃棄", "逮捕"]}, {"id": 142, "sentence": "宴会で昔ながらの「【こうた】」を歌う。", "reading": "こうた", "answer": "小唄", "distractors": ["子猫", "枯木", "交換"]}, {"id": 143, "sentence": "歴史上の「【いじん】」について調べる。", "reading": "いじん", "answer": "偉人", "distractors": ["威圧", "稲穂", "花瓶"]}, {"id": 144, "sentence": "理科の実験で水の「【ふってん】」を調べる。", "reading": "ふってん", "answer": "沸点", "distractors": ["覆面", "結婚", "匹敵"]}, {"id": 145, "sentence": "新しい機械が「【かどう】」する。", "reading": "かどう", "answer": "稼働", "distractors": ["彼氏", "漢字", "花瓶"]}, {"id": 146, "sentence": "水がたまった「【しょうたく】」の多い地域を歩く。", "reading": "しょうたく", "answer": "沼沢", "distractors": ["焦点", "驚愕", "庶民"]}, {"id": 147, "sentence": "昔は「【ぞうげ】」を使った工芸品も作られた。", "reading": "ぞうげ", "answer": "象牙", "distractors": ["嘔吐", "小唄", "幼稚"]}, {"id": 148, "sentence": "小物を「【きん】ちゃく」に入れる。", "reading": "きんちゃく", "answer": "巾着", "distractors": ["驚愕", "解釈", "忌中"]}, {"id": 149, "sentence": "砂漠で大きな「【すなあらし】」が起きた。", "reading": "すなあらし", "answer": "砂嵐", "distractors": ["吹奏", "据え置き", "睡眠"]}, {"id": 150, "sentence": "着物を選ぶために「【みたけ】」を測る。", "reading": "みたけ", "answer": "身丈", "distractors": ["皆様", "亀裂", "偉人"]}, {"id": 151, "sentence": "休日に祖父と「【いご】」を打つ。", "reading": "いご", "answer": "囲碁", "distractors": ["偉人", "威圧", "稲穂"]}, {"id": 152, "sentence": "息を使って楽器を鳴らす「【すいそう】」を練習する。", "reading": "すいそう", "answer": "吹奏", "distractors": ["清掃", "睡眠", "据え置き"]}, {"id": 153, "sentence": "地域の人々の「【しんこう】」について学ぶ。", "reading": "しんこう", "answer": "信仰", "distractors": ["寝室", "薪炭", "全貌"]}, {"id": 154, "sentence": "山頂では空気が「【きはく】」になる。", "reading": "きはく", "answer": "希薄", "distractors": ["亀裂", "気泡", "地獄"]}, {"id": 155, "sentence": "昔は「【しんたん】」を大切な燃料として使った。", "reading": "しんたん", "answer": "薪炭", "distractors": ["先端", "庶民", "斜面"]}, {"id": 156, "sentence": "工場の高い「【えんとつ】」から煙が出ている。", "reading": "えんとつ", "answer": "煙突", "distractors": ["寝室", "沈没", "屈折"]}, {"id": 157, "sentence": "友達と「【ゆかい】」な時間を過ごした。", "reading": "ゆかい", "answer": "愉快", "distractors": ["慈愛", "満開", "亀裂"]}, {"id": 158, "sentence": "国語の授業で新しい「【かんじ】」を学ぶ。", "reading": "かんじ", "answer": "漢字", "distractors": ["彼氏", "稼働", "花瓶"]}, {"id": 159, "sentence": "状況を「【はあく】」する。", "reading": "はあく", "answer": "把握", "distractors": ["廃棄", "地獄", "希薄"]}, {"id": 160, "sentence": "急な「【しゃめん】」をゆっくり下る。", "reading": "しゃめん", "answer": "斜面", "distractors": ["庶民", "薪炭", "覆面"]}, {"id": 161, "sentence": "祝いの席で「【さかずき】」を上げる。", "reading": "さかずき", "answer": "杯", "distractors": ["参詣", "免疫", "匹敵"]}];
+const TURN_SIZE=20;
+let selectedTurns=3, mode='all', currentTurn=0;
+let queue=[], seenInitial=new Set(), initialCorrect=0, initialWrong=0, attempts=0;
+let weakIds=new Set(JSON.parse(localStorage.getItem('kanjiWeak4choiceV1')||'[]'));
+
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function chooseTurnBank(){
+  let src=(mode==='weak' && weakIds.size)?BANK.filter(x=>weakIds.has(x.id)):BANK;
+  if(src.length===0) src=BANK;
+  return shuffle(src).slice(0,Math.min(TURN_SIZE,src.length));
+}
+function startSession(){
+  currentTurn=1;
+  startTurn();
+}
+function startTurn(){
+  const chosen=chooseTurnBank();
+  queue=chosen.map(x=>({...x,first:true}));
+  seenInitial=new Set(); initialCorrect=0; initialWrong=0; attempts=0;
+  $('#menu').classList.add('hidden'); $('#result').classList.add('hidden'); $('#quiz').classList.remove('hidden');
+  render();
+}
+function render(){
+  if(queue.length===0) return finishTurn();
+  const q=queue[0];
+  $('#turnLabel').textContent=`${currentTurn} / ${selectedTurns} ターン`;
+  $('#scoreLabel').textContent=`初回正解 ${initialCorrect} / ${seenInitial.size}`;
+  $('#qnum').textContent=`${Math.min(seenInitial.size+1,TURN_SIZE)} / ${Math.min(TURN_SIZE, mode==='weak'&&weakIds.size?weakIds.size:BANK.length)}`;
+  $('#bar').style.width=`${Math.min(100,(seenInitial.size/TURN_SIZE)*100)}%`;
+  $('#sentence').textContent=q.sentence;
+  $('#reading').textContent=`読み：${q.reading}`;
+  $('#feedback').textContent='';
+  const opts=shuffle([q.answer,...q.distractors]);
+  const box=$('#choices'); box.innerHTML='';
+  opts.forEach(o=>{
+    const b=document.createElement('button'); b.className='choice'; b.textContent=o;
+    b.onclick=()=>answer(o,b);
+    box.appendChild(b);
+  });
+}
+function answer(opt,btn){
+  const q=queue[0]; attempts++;
+  [...document.querySelectorAll('.choice')].forEach(b=>b.classList.add('disabled'));
+  const firstTime=!seenInitial.has(q.id);
+  if(firstTime) seenInitial.add(q.id);
+
+  if(opt===q.answer){
+    btn.classList.add('correct');
+    $('#feedback').textContent='○ 正解！';
+    if(firstTime){ initialCorrect++; weakIds.delete(q.id); }
+    queue.shift();
+    localStorage.setItem('kanjiWeak4choiceV1',JSON.stringify([...weakIds]));
+    setTimeout(render,700);
+  } else {
+    btn.classList.add('wrong');
+    [...document.querySelectorAll('.choice')].forEach(b=>{if(b.textContent===q.answer)b.classList.add('correct')});
+    $('#feedback').textContent=`正解：${q.answer}`;
+    if(firstTime) initialWrong++;
+    weakIds.add(q.id);
+    localStorage.setItem('kanjiWeak4choiceV1',JSON.stringify([...weakIds]));
+    // move wrong question to end; next appearance is review, not score target
+    const wrong=queue.shift(); wrong.first=false; queue.push(wrong);
+    setTimeout(render,1200);
+  }
+}
+function finishTurn(){
+  $('#quiz').classList.add('hidden'); $('#result').classList.remove('hidden');
+  $('#resultTurn').textContent=`${currentTurn} / ${selectedTurns} ターン`;
+  $('#resultScore').textContent=`${initialCorrect} / ${seenInitial.size}`;
+  $('#statCorrect').textContent=initialCorrect;
+  $('#statWrong').textContent=initialWrong;
+  $('#statAttempts').textContent=attempts;
+  $('#nextInfo').textContent=`苦手ログ：${weakIds.size}問`;
+  $('#nextBtn').textContent=currentTurn<selectedTurns?'次のターンへ':'メニューへ戻る';
+}
+$('#nextBtn').onclick=()=>{
+  if(currentTurn<selectedTurns){currentTurn++;startTurn()}
+  else{$('#result').classList.add('hidden');$('#menu').classList.remove('hidden')}
+};
+document.querySelectorAll('#turnBtns button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#turnBtns button').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel'); selectedTurns=Number(b.dataset.turns);
+});
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
+  mode=b.dataset.mode;
+  if(mode==='weak' && weakIds.size===0){alert('まだ苦手ログがありません。まず全範囲シャッフルをやってみましょう。');return;}
+  startSession();
+});
+</script>
+</body>
+</html>
