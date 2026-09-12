@@ -1,201 +1,51 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes"><title>国語・漢字の書き 試験範囲版</title>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>国語｜漢字学習メニュー</title>
 <style>
-:root{--ink:#1a2030;--sub:#697184;--line:#d9d1e8;--purple:#7046ad;--soft:#f1ebfb}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:linear-gradient(#eee8f6,#faf9fc);font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;color:var(--ink)}button,input{font:inherit}button{border:0;touch-action:manipulation}.hidden{display:none!important}.wrap{max-width:980px;margin:auto;padding:14px}.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 8px 24px #0000000d}h1{font-size:clamp(29px,5vw,44px);margin:0 0 8px}.lead{color:var(--sub);font-size:16px;line-height:1.65}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}.pick,.primary,.secondary,.tool,.grade{min-height:52px;border-radius:14px;padding:11px 14px;font-weight:900;font-size:17px}.pick{background:#fff;border:2px solid var(--line)}.pick.sel{border-color:var(--purple);background:var(--soft);color:#53308a}.primary{width:100%;background:var(--purple);color:#fff;margin-top:10px}.secondary,.tool{background:#edf0f5;color:var(--ink)}.top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.pill{background:#efecf5;border-radius:999px;padding:8px 12px;font-weight:900;font-size:14px}.progress{height:10px;background:#e4dfeb;border-radius:999px;overflow:hidden;margin:10px 0 18px}.progress>div{height:100%;background:#7b54b6;width:0}.questionCard{border:2px solid var(--line);border-radius:20px;padding:18px;background:#fcfbfe;margin-bottom:14px}.readLabel{font-size:14px;color:var(--sub);font-weight:900}.reading{font-size:clamp(38px,7vw,62px);font-weight:950;margin:6px 0 8px}.audio{background:#e8f1ff;color:#185f9b;border-radius:13px;padding:10px 14px;font-weight:900}.hintBox{margin-top:10px;padding:12px 14px;border-radius:14px;background:#fff8dd;border:1px solid #eedc92;font-size:18px;line-height:1.55}.modeTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.modeTabs button{border:2px solid var(--line);background:#fff;border-radius:13px;padding:10px;font-weight:900}.modeTabs button.sel{border-color:var(--purple);background:var(--soft);color:#53308a}.canvasWrap{height:270px;border:3px solid #a894ce;border-radius:18px;background:#fff;position:relative;overflow:hidden}canvas{width:100%;height:100%;touch-action:none;display:block}.canvasHelp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#b0a8bc;font-weight:900;font-size:25px;pointer-events:none}.textInput{width:100%;min-height:90px;border:3px solid #a894ce;border-radius:18px;padding:14px 17px;font-size:40px;font-weight:950;background:#fff;color:#111}.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}.tool{font-size:15px}.answerBox{margin-top:12px;border:2px solid #d6c7e8;border-radius:18px;padding:14px;background:#faf7ff;text-align:center}.answerKanji{font-size:96px;line-height:1.1;font-weight:950}.answerMeta{color:var(--sub);font-weight:800;margin-top:8px}.gradeRow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.grade.good{background:#e7f7ee;color:#11673f}.grade.bad{background:#fff0ef;color:#9b312c}.feedback{min-height:28px;font-size:18px;font-weight:900;margin-top:9px}.note{font-size:13px;color:var(--sub);line-height:1.55;margin-top:10px}@media(max-width:720px){.grid{grid-template-columns:1fr}}
+:root{--bg:#f6f2fb;--ink:#24212b;--sub:#6b6475;--line:#ded6e8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;color:var(--ink)}
+.wrap{max-width:820px;margin:auto;padding:24px 16px 48px}
+.back{display:inline-block;text-decoration:none;color:#5b426f;font-weight:800;margin-bottom:14px}
+.hero{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 8px 28px rgba(58,34,71,.08)}
+h1{margin:0 0 6px;font-size:30px}
+.lead{margin:0 0 20px;color:var(--sub);line-height:1.65}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:20px;padding:22px;background:#fff;min-height:210px}
+.card:active{transform:scale(.99)}
+.icon{font-size:42px}
+.card h2{font-size:23px;margin:10px 0 8px}
+.card p{margin:0;color:var(--sub);line-height:1.7}
+.badge{display:inline-block;margin-top:14px;padding:6px 10px;border-radius:999px;background:#f1eaf7;color:#624676;font-weight:800;font-size:13px}
+.order{margin-top:16px;padding:14px 16px;border-radius:14px;background:#f8f5fb;color:#54485f;line-height:1.7}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.card{min-height:auto}h1{font-size:26px}}
 </style>
-<script>
-/* ===== 共通学習ログ v2 ===== */
-(function(){
-  if(window.StudyLog) return;
-  const KEY="studyLogV1";
-  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
-
-  function now(){ return Date.now(); }
-  function localDate(ts){
-    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
-  }
-  function addActive(){
-    if(running && !document.hidden && last){
-      activeSec += Math.max(0,(now()-last)/1000);
-    }
-    last=now();
-  }
-  function load(){
-    try{
-      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
-      return Array.isArray(x)?x:[];
-    }catch(e){ return []; }
-  }
-  function save(rows){
-    if(rows.length>1000) rows=rows.slice(-1000);
-    localStorage.setItem(KEY,JSON.stringify(rows));
-  }
-
-  window.StudyLog={
-    startTurn(m={}){
-      if(running) return;
-      meta=m||{};
-      running=true;
-      activeSec=0;
-      last=now();
-      turnStartedAt=last;
-    },
-    finishTurn(m={}){
-      if(!running) return;
-      addActive();
-      running=false;
-      const ended=now();
-      const x=Object.assign({},meta,m||{});
-      const rows=load();
-      rows.push({
-        id: ended+"-"+Math.random().toString(36).slice(2,8),
-        date: localDate(ended),
-        subject: x.subject||"未分類",
-        app: x.app||document.title||location.pathname.split("/").pop(),
-        turnLabel: x.turnLabel||"1ターン",
-        durationSec: Math.max(1,Math.round(activeSec)),
-        startedAt: turnStartedAt||ended,
-        endedAt: ended
-      });
-      save(rows);
-      activeSec=0; last=0; turnStartedAt=null; meta={};
-      window.dispatchEvent(new Event("studylogchange"));
-    },
-    cancelTurn(){
-      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
-    }
-  };
-
-  document.addEventListener("visibilitychange",()=>{
-    if(document.hidden){
-      if(running) addActive();
-    }else if(running){
-      last=now();
-    }
-  });
-})();
-</script>
-
-
-<script>
-/* ===== 共通苦手ログ v1 ===== */
-(function(){
-  if(window.WeakLog) return;
-  const KEY="weakLogV1";
-  let active=null;
-  const now=()=>Date.now();
-  function load(){
-    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
-    catch(e){return {}}
-  }
-  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
-  function cleanKey(s){return String(s??"").trim().slice(0,240)}
-  window.WeakLog={
-    start(meta={}){
-      active={...meta,startedAt:now()};
-    },
-    result(kind,meta={},elapsedSec=null){
-      const m={...(active||{}),...(meta||{})};
-      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
-      const a=cleanKey(m.answer||m.a||m.en||"");
-      if(!q && !m.key) return;
-      const subject=cleanKey(m.subject||"未分類");
-      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
-      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
-      const db=load();
-      const r=db[key]||{
-        subject,app,
-        category:cleanKey(m.category||m.cat||m.tag||""),
-        question:q,answer:a,
-        correct:0,wrong:0,timeout:0,
-        attempts:0,totalResponseSec:0,
-        firstSeenAt:now(),lastSeenAt:now()
-      };
-      if(kind==="correct") r.correct++;
-      else if(kind==="timeout") r.timeout++;
-      else r.wrong++;
-      r.attempts++;
-      let sec=elapsedSec;
-      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
-      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
-      r.lastSeenAt=now();
-      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
-      db[key]=r; save(db); active=null;
-    },
-    importWeak(meta,list){
-      const db=load();
-      for(const x of (list||[])){
-        if(!x||!(x.wrong>0||x.timeout>0)) continue;
-        const subject=cleanKey(meta.subject||x.subject||"未分類");
-        const app=cleanKey(meta.app||x.app||"");
-        const q=cleanKey(x.question||x.q||"");
-        const a=cleanKey(x.answer||x.a||"");
-        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
-        const cur=db[key]||{
-          subject,app,category:cleanKey(x.category||x.cat||""),
-          question:q,answer:a,correct:0,wrong:0,timeout:0,
-          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
-        };
-        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
-        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
-        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
-        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
-        cur.lastSeenAt=now(); db[key]=cur;
-      }
-      save(db);
-    }
-  };
-})();
-</script>
-
-</head><body><main class="wrap">
-<section id="setup" class="card"><h1>📘 国語・漢字の書き<br>期末試験範囲版</h1>
-<p class="lead">出題する漢字は、指定PDFの<b>「恥」〜「威」</b>だけです。元教材画像は表示しません。</p>
-<div class="grid" id="turnBtns"><button class="pick sel" data-turns="2">2ターン</button><button class="pick" data-turns="3">3ターン</button><button class="pick" data-turns="4">4ターン</button><button class="pick" data-turns="5">5ターン</button></div>
-<p class="lead">1ターン20問・時間制限なし。まず「読み」だけで思い出し、必要なら意味ヒント。Apple Pencilで直接書き、答えを見て自己採点します。×はターン末尾へ戻ります。</p>
-<div class="pill" style="display:inline-block">収録 114字・重複除去済み</div><button id="startBtn" class="primary">スタート</button>
-<div class="note">出題漢字は指定PDF由来。読み・意味ヒントは書き取り練習用の補助説明です。</div></section>
-
-<section id="quiz" class="card hidden">
-<div class="top"><span id="turnPill" class="pill"></span><span id="progressPill" class="pill"></span><span id="pagePill" class="pill"></span></div><div class="progress"><div id="bar"></div></div>
-<div class="questionCard"><div class="readLabel">この読みの漢字を書いてください</div><div id="reading" class="reading"></div>
-<button id="audioBtn" class="audio">🔊 読みを聞く</button><button id="hintBtn" class="tool" style="margin-left:6px">💡 意味ヒント</button><div id="hintBox" class="hintBox hidden"></div></div>
-<div class="modeTabs" id="modeTabs"><button class="sel" data-mode="canvas">✍️ Apple Pencil手書き</button><button data-mode="text">⌨️ 文字入力</button></div>
-<div id="canvasArea"><div class="canvasWrap"><canvas id="pad"></canvas><div id="canvasHelp" class="canvasHelp">ここに直接書く</div></div><div class="tools"><button id="undoBtn" class="tool">↶ 1画戻す</button><button id="clearCanvasBtn" class="tool">全部消す</button><button id="showAnswer1" class="tool">答えを見る</button></div></div>
-<div id="textArea" class="hidden"><input id="answerInput" class="textInput" lang="ja" type="text" inputmode="text" autocomplete="off" placeholder="漢字を入力"><div class="tools"><button id="deleteBtn" class="tool">⌫ 1文字削除</button><button id="clearTextBtn" class="tool">全部消す</button><button id="showAnswer2" class="tool">答えを見る</button></div></div>
-<div id="answerBox" class="answerBox hidden"><div class="readLabel">正解</div><div id="answerKanji" class="answerKanji"></div><div id="answerMeta" class="answerMeta"></div><div class="gradeRow"><button id="goodBtn" class="grade good">○ 書けた</button><button id="badBtn" class="grade bad">× 書けなかった</button></div></div><div id="feedback" class="feedback"></div>
-</section>
-<section id="turnEnd" class="card hidden"><h1>このターン完了！</h1><p id="turnSummary" class="lead"></p><button id="nextTurnBtn" class="primary"></button></section>
-<section id="final" class="card hidden"><h1>全ターン完了！</h1><p id="finalSummary" class="lead"></p><button class="secondary" style="width:100%" onclick="location.reload()">最初に戻る</button></section>
-</main><script>
-const BANK=[{"kanji":"恥","reading":"はじ","hint":"はずかしいこと。面目を失うこと。","page":"p326"},{"kanji":"押","reading":"おす","hint":"力を加えて向こうへ動かす。","page":"p326"},{"kanji":"黙","reading":"だまる","hint":"ものを言わない。静かにする。","page":"p326"},{"kanji":"陵","reading":"りょう","hint":"大きな墓や丘を表す。","page":"p326"},{"kanji":"速","reading":"はやい","hint":"動きや進み方がはやい。","page":"p326"},{"kanji":"抑","reading":"おさえる","hint":"勢いや動きをおさえる。","page":"p326"},{"kanji":"索","reading":"さく","hint":"探し求める。手がかりをたどる。","page":"p326"},{"kanji":"吐","reading":"はく","hint":"口から外へ出す。","page":"p326"},{"kanji":"暇","reading":"ひま","hint":"自由に使える時間。","page":"p326"},{"kanji":"倒","reading":"たおす","hint":"立っているものを横にする。","page":"p326"},{"kanji":"亀","reading":"かめ","hint":"甲らをもつ動物のかめ。","page":"p327"},{"kanji":"崖","reading":"がけ","hint":"切り立った急な斜面。","page":"p327"},{"kanji":"畜","reading":"ちく","hint":"家畜など、飼って育てる動物。","page":"p327"},{"kanji":"詰","reading":"つめる","hint":"すき間なく入れる。","page":"p327"},{"kanji":"猟","reading":"りょう","hint":"鳥や獣をとること。","page":"p327"},{"kanji":"狩","reading":"かる","hint":"鳥や獣を追ってとらえる。","page":"p327"},{"kanji":"隙","reading":"すき","hint":"物と物の間。油断できるところ。","page":"p327"},{"kanji":"藤","reading":"ふじ","hint":"紫色などの花をつける植物。","page":"p327"},{"kanji":"葛","reading":"くず","hint":"つる性の植物。","page":"p327"},{"kanji":"卓","reading":"たく","hint":"机。すぐれているという意味にも使う。","page":"p327"},{"kanji":"瓶","reading":"びん","hint":"液体などを入れる容器。","page":"p327"},{"kanji":"忌","reading":"いむ","hint":"いやがって避ける。","page":"p327"},{"kanji":"掃","reading":"はく","hint":"ほうきなどでごみを取り除く。","page":"p327"},{"kanji":"廊","reading":"ろう","hint":"建物の中の細長い通路。","page":"p327"},{"kanji":"輩","reading":"はい","hint":"同じ仲間・同類の人。","page":"p327"},{"kanji":"壊","reading":"こわす","hint":"形や働きをだめにする。","page":"p327"},{"kanji":"粒","reading":"つぶ","hint":"小さく丸い一つ一つのもの。","page":"p327"},{"kanji":"泥","reading":"どろ","hint":"水を含んだ土。","page":"p327"},{"kanji":"汗","reading":"あせ","hint":"暑いときなどに皮膚から出る水分。","page":"p327"},{"kanji":"魔","reading":"ま","hint":"人を惑わせる不思議な力などを表す。","page":"p327"},{"kanji":"浜","reading":"はま","hint":"海や湖の水辺。","page":"p327"},{"kanji":"響","reading":"ひびく","hint":"音や影響が広がって伝わる。","page":"p327"},{"kanji":"虎","reading":"とら","hint":"大型のネコ科の動物。","page":"p327"},{"kanji":"庶","reading":"しょ","hint":"多くの人、一般の人々を表す。","page":"p327"},{"kanji":"謎","reading":"なぞ","hint":"意味や答えがすぐには分からないもの。","page":"p327"},{"kanji":"漫","reading":"まん","hint":"広くとりとめがないことを表す。","page":"p327"},{"kanji":"伴","reading":"ともなう","hint":"一緒についていく。","page":"p327"},{"kanji":"棚","reading":"たな","hint":"物を置くための横板。","page":"p327"},{"kanji":"慌","reading":"あわてる","hint":"急いで落ち着きを失う。","page":"p327"},{"kanji":"握","reading":"にぎる","hint":"手の中につかむ。","page":"p327"},{"kanji":"叫","reading":"さけぶ","hint":"大きな声を出す。","page":"p327"},{"kanji":"酬","reading":"しゅう","hint":"働きなどに報いる。","page":"p327"},{"kanji":"穂","reading":"ほ","hint":"稲や麦などの実がつく部分。","page":"p327"},{"kanji":"普","reading":"ふ","hint":"広く行き渡ることを表す。","page":"p327"},{"kanji":"扉","reading":"とびら","hint":"開け閉めする戸。","page":"p327"},{"kanji":"迎","reading":"むかえる","hint":"来る人を出て待ち受ける。","page":"p327"},{"kanji":"誰","reading":"だれ","hint":"人をたずねる言葉。","page":"p327"},{"kanji":"童","reading":"どう","hint":"子ども。","page":"p327"},{"kanji":"婚","reading":"こん","hint":"結婚に関係すること。","page":"p327"},{"kanji":"頃","reading":"ころ","hint":"ある時期・時分。","page":"p327"},{"kanji":"姫","reading":"ひめ","hint":"身分の高い女性や若い女性を表す語。","page":"p327"},{"kanji":"釈","reading":"しゃく","hint":"意味を解き明かす。説明する。","page":"p327"},{"kanji":"苗","reading":"なえ","hint":"植えかえる前の若い植物。","page":"p328"},{"kanji":"尾","reading":"お","hint":"動物のしっぽ。物の末の部分。","page":"p328"},{"kanji":"鋭","reading":"するどい","hint":"先がとがっている。感覚などが優れている。","page":"p328"},{"kanji":"盾","reading":"たて","hint":"身を守るための防具。","page":"p328"},{"kanji":"予","reading":"よ","hint":"前もって、あらかじめ。","page":"p328"},{"kanji":"渡","reading":"わたる","hint":"向こう側へ行く。手から手へ移す。","page":"p328"},{"kanji":"胆","reading":"たん","hint":"内臓の一つ。度胸の意味にも使う。","page":"p328"},{"kanji":"透","reading":"すく","hint":"向こう側が見えるほど通り抜ける。","page":"p328"},{"kanji":"晶","reading":"しょう","hint":"きらきら光る結晶などを表す。","page":"p328"},{"kanji":"獄","reading":"ごく","hint":"罪人を閉じこめる場所。","page":"p328"},{"kanji":"覆","reading":"おおう","hint":"上からかぶせて隠す。","page":"p328"},{"kanji":"咲","reading":"さく","hint":"花が開く。","page":"p328"},{"kanji":"枯","reading":"かれる","hint":"植物が水分を失い、しおれる。","page":"p328"},{"kanji":"疲","reading":"つかれる","hint":"体や心の力が弱る。","page":"p328"},{"kanji":"沈","reading":"しずむ","hint":"水の中や下の方へ入っていく。","page":"p328"},{"kanji":"漂","reading":"ただよう","hint":"水や空中を流れるように動く。","page":"p328"},{"kanji":"浮","reading":"うく","hint":"水面などに沈まずにある。","page":"p328"},{"kanji":"踏","reading":"ふむ","hint":"足で上からおさえる。","page":"p328"},{"kanji":"踊","reading":"おどる","hint":"音楽などに合わせて体を動かす。","page":"p328"},{"kanji":"匹","reading":"ひき","hint":"動物などを数える語。","page":"p328"},{"kanji":"緒","reading":"お","hint":"物事の始まり・手がかり。糸の端。","page":"p328"},{"kanji":"肝","reading":"きも","hint":"内臓の一つ。大切なところという意味にも使う。","page":"p328"},{"kanji":"堪","reading":"たえる","hint":"苦しさなどをがまんする。","page":"p328"},{"kanji":"驚","reading":"おどろく","hint":"思いがけないことにびっくりする。","page":"p328"},{"kanji":"隠","reading":"かくす","hint":"見えないようにする。","page":"p328"},{"kanji":"途","reading":"と","hint":"道。途中。","page":"p328"},{"kanji":"恋","reading":"こい","hint":"人を強く思う気持ち。","page":"p328"},{"kanji":"闇","reading":"やみ","hint":"光がなく暗いこと。","page":"p328"},{"kanji":"屯","reading":"とん","hint":"人や物が集まってとどまる。","page":"p328"},{"kanji":"升","reading":"ます","hint":"液体や穀物を量る容器。","page":"p328"},{"kanji":"韓","reading":"かん","hint":"韓国などに使う字。","page":"p328"},{"kanji":"頓","reading":"とん","hint":"急に。整える・落ち着く意味にも使う。","page":"p328"},{"kanji":"罰","reading":"ばつ","hint":"悪い行いに対して与えるこらしめ。","page":"p328"},{"kanji":"慈","reading":"じ","hint":"相手をいつくしみ、かわいがる。","page":"p328"},{"kanji":"腎","reading":"じん","hint":"腎臓に使う字。","page":"p328"},{"kanji":"与","reading":"あたえる","hint":"相手にわたす。関係する。","page":"p328"},{"kanji":"又","reading":"また","hint":"もう一度。そのうえ。","page":"p328"},{"kanji":"猶","reading":"なお","hint":"それでもまだ。ためらう意味にも使う。","page":"p328"},{"kanji":"甚","reading":"はなはだ","hint":"程度がとても大きい。","page":"p328"},{"kanji":"亜","reading":"あ","hint":"次ぐ・二番目という意味を表す。","page":"p328"},{"kanji":"猫","reading":"ねこ","hint":"ネコ科の動物。","page":"p328"},{"kanji":"井","reading":"い","hint":"井戸。","page":"p328"},{"kanji":"捉","reading":"とらえる","hint":"つかまえる。意味をしっかりつかむ。","page":"p329"},{"kanji":"焦","reading":"あせる","hint":"気持ちが急ぐ。こげる。","page":"p329"},{"kanji":"斎","reading":"さい","hint":"身を清めることなどを表す。","page":"p329"},{"kanji":"爪","reading":"つめ","hint":"指の先にあるかたい部分。","page":"p329"},{"kanji":"霊","reading":"れい","hint":"たましい。目に見えない存在。","page":"p329"},{"kanji":"姓","reading":"せい","hint":"名字。家の名。","page":"p329"},{"kanji":"据","reading":"すえる","hint":"動かないように置く。","page":"p329"},{"kanji":"稲","reading":"いね","hint":"米が実る植物。","page":"p329"},{"kanji":"泡","reading":"あわ","hint":"液体の中や表面にできる気体の粒。","page":"p329"},{"kanji":"唄","reading":"うた","hint":"うた。歌うもの。","page":"p329"},{"kanji":"沸","reading":"わく","hint":"液体が熱せられて激しく泡立つ。","page":"p329"},{"kanji":"沼","reading":"ぬま","hint":"浅く水がたまった場所。","page":"p329"},{"kanji":"巾","reading":"はば","hint":"布や、幅を表すのに使う字。","page":"p329"},{"kanji":"丈","reading":"たけ","hint":"長さ・高さ。丈夫の『丈』。","page":"p329"},{"kanji":"吹","reading":"ふく","hint":"風が動く。息を出す。","page":"p329"},{"kanji":"薄","reading":"うすい","hint":"厚みや濃さが少ない。","page":"p329"},{"kanji":"煙","reading":"けむり","hint":"物が燃えたときに出るもの。","page":"p329"},{"kanji":"漠","reading":"ばく","hint":"広々としてはっきりしない様子。","page":"p329"},{"kanji":"斜","reading":"ななめ","hint":"まっすぐでなく傾いている。","page":"p329"},{"kanji":"威","reading":"い","hint":"人をおそれさせる力・勢い。","page":"p329"}];const STORE='japaneseKanjiExamWeak_v1';const $=s=>document.querySelector(s);
-let turns=2,currentTurn=1,queue=[],cleared=0,current=null,miss=0,totalMiss=0,mode='canvas';let weak=JSON.parse(localStorage.getItem(STORE)||'{}');const used=new Set();
-function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-$('#turnBtns').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#turnBtns button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');turns=+b.dataset.turns};
-$('#modeTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#modeTabs button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');mode=b.dataset.mode;$('#canvasArea').classList.toggle('hidden',mode!=='canvas');$('#textArea').classList.toggle('hidden',mode!=='text')};
-function makeTurn(){let fresh=BANK.filter(x=>!used.has(x.kanji));if(fresh.length<20){used.clear();fresh=[...BANK]}const pool=[...fresh].sort((a,b)=>(weak[b.kanji]||0)-(weak[a.kanji]||0)).slice(0,Math.min(50,fresh.length));const picked=shuffle(pool).slice(0,20);picked.forEach(x=>used.add(x.kanji));return picked.map(x=>({item:x}))}
-$('#startBtn').onclick=()=>{$('#setup').classList.add('hidden');startTurn()};
-function startTurn(){
-StudyLog.startTurn({subject:'国語',app:'国語・漢字の書き',turnLabel:`第${currentTurn}ターン`});queue=makeTurn();cleared=0;miss=0;$('#quiz').classList.remove('hidden');$('#turnEnd').classList.add('hidden');renderNext()}
-function renderNext(){if(!queue.length)return endTurn();current=queue.shift();const x=current.item;try{WeakLog.start({subject:'国語',app:'国語・漢字の書き',category:x.page||'',question:'読み：'+x.reading,answer:x.kanji})}catch(e){}$('#turnPill').textContent=`${currentTurn} / ${turns}ターン`;$('#progressPill').textContent=`クリア ${cleared} / 20`;$('#pagePill').textContent=x.page;$('#bar').style.width=(cleared/20*100)+'%';$('#reading').textContent=x.reading;$('#hintBox').textContent=x.hint;$('#hintBox').classList.add('hidden');$('#answerBox').classList.add('hidden');$('#answerKanji').textContent=x.kanji;$('#answerMeta').textContent=`読み：${x.reading}`;$('#feedback').textContent='';$('#answerInput').value='';clearCanvas()}
-$('#hintBtn').onclick=()=>$('#hintBox').classList.toggle('hidden');
-$('#audioBtn').onclick=()=>{const u=new SpeechSynthesisUtterance(current.item.reading);u.lang='ja-JP';u.rate=.8;speechSynthesis.cancel();speechSynthesis.speak(u)};
-function showAnswer(){$('#answerInput').blur();$('#answerBox').classList.remove('hidden')}$('#showAnswer1').onclick=showAnswer;$('#showAnswer2').onclick=showAnswer;
-$('#goodBtn').onclick=()=>{try{WeakLog.result('correct')}catch(e){}weak[current.item.kanji]=Math.max(0,(weak[current.item.kanji]||0)-1);localStorage.setItem(STORE,JSON.stringify(weak));cleared++;$('#feedback').textContent='✅ クリア';setTimeout(renderNext,500)};
-$('#badBtn').onclick=()=>{try{WeakLog.result('wrong')}catch(e){}weak[current.item.kanji]=(weak[current.item.kanji]||0)+2;localStorage.setItem(STORE,JSON.stringify(weak));miss++;totalMiss++;queue.push(current);$('#feedback').textContent='↩ この漢字をターンの最後へ回します';setTimeout(renderNext,650)};
-$('#deleteBtn').onclick=()=>{const a=Array.from($('#answerInput').value);a.pop();$('#answerInput').value=a.join('');$('#answerInput').focus()};$('#clearTextBtn').onclick=()=>{$('#answerInput').value='';$('#answerInput').focus()};
-function endTurn(){
-StudyLog.finishTurn({subject:'国語',app:'国語・漢字の書き',turnLabel:`第${currentTurn}ターン`});$('#quiz').classList.add('hidden');$('#turnEnd').classList.remove('hidden');$('#turnSummary').textContent=`20問すべてクリア。書けなかった延べ回数：${miss}回`;$('#nextTurnBtn').textContent=currentTurn>=turns?'結果を見る':'次のターンへ'}
-$('#nextTurnBtn').onclick=()=>{if(currentTurn>=turns){$('#turnEnd').classList.add('hidden');$('#final').classList.remove('hidden');$('#finalSummary').textContent=`${turns}ターン終了。書けなかった延べ回数：${totalMiss}回。次回は苦手漢字が少し出やすくなります。`}else{currentTurn++;startTurn()}};
-const canvas=$('#pad'),ctx=canvas.getContext('2d');let drawing=false,strokes=[],stroke=[];
-function resize(){const r=canvas.getBoundingClientRect(),d=devicePixelRatio||1;canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);ctx.setTransform(d,0,0,d,0,0);redraw()}
-function pos(e){const r=canvas.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]}
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;stroke=[pos(e)];canvas.setPointerCapture(e.pointerId);$('#canvasHelp').classList.add('hidden')});
-canvas.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const p=pos(e),l=stroke[stroke.length-1];ctx.strokeStyle='#111';ctx.lineWidth=5;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(l[0],l[1]);ctx.lineTo(p[0],p[1]);ctx.stroke();stroke.push(p)});
-canvas.addEventListener('pointerup',()=>{if(drawing){drawing=false;strokes.push(stroke);stroke=[]}});canvas.addEventListener('pointercancel',()=>drawing=false);
-function redraw(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);ctx.strokeStyle='#111';ctx.lineWidth=5;ctx.lineCap='round';ctx.lineJoin='round';for(const s of strokes){if(s.length<2)continue;ctx.beginPath();ctx.moveTo(s[0][0],s[0][1]);for(let i=1;i<s.length;i++)ctx.lineTo(s[i][0],s[i][1]);ctx.stroke()}$('#canvasHelp').classList.toggle('hidden',strokes.length>0)}
-function clearCanvas(){strokes=[];stroke=[];ctx.clearRect(0,0,canvas.width,canvas.height);$('#canvasHelp').classList.remove('hidden')}$('#undoBtn').onclick=()=>{strokes.pop();redraw()};$('#clearCanvasBtn').onclick=clearCanvas;window.addEventListener('resize',()=>setTimeout(resize,100));setTimeout(resize,150);
-</script></body></html>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← 科目一覧へ</a>
+  <section class="hero">
+    <h1>国語｜漢字学習</h1>
+    <p class="lead">学習するモードを選んでください。</p>
+    <div class="grid">
+      <a class="card" href="japanese-reading.html">
+        <div class="icon">👀</div>
+        <h2>読み・漢字4択</h2>
+        <p>読みと文脈を見て、正しい漢字の熟語を4択から選びます。紙の書き取り前の準備用です。</p>
+        <span class="badge">先におすすめ</span>
+      </a>
+      <a class="card" href="japanese-write.html">
+        <div class="icon">✍️</div>
+        <h2>漢字を書く</h2>
+        <p>これまで使っていた国語の漢字書き取りアプリです。読み4択のあとに仕上げとして使います。</p>
+        <span class="badge">仕上げ</span>
+      </a>
+    </div>
+    <div class="order"><b>おすすめ順：</b> ① 読み・漢字4択 → ② 漢字を書く</div>
+  </section>
+</div>
+</body>
+</html>
