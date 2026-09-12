@@ -61,153 +61,6 @@ h1{font-size:clamp(26px,7vw,38px);line-height:1.2;margin:7px 0 10px}
   .card{padding:17px}
 }
 </style>
-
-<script>
-/* ===== 共通学習ログ v2 ===== */
-(function(){
-  if(window.StudyLog) return;
-  const KEY="studyLogV1";
-  let running=false, activeSec=0, last=0, turnStartedAt=null, meta={};
-
-  function now(){ return Date.now(); }
-  function localDate(ts){
-    const d=new Date(ts), z=n=>String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
-  }
-  function addActive(){
-    if(running && !document.hidden && last){
-      activeSec += Math.max(0,(now()-last)/1000);
-    }
-    last=now();
-  }
-  function load(){
-    try{
-      const x=JSON.parse(localStorage.getItem(KEY)||"[]");
-      return Array.isArray(x)?x:[];
-    }catch(e){ return []; }
-  }
-  function save(rows){
-    if(rows.length>1000) rows=rows.slice(-1000);
-    localStorage.setItem(KEY,JSON.stringify(rows));
-  }
-
-  window.StudyLog={
-    startTurn(m={}){
-      if(running) return;
-      meta=m||{};
-      running=true;
-      activeSec=0;
-      last=now();
-      turnStartedAt=last;
-    },
-    finishTurn(m={}){
-      if(!running) return;
-      addActive();
-      running=false;
-      const ended=now();
-      const x=Object.assign({},meta,m||{});
-      const rows=load();
-      rows.push({
-        id: ended+"-"+Math.random().toString(36).slice(2,8),
-        date: localDate(ended),
-        subject: x.subject||"未分類",
-        app: x.app||document.title||location.pathname.split("/").pop(),
-        turnLabel: x.turnLabel||"1ターン",
-        durationSec: Math.max(1,Math.round(activeSec)),
-        startedAt: turnStartedAt||ended,
-        endedAt: ended
-      });
-      save(rows);
-      activeSec=0; last=0; turnStartedAt=null; meta={};
-      window.dispatchEvent(new Event("studylogchange"));
-    },
-    cancelTurn(){
-      running=false; activeSec=0; last=0; turnStartedAt=null; meta={};
-    }
-  };
-
-  document.addEventListener("visibilitychange",()=>{
-    if(document.hidden){
-      if(running) addActive();
-    }else if(running){
-      last=now();
-    }
-  });
-})();
-</script>
-
-
-<script>
-/* ===== 共通苦手ログ v1 ===== */
-(function(){
-  if(window.WeakLog) return;
-  const KEY="weakLogV1";
-  let active=null;
-  const now=()=>Date.now();
-  function load(){
-    try{const x=JSON.parse(localStorage.getItem(KEY)||"{}");return x&&typeof x==="object"?x:{}}
-    catch(e){return {}}
-  }
-  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
-  function cleanKey(s){return String(s??"").trim().slice(0,240)}
-  window.WeakLog={
-    start(meta={}){
-      active={...meta,startedAt:now()};
-    },
-    result(kind,meta={},elapsedSec=null){
-      const m={...(active||{}),...(meta||{})};
-      const q=cleanKey(m.question||m.q||m.jp||m.prompt||"");
-      const a=cleanKey(m.answer||m.a||m.en||"");
-      if(!q && !m.key) return;
-      const subject=cleanKey(m.subject||"未分類");
-      const app=cleanKey(m.app||document.title||location.pathname.split("/").pop());
-      const key=cleanKey(m.key||`${subject}|${app}|${q}|${a}`);
-      const db=load();
-      const r=db[key]||{
-        subject,app,
-        category:cleanKey(m.category||m.cat||m.tag||""),
-        question:q,answer:a,
-        correct:0,wrong:0,timeout:0,
-        attempts:0,totalResponseSec:0,
-        firstSeenAt:now(),lastSeenAt:now()
-      };
-      if(kind==="correct") r.correct++;
-      else if(kind==="timeout") r.timeout++;
-      else r.wrong++;
-      r.attempts++;
-      let sec=elapsedSec;
-      if(sec==null && active?.startedAt) sec=(now()-active.startedAt)/1000;
-      if(Number.isFinite(sec) && sec>=0) r.totalResponseSec += Math.min(sec,600);
-      r.lastSeenAt=now();
-      if(m.category||m.cat||m.tag) r.category=cleanKey(m.category||m.cat||m.tag);
-      db[key]=r; save(db); active=null;
-    },
-    importWeak(meta,list){
-      const db=load();
-      for(const x of (list||[])){
-        if(!x||!(x.wrong>0||x.timeout>0)) continue;
-        const subject=cleanKey(meta.subject||x.subject||"未分類");
-        const app=cleanKey(meta.app||x.app||"");
-        const q=cleanKey(x.question||x.q||"");
-        const a=cleanKey(x.answer||x.a||"");
-        const key=cleanKey(x.key||`${subject}|${app}|${q}|${a}`);
-        const cur=db[key]||{
-          subject,app,category:cleanKey(x.category||x.cat||""),
-          question:q,answer:a,correct:0,wrong:0,timeout:0,
-          attempts:0,totalResponseSec:0,firstSeenAt:now(),lastSeenAt:now()
-        };
-        cur.wrong=Math.max(cur.wrong||0,Number(x.wrong)||0);
-        cur.timeout=Math.max(cur.timeout||0,Number(x.timeout)||0);
-        cur.correct=Math.max(cur.correct||0,Number(x.correct)||0);
-        cur.attempts=Math.max(cur.attempts||0,cur.wrong+cur.timeout+cur.correct);
-        cur.lastSeenAt=now(); db[key]=cur;
-      }
-      save(db);
-    }
-  };
-})();
-</script>
-
 </head>
 <body>
 <div class="app">
@@ -215,15 +68,16 @@ h1{font-size:clamp(26px,7vw,38px);line-height:1.2;margin:7px 0 10px}
 <section id="start" class="card">
   <div style="font-size:42px">🔬</div>
   <h1>理科 期末テスト<br>4択ドリル</h1>
-  <div class="lead">確定した試験範囲に合わせた改訂版です。1ターン20問、全問題時間制限なし。間違いは同じターンの末尾に回り、正解するまで再出題します。</div>
+  <div class="lead">確定した試験範囲に合わせた改訂版です。1ターン20問、全問題15秒。間違い・時間切れは同じターンの末尾に回り、正解するまで再出題します。</div>
   <div class="mode-grid">
     <button class="mode" data-mode="chem">🧪 化学<small>水溶液・濃度・溶解度・状態変化・蒸留</small></button>
     <button class="mode" data-mode="bio">🦎 生物<small>教科書36～53ページ＋54～61ページの動物分類＋関連資料</small></button>
     <button class="mode" data-mode="mix">🔥 期末 MIX<small>化学10問＋生物10問（分類を重点配分）</small></button>
     <button class="mode" data-mode="classify">🧭 動物分類 強化<small>脊椎・無脊椎・節足・軟体・分類判定を20問</small></button>
-    <button class="mode" data-mode="weak">💀 苦手だけ<small>誤答を優先して20問</small></button>
+    <button class="mode" data-mode="weak">💀 苦手だけ<small>誤答・時間切れを優先して20問</small></button>
   </div>
-  <div class="note">誤答履歴はこの端末のブラウザ内だけに保存されます。外部通信はしません。</div>
+  <a href="science-weaklog.html" style="display:block;margin-top:14px;padding:14px 16px;border-radius:15px;background:#eef2ff;color:#243b75;text-decoration:none;font-weight:900;text-align:center">📊 苦手ログ・紙ドリル・最終模擬テスト</a>
+  <div class="note">誤答・時間切れ・回答時間はこの端末のブラウザ内だけに保存されます。外部通信はしません。</div>
 </section>
 
 <section id="quiz" class="card hidden">
@@ -234,8 +88,8 @@ h1{font-size:clamp(26px,7vw,38px);line-height:1.2;margin:7px 0 10px}
   <div class="progress"><div id="progressBar"></div></div>
 
   <div class="timerrow">
-    <div id="timerNum" class="timerNumber">∞</div>
-    <div class="timer"><div id="timerBar" style="width:100%;background:#94a3b8"></div></div>
+    <div id="timerNum" class="timerNumber">10</div>
+    <div class="timer"><div id="timerBar"></div></div>
   </div>
 
   <div id="section" class="section"></div>
@@ -254,7 +108,7 @@ h1{font-size:clamp(26px,7vw,38px);line-height:1.2;margin:7px 0 10px}
   <div class="stats">
     <div class="stat"><b id="correctCount">0</b>初回正解</div>
     <div class="stat"><b id="wrongCount">0</b>誤答</div>
-    
+    <div class="stat"><b id="timeoutCount">0</b>時間切れ</div>
   </div>
   <div id="encourage" class="lead"></div>
   <div class="actions">
@@ -289,6 +143,22 @@ let timeoutCount = 0;
 let totalAttempts = 0;
 
 const $ = s => document.querySelector(s);
+
+
+const WEAK_LOG_V2="scienceWeakLogV2";
+const SLOW_MS=9000;
+let questionStartedAt=0;
+function weakLogLoad(){try{return JSON.parse(localStorage.getItem(WEAK_LOG_V2)||"{}")||{}}catch(e){return {}}}
+function recordWeak(q,outcome,elapsedMs){
+  const all=weakLogLoad(), key=String(q.id), now=Date.now();
+  const r=all[key]||{id:q.id,subject:q.subject,section:q.section,question:q.q,answer:q.a,wrong:0,timeout:0,slow:0,attempts:0,correct:0,totalMs:0,maxMs:0,streak:0,lastSeenAt:0};
+  r.subject=q.subject;r.section=q.section;r.question=q.q;r.answer=q.a;
+  r.attempts=(r.attempts||0)+1;r.totalMs=(r.totalMs||0)+Math.round(elapsedMs||0);r.maxMs=Math.max(r.maxMs||0,Math.round(elapsedMs||0));r.lastSeenAt=now;
+  if(outcome==="wrong"){r.wrong=(r.wrong||0)+1;r.streak=0}
+  else if(outcome==="timeout"){r.timeout=(r.timeout||0)+1;r.streak=0}
+  else {r.correct=(r.correct||0)+1;r.streak=(r.streak||0)+1;if((elapsedMs||0)>=SLOW_MS)r.slow=(r.slow||0)+1}
+  all[key]=r;localStorage.setItem(WEAK_LOG_V2,JSON.stringify(all));
+}
 
 function shuffle(arr){
   const x=[...arr];
@@ -601,7 +471,6 @@ function autoDistractors(q){
 }
 
 function start(mode,custom=null){
-StudyLog.startTurn({subject:'理科',app:'理科・期末4択',turnLabel:'1ターン'});
   currentMode=mode;
   session=custom||buildSession(mode);
 
@@ -623,7 +492,6 @@ StudyLog.startTurn({subject:'理科',app:'理科・期末4択',turnLabel:'1タ�
 }
 
 function showQuestion(){
-try{const z=currentItem?.q||currentItem; if(z) WeakLog.start({subject:'理科',app:'理科・期末4択',category:z.cat||'',question:z.q||'',answer:z.a||''})}catch(e){}
   locked=false;
   clearInterval(timerId);
 
@@ -660,13 +528,27 @@ try{const z=currentItem?.q||currentItem; if(z) WeakLog.start({subject:'理科',a
     b.onclick=()=>answer(opt,b);
     $("#choices").appendChild(b);
   });
-  timeLeft=Infinity; updateTimer();
+
+  // 全問題15秒に統一
+  timeMax=15;
+  timeLeft=15;
+  updateTimer();
+
+  questionStartedAt=performance.now();
+  const started=questionStartedAt;
+  timerId=setInterval(()=>{
+    const elapsed=(performance.now()-started)/1000;
+    timeLeft=Math.max(0,timeMax-elapsed);
+    updateTimer();
+    if(timeLeft<=0) timeout();
+  },100);
 }
 
 function updateTimer(){
-  $("#timerNum").textContent="∞";
-  $("#timerBar").style.width="100%";
-  $("#timerBar").style.background="#94a3b8";
+  $("#timerNum").textContent=Math.ceil(timeLeft);
+  $("#timerBar").style.width=`${(timeLeft/timeMax)*100}%`;
+  const p=timeLeft/timeMax;
+  $("#timerBar").style.background=p<.30?"var(--bad)":p<.55?"var(--warn)":"var(--accent)";
 }
 
 function lockChoices(correct,clicked=null,showNext=true){
@@ -686,6 +568,8 @@ function answer(opt,btn){
   const item=currentItem;
   const q=item.q;
   const ok=opt===q.a;
+  const elapsedMs=Math.min(15000,Math.max(0,performance.now()-questionStartedAt));
+  recordWeak(q,ok?"correct":"wrong",elapsedMs);
   const f=$("#feedback");
 
   if(ok){
@@ -720,7 +604,6 @@ function answer(opt,btn){
 }
 
 function timeout(){
- try{WeakLog.result('timeout')}catch(e){}
   if(locked) return;
   locked=true;
   clearInterval(timerId);
@@ -730,6 +613,7 @@ function timeout(){
   if(item.attempt===1) firstAttemptDone.add(item.slot);
   timeoutCount++;
   saveMiss(q.id,"timeout");
+  recordWeak(q,"timeout",15000);
 
   // 時間切れも正解するまで末尾へ戻す
   queue.push({q,slot:item.slot,attempt:item.attempt+1});
@@ -743,7 +627,6 @@ function timeout(){
 $("#nextBtn").onclick=showQuestion;
 
 function showResult(){
-StudyLog.finishTurn({subject:'理科',app:'理科・期末4択',turnLabel:'1ターン'});
   clearInterval(timerId);
   $("#quiz").classList.add("hidden");
   $("#result").classList.remove("hidden");
